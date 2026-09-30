@@ -1,0 +1,687 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-bengali: 'Noto Sans Bengali', 'Hind Siliguri', 'Kalpurush', 'Nirmala UI', 'Instrument Sans', system-ui, sans-serif;
+
+    /* Brand */
+    --color-ink: #12261c;
+    --color-forest: #1c3d2e;
+    --color-moss: #2f5a43;
+    --color-fern: #4c7f61;
+    --color-gold: #b8935a;
+    --color-gold-ink: #8a6a34;
+    --color-gold-soft: #e3d3b4;
+
+    /* Neutrals */
+    --color-sand: #f1ece3;
+    --color-cream: #faf8f4;
+    --color-paper: #ffffff;
+    --color-line: #e5dfd4;
+    --color-line-strong: #d3cabb;
+    --color-muted: #6a6862;
+
+    /* Status */
+    --color-success: #1f6b45;
+    --color-success-bg: #e8f2ec;
+    --color-warn: #8a5a12;
+    --color-warn-bg: #f8efdf;
+    --color-danger: #9a2a22;
+    --color-danger-bg: #f8eae8;
+    --color-info: #1f5673;
+    --color-info-bg: #e7f0f5;
+
+    /* Elevation */
+    --shadow-uh-sm: 0 1px 2px rgba(18, 38, 28, 0.06);
+    --shadow-uh: 0 8px 24px -14px rgba(18, 38, 28, 0.3);
+    --shadow-uh-lg: 0 24px 48px -28px rgba(18, 38, 28, 0.38);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        background: var(--color-cream);
+        color: var(--color-ink);
+        font-feature-settings: 'cv11', 'ss01';
+        text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+        background: var(--color-gold-soft);
+        color: var(--color-ink);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-gold-ink);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+/* Bengali needs a taller line box and its own family: Instrument Sans has no
+   Bengali glyphs, so without this the browser falls back inconsistently. */
+:lang(bn) {
+    font-family: var(--font-bengali);
+    line-height: 1.85;
+}
+
+:lang(bn) .uh-display,
+:lang(bn) .uh-h1,
+:lang(bn) .uh-h2,
+:lang(bn) .uh-h3 {
+    font-family: var(--font-bengali);
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+/* Bengali has no letter case, and wide tracking hurts conjunct legibility. */
+:lang(bn) .uh-eyebrow,
+:lang(bn) .uh-eyebrow-light,
+:lang(bn) .uh-badge,
+:lang(bn) .uh-spec-label,
+:lang(bn) .uh-legend,
+:lang(bn) .uh-table thead th {
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+:lang(bn) .uh-badge {
+    font-size: 0.75rem;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Component classes live in the components layer so Tailwind utilities
+   (hidden, w-auto, flex …) can still override them at the call site. */
+@layer components {
+
+.uh-skip {
+    @apply sr-only;
+}
+
+.uh-skip:focus {
+    @apply not-sr-only fixed left-4 top-4 z-100 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout
+--------------------------------------------------------------------------- */
+
+.uh-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.uh-container-narrow {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+}
+
+.uh-section {
+    @apply py-14 md:py-20;
+}
+
+.uh-section-tight {
+    @apply py-10 md:py-14;
+}
+
+.uh-rule {
+    @apply border-0 border-t border-line;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography
+--------------------------------------------------------------------------- */
+
+.uh-display {
+    font-family: var(--font-display);
+    @apply text-4xl leading-[1.08] font-normal tracking-[-0.015em] text-balance sm:text-5xl lg:text-6xl;
+}
+
+.uh-h1 {
+    font-family: var(--font-display);
+    @apply text-3xl leading-[1.12] font-normal tracking-[-0.01em] text-balance sm:text-4xl lg:text-[2.75rem];
+}
+
+.uh-h2 {
+    font-family: var(--font-display);
+    @apply text-2xl leading-[1.15] font-normal tracking-[-0.01em] text-balance sm:text-3xl;
+}
+
+.uh-h3 {
+    @apply text-lg leading-snug font-semibold tracking-[-0.005em] sm:text-xl;
+}
+
+.uh-h4 {
+    @apply text-base leading-snug font-semibold;
+}
+
+.uh-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-gold-ink)];
+}
+
+.uh-eyebrow-light {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-gold-soft;
+}
+
+.uh-lede {
+    @apply text-base leading-relaxed text-[var(--color-muted)] sm:text-lg;
+}
+
+.uh-meta {
+    @apply text-sm text-[var(--color-muted)];
+}
+
+.uh-price {
+    @apply text-lg font-semibold tabular-nums tracking-tight sm:text-xl;
+}
+
+.uh-numeric {
+    @apply tabular-nums;
+}
+
+/* Long-form content (no typography plugin installed) */
+.uh-prose {
+    @apply text-[0.975rem] leading-[1.75] text-stone-700;
+}
+
+.uh-prose > * + * {
+    @apply mt-5;
+}
+
+.uh-prose h2 {
+    font-family: var(--font-display);
+    @apply mt-10 text-2xl leading-snug font-normal text-ink;
+}
+
+.uh-prose h3 {
+    @apply mt-8 text-lg font-semibold text-ink;
+}
+
+.uh-prose h4 {
+    @apply mt-6 text-base font-semibold text-ink;
+}
+
+.uh-prose p {
+    @apply max-w-[68ch];
+}
+
+.uh-prose a {
+    @apply font-medium text-forest underline decoration-gold decoration-2 underline-offset-2 hover:text-moss;
+}
+
+.uh-prose strong {
+    @apply font-semibold text-ink;
+}
+
+.uh-prose ul,
+.uh-prose ol {
+    @apply max-w-[68ch] space-y-2 pl-5;
+}
+
+.uh-prose ul {
+    @apply list-disc;
+}
+
+.uh-prose ol {
+    @apply list-decimal;
+}
+
+.uh-prose li::marker {
+    color: var(--color-gold);
+}
+
+.uh-prose blockquote {
+    @apply border-l-2 border-gold pl-5 text-lg leading-relaxed text-ink italic;
+}
+
+.uh-prose img {
+    @apply my-8 w-full rounded-xl;
+}
+
+.uh-prose hr {
+    @apply my-10 border-0 border-t border-line;
+}
+
+.uh-prose table {
+    @apply w-full border-collapse text-sm;
+}
+
+.uh-prose th,
+.uh-prose td {
+    @apply border-b border-line px-3 py-2 text-left;
+}
+
+/* ---------------------------------------------------------------------------
+   Surfaces
+--------------------------------------------------------------------------- */
+
+.uh-card {
+    @apply overflow-hidden rounded-xl bg-paper ring-1 ring-line;
+    box-shadow: var(--shadow-uh-sm);
+}
+
+.uh-card-hover {
+    @apply transition duration-200;
+}
+
+.uh-card-hover:hover {
+    box-shadow: var(--shadow-uh);
+    transform: translateY(-2px);
+}
+
+.uh-panel {
+    @apply rounded-xl bg-paper p-5 ring-1 ring-line sm:p-6;
+    box-shadow: var(--shadow-uh-sm);
+}
+
+.uh-panel-flush {
+    @apply rounded-xl bg-paper ring-1 ring-line;
+    box-shadow: var(--shadow-uh-sm);
+}
+
+.uh-hero {
+    background:
+        linear-gradient(180deg, rgba(18, 38, 28, 0.82) 0%, rgba(18, 38, 28, 0.62) 45%, rgba(18, 38, 28, 0.88) 100%),
+        linear-gradient(140deg, #16311f 0%, #1c3d2e 55%, #142a1f 100%);
+}
+
+.uh-hero-flat {
+    background: linear-gradient(140deg, #16311f 0%, #1c3d2e 60%, #142a1f 100%);
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons
+--------------------------------------------------------------------------- */
+
+.uh-btn {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold whitespace-nowrap transition duration-150 select-none;
+}
+
+.uh-btn-primary {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-forest px-5 text-sm font-semibold whitespace-nowrap text-cream transition duration-150 select-none hover:bg-moss active:translate-y-px;
+}
+
+.uh-btn-gold {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-gold px-5 text-sm font-semibold whitespace-nowrap text-ink transition duration-150 select-none hover:bg-[#a8834c] active:translate-y-px;
+}
+
+.uh-btn-outline {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-line-strong bg-paper px-5 text-sm font-semibold whitespace-nowrap text-ink transition duration-150 select-none hover:border-forest hover:text-forest active:translate-y-px;
+}
+
+.uh-btn-ondark {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-cream/30 px-5 text-sm font-semibold whitespace-nowrap text-cream transition duration-150 select-none hover:border-cream/60 hover:bg-white/10;
+}
+
+.uh-btn-ghost {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap text-forest transition duration-150 select-none hover:bg-forest/8;
+}
+
+.uh-btn-danger {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap text-[var(--color-danger)] transition duration-150 select-none hover:bg-[var(--color-danger-bg)];
+}
+
+.uh-btn-sm {
+    @apply min-h-9 px-3.5 text-[0.8125rem];
+}
+
+.uh-btn-lg {
+    @apply min-h-12 px-6 text-base;
+}
+
+.uh-btn-block {
+    @apply w-full;
+}
+
+.uh-btn:disabled,
+.uh-btn-primary:disabled,
+.uh-btn-gold:disabled,
+.uh-btn-outline:disabled,
+.uh-btn-ghost:disabled,
+.uh-btn-danger:disabled,
+.uh-btn-ondark:disabled {
+    @apply pointer-events-none opacity-55;
+}
+
+.uh-icon-btn {
+    @apply inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-ink transition duration-150 hover:bg-ink/6;
+}
+
+.uh-link {
+    @apply font-medium text-forest underline decoration-gold decoration-2 underline-offset-4 transition hover:text-moss;
+}
+
+.uh-link-quiet {
+    @apply font-medium text-forest transition hover:text-moss hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4;
+}
+
+/* ---------------------------------------------------------------------------
+   Forms
+--------------------------------------------------------------------------- */
+
+.uh-field {
+    @apply block;
+}
+
+.uh-label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+}
+
+.uh-label-optional {
+    @apply ml-1 text-xs font-normal text-[var(--color-muted)];
+}
+
+.uh-input,
+.uh-select,
+.uh-textarea {
+    @apply block w-full rounded-lg border border-line-strong bg-paper px-3.5 py-2.5 text-[0.9375rem] text-ink transition outline-none placeholder:text-stone-400 focus:border-forest focus:ring-2 focus:ring-forest/15;
+}
+
+.uh-input,
+.uh-select {
+    @apply min-h-11;
+}
+
+.uh-textarea {
+    @apply min-h-24 resize-y;
+}
+
+.uh-select {
+    @apply cursor-pointer appearance-none bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236a6862' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='m4 6.5 4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+.uh-input-invalid,
+.uh-select-invalid,
+.uh-textarea-invalid {
+    @apply border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]/15;
+}
+
+.uh-hint {
+    @apply mt-1.5 text-xs leading-relaxed text-[var(--color-muted)];
+}
+
+.uh-error {
+    @apply mt-1.5 flex items-start gap-1.5 text-xs font-medium text-[var(--color-danger)];
+}
+
+.uh-check {
+    @apply flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-ink select-none;
+}
+
+.uh-check input[type='checkbox'],
+.uh-check input[type='radio'] {
+    @apply size-4.5 shrink-0 cursor-pointer accent-[var(--color-forest)];
+}
+
+.uh-fieldset {
+    @apply space-y-4;
+}
+
+.uh-legend {
+    @apply mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)];
+}
+
+/* ---------------------------------------------------------------------------
+   Badges, chips, pills
+--------------------------------------------------------------------------- */
+
+.uh-badge {
+    @apply inline-flex items-center gap-1.5 rounded-md bg-sand px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-ink;
+}
+
+.uh-badge-success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.uh-badge-warn {
+    background: var(--color-warn-bg);
+    color: var(--color-warn);
+}
+
+.uh-badge-danger {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.uh-badge-info {
+    background: var(--color-info-bg);
+    color: var(--color-info);
+}
+
+.uh-badge-gold {
+    background: var(--color-gold-soft);
+    color: #6f5426;
+}
+
+.uh-badge-dark {
+    @apply bg-ink/85 text-cream backdrop-blur-sm;
+}
+
+.uh-badge-outline {
+    @apply border border-line-strong bg-transparent text-[var(--color-muted)];
+}
+
+.uh-dot {
+    @apply inline-block size-1.5 rounded-full bg-current;
+}
+
+.uh-chip {
+    @apply inline-flex min-h-9 items-center gap-2 rounded-full border border-line-strong bg-paper px-3.5 text-[0.8125rem] font-medium text-ink transition hover:border-forest;
+}
+
+.uh-chip-active {
+    @apply border-forest bg-forest text-cream hover:border-forest;
+}
+
+.uh-chip-remove {
+    @apply -mr-1 inline-flex size-5 items-center justify-center rounded-full text-current opacity-60 transition hover:bg-black/10 hover:opacity-100;
+}
+
+/* ---------------------------------------------------------------------------
+   Specs / key-value
+--------------------------------------------------------------------------- */
+
+.uh-specs {
+    @apply grid gap-px overflow-hidden rounded-xl bg-line ring-1 ring-line;
+}
+
+.uh-spec {
+    @apply bg-paper px-4 py-3.5;
+}
+
+.uh-spec-label {
+    @apply text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)];
+}
+
+.uh-spec-value {
+    @apply mt-1 text-[0.9375rem] font-semibold text-ink;
+}
+
+/* ---------------------------------------------------------------------------
+   Tables
+--------------------------------------------------------------------------- */
+
+.uh-table {
+    @apply w-full border-collapse text-left text-sm;
+}
+
+.uh-table thead th {
+    @apply border-b border-line bg-sand/70 px-4 py-3 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] whitespace-nowrap text-[var(--color-muted)];
+}
+
+.uh-table tbody td,
+.uh-table tbody th {
+    @apply border-b border-line px-4 py-3.5 align-middle;
+}
+
+.uh-table tbody tr:last-child th {
+    @apply border-b-0;
+}
+
+.uh-table tbody tr:last-child td {
+    @apply border-b-0;
+}
+
+.uh-table tbody tr {
+    @apply transition-colors;
+}
+
+.uh-table tbody tr:hover {
+    @apply bg-sand/40;
+}
+
+.uh-table-scroll {
+    @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
+}
+
+/* Keep columns readable inside the scroller instead of squeezing them
+   into unreadable two-word wraps on narrow screens. */
+.uh-table-scroll .uh-table {
+    @apply min-w-[44rem];
+}
+
+/* ---------------------------------------------------------------------------
+   Alerts, empty & loading states
+--------------------------------------------------------------------------- */
+
+.uh-alert {
+    @apply flex items-start gap-3 rounded-lg border px-4 py-3 text-sm;
+}
+
+.uh-alert-success {
+    border-color: color-mix(in srgb, var(--color-success) 25%, transparent);
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.uh-alert-danger {
+    border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.uh-alert-warn {
+    border-color: color-mix(in srgb, var(--color-warn) 25%, transparent);
+    background: var(--color-warn-bg);
+    color: var(--color-warn);
+}
+
+.uh-alert-info {
+    border-color: color-mix(in srgb, var(--color-info) 25%, transparent);
+    background: var(--color-info-bg);
+    color: var(--color-info);
+}
+
+.uh-empty {
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-line-strong bg-paper/60 px-6 py-14 text-center;
+}
+
+.uh-empty-icon {
+    @apply mb-4 flex size-12 items-center justify-center rounded-full bg-sand text-[var(--color-gold-ink)];
+}
+
+.uh-skeleton {
+    @apply animate-pulse rounded-lg bg-line/70;
+}
+
+.uh-spinner {
+    @apply inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   Media
+--------------------------------------------------------------------------- */
+
+.uh-media {
+    @apply relative overflow-hidden bg-sand;
+}
+
+.uh-media img {
+    @apply size-full object-cover;
+}
+
+.uh-media-zoom img {
+    @apply transition-transform duration-500 ease-out;
+}
+
+.uh-card-hover:hover .uh-media-zoom img {
+    transform: scale(1.04);
+}
+
+.uh-media-placeholder {
+    @apply flex size-full items-end bg-linear-to-br from-forest to-ink p-4 text-cream;
+}
+
+/* Leaflet trimmed to match the design system */
+.leaflet-container {
+    font-family: var(--font-sans);
+    background: var(--color-sand);
+}
+
+.leaflet-popup-content-wrapper {
+    @apply rounded-lg;
+    box-shadow: var(--shadow-uh);
+}
+
+.leaflet-popup-content {
+    @apply m-0 px-3.5 py-3 text-sm;
+}
+
+.leaflet-bar a {
+    @apply text-ink;
+}
+
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .uh-card-hover:hover {
+        transform: none;
+    }
+
+    .uh-card-hover:hover .uh-media-zoom img {
+        transform: none;
+    }
+}
+
+@media print {
+    .uh-no-print {
+        display: none !important;
+    }
+}
