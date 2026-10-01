@@ -5,18 +5,34 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Project;
+use App\Models\Property;
 use App\Support\SeoMeta;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $stage = $request->string('development_stage')->toString();
+
         $projects = Project::query()
             ->published()
+            ->when($stage === 'available', fn ($query) => $query->whereIn('development_stage', ['ongoing', 'upcoming']))
+            ->when(
+                in_array($stage, ['ongoing', 'completed', 'upcoming'], true),
+                fn ($query) => $query->where('development_stage', $stage),
+            )
             ->with(['locationArea', 'media'])
             ->withCount(['properties' => fn ($query) => $query->published()])
+            ->addSelect([
+                'starting_price' => Property::query()
+                    ->selectRaw('min(price)')
+                    ->whereColumn('properties.project_id', 'projects.id')
+                    ->published()
+                    ->whereNotNull('price'),
+            ])
             ->orderBy('name')
             ->get();
 

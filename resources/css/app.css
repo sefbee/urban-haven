@@ -157,6 +157,31 @@
     @apply w-[min(100%,19.5rem)] shrink-0 snap-start;
 }
 
+.uh-home-scroll {
+    @apply -mx-4 flex gap-4 overflow-x-auto px-4 pb-1 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3;
+    scrollbar-width: none;
+}
+
+.uh-home-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.uh-home-scroll > * {
+    @apply w-[min(100%,19.5rem)] shrink-0 snap-start md:w-auto;
+}
+
+.uh-discover-grid {
+    @apply grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+.uh-home-tab {
+    @apply inline-flex min-h-9 items-center rounded-md border border-line bg-paper px-3.5 text-xs font-semibold uppercase tracking-wide text-ink transition hover:border-forest;
+}
+
+.uh-home-tab-active {
+    @apply border-forest bg-forest text-cream;
+}
+
 .uh-rule {
     @apply border-0 border-t border-line;
 }

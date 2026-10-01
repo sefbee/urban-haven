@@ -142,7 +142,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Blog')
             ->assertSee('Valuation Tool')
             ->assertSee('Sign In / Sign Up')
-            ->assertSee('Contact Urban Haven Agent')
+            ->assertSee('Contact Urban Haven')
             ->assertDontSee('Post Property')
             ->assertDontSee('Login / Register');
 
@@ -152,42 +152,64 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Dhaka buying notes from the desk.');
     }
 
-    public function test_home_hero_offers_sale_rent_search_and_valuation_banner(): void
+    public function test_home_hero_offers_sale_rent_search_and_trust_strip(): void
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Your Perfect Property Awaits')
-            ->assertSee('For sale')
-            ->assertSee('For rent')
-            ->assertSee('Search by Location / Properties Name')
+            ->assertSee('Find a place that feels like home.')
+            ->assertSee('Explore verified properties and carefully selected projects from Urban Haven.')
+            ->assertSee('Buy')
+            ->assertSee('Rent')
+            ->assertSee('Location')
             ->assertSee('Property type')
+            ->assertSee('Bedrooms')
             ->assertSee('Price range')
-            ->assertSee('Try our free online property valuation tool')
-            ->assertSee('Calculate Now')
-            ->assertSee('Verified legal documents')
-            ->assertSee('No hidden listing fees')
-            ->assertSee('Direct desk support')
-            ->assertSee('Legal consultation available')
+            ->assertSee('Explore Properties')
+            ->assertSee('Explore Projects')
+            ->assertSee('Verified Properties')
+            ->assertSee('Carefully Selected Listings')
+            ->assertSee('Prime Locations')
+            ->assertSee('Dedicated Support')
+            ->assertSee('Why Urban Haven?')
+            ->assertSee('Find a Property')
+            ->assertSee('Contact Urban Haven')
+            ->assertSee('Properties for Sale')
+            ->assertSee('All Projects')
             ->assertDontSee('10,000+')
-            ->assertDontSee('Post Property');
+            ->assertDontSee('Post Property')
+            ->assertDontSee('Calculate Now')
+            ->assertDontSee('Your Perfect Property Awaits');
     }
 
-    public function test_home_arranges_projects_sale_rent_and_locations(): void
+    public function test_home_arranges_projects_featured_latest_types_and_locations(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
         $gulshan = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
         $apartment = PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'is_active' => true]);
+        PropertyType::query()->create(['key' => 'land', 'label' => 'Unused Land Type', 'is_active' => true]);
 
-        $this->publishProperty('Gulshan apartment sale', [
+        $this->publishProperty('Gulshan featured sale', [
             'property_type_id' => $apartment->id,
             'location_area_id' => $gulshan->id,
             'listing_type' => 'sale',
             'price' => 28_500_000,
+            'is_featured' => true,
         ]);
-        $this->publishProperty('Quiet rental home', [
+        $this->publishProperty('Banani latest sale', [
+            'property_type_id' => $apartment->id,
+            'listing_type' => 'sale',
+            'price' => 18_000_000,
+        ]);
+        $this->publishProperty('Quiet featured rental', [
             'listing_type' => 'rent',
             'price_basis' => 'monthly_rent',
             'price' => 85_000,
+            'is_featured' => true,
+        ]);
+        $this->publishProperty('Newest rental floor', [
+            'listing_type' => 'rent',
+            'price_basis' => 'monthly_rent',
+            'price' => 70_000,
         ]);
 
         $project = Project::query()->create([
@@ -202,16 +224,86 @@ class PropertyDiscoveryTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Featured Urban Haven projects')
-            ->assertSee('Haven Residences Gulshan')
+            ->assertSeeInOrder([
+                'Find a place that feels like home.',
+                'Verified Properties',
+                'Featured Projects',
+                'Haven Residences Gulshan',
+                'View Project',
+                'Featured Properties',
+                'Gulshan featured sale',
+                'Quiet featured rental',
+                'Latest Properties',
+                'Banani latest sale',
+                'Newest rental floor',
+                'Explore by Property Type',
+                'Explore Properties by Location',
+                'Why Urban Haven?',
+                'Looking for the right property?',
+                'Find a Property',
+                'Explore Urban Haven',
+                'Available Projects',
+            ])
             ->assertSee('Under Construction')
-            ->assertSee('Apartments for sale in Dhaka')
-            ->assertSee('Gulshan apartment sale')
-            ->assertSee('Exclusive rental properties')
-            ->assertSee('Quiet rental home')
-            ->assertSee('Explore properties by popular locations')
-            ->assertSee('Calculate Now')
+            ->assertSee('Apartment')
+            ->assertDontSee('<span class="mt-5 block text-lg font-semibold tracking-tight">Unused Land Type</span>', false)
+            ->assertDontSee('Completed Projects')
             ->assertDontSee('Post Property');
+    }
+
+    public function test_home_hides_featured_and_latest_sections_when_those_collections_are_empty(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertDontSee('Featured Projects')
+            ->assertDontSee('Featured Properties')
+            ->assertDontSee('Latest Properties')
+            ->assertDontSee('Explore by Property Type')
+            ->assertDontSee('Explore Properties by Location');
+
+        $this->publishProperty('Only a featured sale', ['is_featured' => true, 'listing_type' => 'sale']);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Featured Properties')
+            ->assertSee('Only a featured sale')
+            ->assertDontSee('Latest Properties');
+    }
+
+    public function test_projects_index_filters_by_development_stage(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $area = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
+
+        $ongoing = Project::query()->create([
+            'name' => 'Ongoing Haven Court',
+            'development_stage' => 'ongoing',
+            'city' => 'Dhaka',
+            'location_area_id' => $area->id,
+            'developer_name' => 'Urban Haven Properties Ltd.',
+        ]);
+        $ongoing->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+
+        $completed = Project::query()->create([
+            'name' => 'Completed Haven House',
+            'development_stage' => 'completed',
+            'city' => 'Dhaka',
+            'location_area_id' => $area->id,
+            'developer_name' => 'Urban Haven Properties Ltd.',
+        ]);
+        $completed->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+
+        $this->get(route('projects.index', ['development_stage' => 'available']))
+            ->assertOk()
+            ->assertSee('Ongoing Haven Court')
+            ->assertDontSee('Completed Haven House');
+
+        $this->get(route('projects.index', ['development_stage' => 'completed']))
+            ->assertOk()
+            ->assertSee('Completed Haven House')
+            ->assertDontSee('Ongoing Haven Court');
     }
 
     public function test_search_matches_keyword_against_title_and_area_name(): void

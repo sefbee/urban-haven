@@ -172,6 +172,13 @@ Alpine.data('uhRail', () => ({
 }));
 
 /**
+ * Homepage sale/rent section tabs.
+ */
+Alpine.data('uhHomeTabs', (initial = 'sale') => ({
+    tab: initial,
+}));
+
+/**
  * Homepage hero search: purpose toggle and a dual-thumb price range.
  */
 Alpine.data('uhHeroSearch', () => ({

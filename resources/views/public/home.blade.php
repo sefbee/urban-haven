@@ -2,44 +2,29 @@
 
 @section('content')
     @include('public.home.hero')
-    @include('public.home.valuation-banner')
+    @include('public.home.trust')
 
     @if($projects->isNotEmpty())
-        @include('public.home.rail', [
-            'eyebrow' => __('Developments'),
-            'title' => __('Featured Urban Haven projects'),
-            'actionUrl' => route('projects.index'),
-            'actionLabel' => __('All projects'),
-            'kind' => 'project',
-            'items' => $projects,
-        ])
+        @include('public.home.projects')
     @endif
 
-    @if($saleHomes->isNotEmpty())
-        @include('public.home.rail', [
-            'eyebrow' => __('Buy'),
-            'title' => $saleHeading,
-            'actionUrl' => route('properties.index', ['listing_type' => 'sale']),
-            'actionLabel' => __('All listings'),
-            'kind' => 'property',
-            'items' => $saleHomes,
-        ])
+    @if($featuredSale->isNotEmpty() || $featuredRent->isNotEmpty())
+        @include('public.home.featured-properties')
     @endif
 
-    @if($rentHomes->isNotEmpty())
-        @include('public.home.rail', [
-            'eyebrow' => __('Rent'),
-            'title' => __('Exclusive rental properties'),
-            'actionUrl' => route('properties.index', ['listing_type' => 'rent']),
-            'actionLabel' => __('All listings'),
-            'kind' => 'property',
-            'items' => $rentHomes,
-        ])
+    @if($latestSale->isNotEmpty() || $latestRent->isNotEmpty())
+        @include('public.home.latest-properties')
+    @endif
+
+    @if($typeCards->isNotEmpty())
+        @include('public.home.types')
     @endif
 
     @if($areas->isNotEmpty())
         @include('public.home.locations')
     @endif
 
-    @include('public.home.trust')
+    @include('public.home.why')
+    @include('public.home.cta')
+    @include('public.home.discover')
 @endsection

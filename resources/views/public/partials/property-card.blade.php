@@ -41,7 +41,13 @@
 
         <p class="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--color-muted)]">
             <x-icon name="pin" class="size-3.5 shrink-0 text-[var(--color-gold-ink)]" />
-            <span class="truncate">{{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif</span>
+            <span class="truncate">
+                @if($property->propertyType?->label)
+                    {{ $property->propertyType->label }}
+                    <span aria-hidden="true"> · </span>
+                @endif
+                {{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif
+            </span>
         </p>
 
         <ul class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--color-muted)]">

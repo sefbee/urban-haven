@@ -9,83 +9,119 @@ use App\Models\Property;
 use App\Models\PropertyType;
 use App\Support\SeoMeta;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
+    /**
+     * @var list<string>
+     */
+    private array $listingRelations = ['propertyType', 'locationArea', 'media'];
+
     public function index(): View
     {
-        $relations = ['propertyType', 'locationArea', 'media'];
-        $apartmentTypeIds = PropertyType::query()
-            ->whereIn('key', ['apartment', 'apt'])
-            ->pluck('id');
-
-        $saleHomes = $this->publishedListings('sale', $relations)
-            ->when($apartmentTypeIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('property_type_id', $apartmentTypeIds))
-            ->limit(8)
-            ->get();
-
-        $saleHeading = __('Apartments for sale in Dhaka');
-
-        if ($saleHomes->isEmpty()) {
-            $saleHomes = $this->publishedListings('sale', $relations)->limit(8)->get();
-            $saleHeading = __('Homes for sale in Dhaka');
-        }
-
-        $rentHomes = $this->publishedListings('rent', $relations)->limit(8)->get();
-
-        $projects = Project::query()
-            ->published()
-            ->where('is_featured', true)
-            ->with(['locationArea', 'media'])
+        $types = PropertyType::query()
+            ->active()
             ->withCount(['properties' => fn (Builder $query) => $query->published()])
-            ->orderByDesc('id')
-            ->limit(8)
+            ->orderBy('label')
             ->get();
 
-        if ($projects->isEmpty()) {
-            $projects = Project::query()
-                ->published()
-                ->with(['locationArea', 'media'])
-                ->withCount(['properties' => fn (Builder $query) => $query->published()])
-                ->orderByDesc('id')
-                ->limit(8)
-                ->get();
-        }
+        $areas = LocationArea::query()
+            ->active()
+            ->withCount(['properties' => fn (Builder $query) => $query->published()])
+            ->orderBy('name')
+            ->get();
 
-        $heroImage = $saleHomes
-            ->concat($rentHomes)
-            ->first(fn (Property $property) => $property->featuredImage() !== null)
-            ?->featuredImage();
+        $featuredSale = $this->publishedListings('sale')->where('is_featured', true)->limit(8)->get();
+        $featuredRent = $this->publishedListings('rent')->where('is_featured', true)->limit(8)->get();
+        $featuredIds = $featuredSale->pluck('id')->merge($featuredRent->pluck('id'));
+
+        $latestSale = $this->latestListings('sale', $featuredIds);
+        $latestRent = $this->latestListings('rent', $featuredIds);
+
+        $heroImage = $featuredSale
+            ->concat($featuredRent)
+            ->concat($latestSale)
+            ->concat($latestRent)
+            ->first(fn (Property $property) => $property->featuredImage() !== null);
 
         return view('public.home', [
-            'projects' => $projects,
-            'saleHomes' => $saleHomes,
-            'saleHeading' => $saleHeading,
-            'rentHomes' => $rentHomes,
-            'areas' => LocationArea::query()
-                ->active()
-                ->withCount(['properties' => fn (Builder $query) => $query->published()])
-                ->orderByDesc('properties_count')
-                ->orderBy('name')
-                ->limit(8)
-                ->get(),
-            'types' => PropertyType::query()->active()->orderBy('label')->get(),
-            'heroImage' => $heroImage,
+            'projects' => $this->featuredProjects(),
+            'featuredSale' => $featuredSale,
+            'featuredRent' => $featuredRent,
+            'latestSale' => $latestSale,
+            'latestRent' => $latestRent,
+            'types' => $types,
+            'typeCards' => $types->where('properties_count', '>', 0)->values(),
+            'areas' => $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take(12)->values(),
+            'heroAreas' => $areas,
+            'cities' => $areas->where('properties_count', '>', 0)->pluck('city')->filter()->unique()->values(),
+            'hasAvailableProjects' => Project::query()->published()->whereIn('development_stage', ['ongoing', 'upcoming'])->exists(),
+            'hasCompletedProjects' => Project::query()->published()->where('development_stage', 'completed')->exists(),
+            'stats' => [
+                'properties' => Property::query()->published()->count(),
+                'projects' => Project::query()->published()->count(),
+                'locations' => $areas->where('properties_count', '>', 0)->count(),
+            ],
+            'heroImage' => $heroImage?->featuredImage(),
+            'heroImageAlt' => $heroImage?->title,
             'seo' => SeoMeta::for(null, config('app.name'), 'Company-owned apartments, duplexes and project units for sale and rent in Dhaka.'),
         ]);
     }
 
     /**
-     * @param  list<string>  $relations
+     * @return Collection<int, Project>
+     */
+    private function featuredProjects(): Collection
+    {
+        $projects = $this->projectQuery()->where('is_featured', true)->limit(8)->get();
+
+        return $projects->isNotEmpty()
+            ? $projects
+            : $this->projectQuery()->limit(8)->get();
+    }
+
+    /**
+     * @return Builder<Project>
+     */
+    private function projectQuery(): Builder
+    {
+        return Project::query()
+            ->published()
+            ->with(['locationArea', 'media'])
+            ->withCount(['properties' => fn (Builder $query) => $query->published()])
+            ->addSelect([
+                'starting_price' => Property::query()
+                    ->selectRaw('min(price)')
+                    ->whereColumn('properties.project_id', 'projects.id')
+                    ->published()
+                    ->whereNotNull('price'),
+            ])
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @param  Collection<int, int>  $excludeIds
+     * @return Collection<int, Property>
+     */
+    private function latestListings(string $listingType, Collection $excludeIds): Collection
+    {
+        return $this->publishedListings($listingType)
+            ->when($excludeIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('id', $excludeIds))
+            ->limit(8)
+            ->get();
+    }
+
+    /**
      * @return Builder<Property>
      */
-    private function publishedListings(string $listingType, array $relations): Builder
+    private function publishedListings(string $listingType): Builder
     {
         return Property::query()
             ->published()
             ->where('listing_type', $listingType)
-            ->with($relations)
+            ->with($this->listingRelations)
             ->orderByDesc('id');
     }
 }

@@ -1,16 +1,16 @@
 <section class="bg-hero text-white">
     <div class="uh-container py-10 md:py-14 lg:py-16">
-        <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
-            <div>
-                <h1 class="max-w-md text-4xl font-bold leading-[1.12] tracking-tight text-white sm:text-5xl">
-                    {{ __('Your Perfect Property Awaits') }}
+        <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+            <div class="lg:col-span-7">
+                <h1 class="uh-h1 max-w-xl text-white">
+                    {{ __('Find a place that feels like home.') }}
                 </h1>
                 <p class="mt-4 max-w-lg text-sm leading-relaxed text-white/65 sm:text-base">
-                    {{ __('Search houses, apartments, and land across Dhaka at prices you can verify with our desk.') }}
+                    {{ __('Explore verified properties and carefully selected projects from Urban Haven.') }}
                 </p>
 
                 <form method="GET" action="{{ route('properties.index') }}"
-                      class="mt-7 max-w-lg"
+                      class="mt-7 max-w-2xl"
                       x-data="uhHeroSearch"
                       @submit="submit(); $event.target.querySelectorAll('input, select').forEach((field) => { if (field.value === '' && field.type !== 'hidden') field.disabled = true })">
                     <h2 class="sr-only">{{ __('Search properties') }}</h2>
@@ -20,35 +20,47 @@
                                 class="inline-flex min-h-9 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
                                 :class="purpose === 'sale' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
                                 :aria-pressed="(purpose === 'sale').toString()"
-                                @click="setPurpose('sale')">{{ __('For sale') }}</button>
+                                @click="setPurpose('sale')">{{ __('Buy') }}</button>
                         <button type="button"
                                 class="inline-flex min-h-9 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
                                 :class="purpose === 'rent' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
                                 :aria-pressed="(purpose === 'rent').toString()"
-                                @click="setPurpose('rent')">{{ __('For rent') }}</button>
+                                @click="setPurpose('rent')">{{ __('Rent') }}</button>
                         <input type="hidden" name="listing_type" :value="purpose">
                     </div>
 
-                    <div class="mt-5 space-y-3 rounded-xl border border-white/10 bg-hero-muted/80 p-4 sm:p-5">
-                        <label class="relative block">
-                            <span class="sr-only">{{ __('Search by Location / Properties Name') }}</span>
-                            <input type="search" name="q" class="uh-hero-input pr-11"
-                                   placeholder="{{ __('Search by Location / Properties Name') }}"
-                                   autocomplete="off">
-                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white/40">
-                                <x-icon name="search" class="size-4" />
-                            </span>
-                        </label>
+                    <div class="mt-4 space-y-3 rounded-xl border border-white/10 bg-hero-muted/80 p-4 sm:p-5">
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <label class="block">
+                                <span class="mb-1.5 block text-xs font-medium text-white/55">{{ __('Location') }}</span>
+                                <select name="location_area_id" class="uh-hero-select">
+                                    <option value="">{{ __('Any location') }}</option>
+                                    @foreach($heroAreas as $area)
+                                        <option value="{{ $area->id }}">{{ $area->name }}@if($area->city), {{ $area->city }}@endif</option>
+                                    @endforeach
+                                </select>
+                            </label>
 
-                        <label class="block">
-                            <span class="mb-1.5 block text-xs font-medium text-white/55">{{ __('Property type') }}</span>
-                            <select name="property_type_id" class="uh-hero-select">
-                                <option value="">{{ __('Any type') }}</option>
-                                @foreach($types as $type)
-                                    <option value="{{ $type->id }}">{{ $type->label }}</option>
-                                @endforeach
-                            </select>
-                        </label>
+                            <label class="block">
+                                <span class="mb-1.5 block text-xs font-medium text-white/55">{{ __('Property type') }}</span>
+                                <select name="property_type_id" class="uh-hero-select">
+                                    <option value="">{{ __('Any type') }}</option>
+                                    @foreach($types as $type)
+                                        <option value="{{ $type->id }}">{{ $type->label }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="mb-1.5 block text-xs font-medium text-white/55">{{ __('Bedrooms') }}</span>
+                                <select name="min_beds" class="uh-hero-select">
+                                    <option value="">{{ __('Any') }}</option>
+                                    @foreach([1, 2, 3, 4] as $beds)
+                                        <option value="{{ $beds }}">{{ __(':count+ bedrooms', ['count' => $beds]) }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                        </div>
 
                         <div>
                             <p class="text-xs font-medium text-white/55">{{ __('Price range') }}</p>
@@ -94,18 +106,23 @@
                         </button>
                     </div>
                 </form>
+
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <a class="uh-btn-ondark uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore Properties') }}</a>
+                    <a class="uh-btn-ondark uh-btn-sm" href="{{ route('projects.index') }}">{{ __('Explore Projects') }}</a>
+                </div>
             </div>
 
-            <div class="rounded-3xl bg-white/5 p-2 ring-1 ring-white/10 sm:p-3">
-                <div class="overflow-hidden rounded-2xl bg-hero-muted">
+            <div class="lg:col-span-5">
+                <div class="overflow-hidden rounded-2xl bg-hero-muted ring-1 ring-white/10">
                     @if($heroImage)
                         <img src="{{ $heroImage->url(1280) }}"
                              srcset="{{ $heroImage->url(768) }} 768w, {{ $heroImage->url(1280) }} 1280w"
-                             sizes="(min-width: 1024px) 50vw, 100vw"
-                             alt="" fetchpriority="high" decoding="async"
+                             sizes="(min-width: 1024px) 40vw, 100vw"
+                             alt="{{ $heroImageAlt }}" fetchpriority="high" decoding="async"
                              class="aspect-4/3 size-full object-cover">
                     @else
-                        <div class="flex aspect-4/3 items-center justify-center bg-linear-to-br from-emerald/40 via-hero-muted to-hero">
+                        <div class="flex aspect-4/3 items-center justify-center bg-linear-to-br from-forest via-hero-muted to-hero">
                             <x-icon name="home" class="size-16 text-white/25" />
                         </div>
                     @endif
