@@ -69,7 +69,7 @@
                     @if($available->isNotEmpty())
                         <a class="uh-btn-gold" href="#homes">{{ __('See available homes') }}</a>
                     @endif
-                    <a class="uh-btn-ondark" href="#enquire">{{ __('Talk to an advisor') }}</a>
+                    <a class="uh-btn-ondark" href="#enquire">{{ __('Inquire Now') }}</a>
                 </div>
             </div>
         </header>
@@ -176,7 +176,7 @@
             <aside class="lg:min-w-0">
                 <div class="lg:sticky lg:top-24">
                     <div class="uh-panel" id="enquire">
-                        <h2 class="uh-h3">{{ __('Ask about this project') }}</h2>
+                        <h2 class="uh-h3">{{ __('Contact Urban Haven Agent') }}</h2>
                         <p class="mt-1.5 text-sm text-[var(--color-muted)]">
                             {{ __('Tell us what you are looking for and we will send the unit plans and current pricing.') }}
                         </p>
@@ -196,7 +196,7 @@
                                            :placeholder="__('Number of bedrooms, budget, timeline…')" />
                             <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
                                 <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                                <span x-text="submitting ? '{{ __('Sending…') }}' : '{{ __('Talk to an advisor') }}'">{{ __('Talk to an advisor') }}</span>
+                                <span x-text="submitting ? '{{ __('Sending…') }}' : '{{ __('Inquire Now') }}'">{{ __('Inquire Now') }}</span>
                             </button>
                             <p class="uh-hint">{{ __('We only use your number to answer this enquiry.') }}</p>
                         </form>
@@ -204,7 +204,7 @@
                         <div class="mt-5 border-t border-line pt-5">
                             <a class="uh-btn-gold uh-btn-block" href="{{ $whatsapp }}" rel="noopener">
                                 <x-icon name="whatsapp" class="size-4" />
-                                {{ __('WhatsApp about this project') }}
+                                {{ __('WhatsApp Us') }}
                             </a>
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                 @else
                     <x-ui.empty icon="home" :title="__('No homes are listed right now')"
                                 :description="__('Every home in this project is currently reserved or sold. Ask our desk to be told first when one becomes available.')">
-                        <a class="uh-btn-primary uh-btn-sm" href="#enquire">{{ __('Talk to an advisor') }}</a>
+                        <a class="uh-btn-primary uh-btn-sm" href="#enquire">{{ __('Inquire Now') }}</a>
                     </x-ui.empty>
                 @endif
             </div>
@@ -239,9 +239,9 @@
         <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-ink/95 p-3 backdrop-blur-sm lg:hidden">
             <a class="uh-btn-gold flex-1" href="{{ $whatsapp }}" rel="noopener">
                 <x-icon name="whatsapp" class="size-4" />
-                {{ __('WhatsApp') }}
+                {{ __('WhatsApp Us') }}
             </a>
-            <a class="uh-btn-ondark flex-1" href="#enquire">{{ __('Enquire') }}</a>
+            <a class="uh-btn-ondark flex-1" href="#enquire">{{ __('Inquire Now') }}</a>
         </div>
     </article>
 @endsection

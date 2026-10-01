@@ -63,11 +63,12 @@
             <p class="mt-3 text-xs text-[var(--color-muted)]" x-show="preview?.updated" x-text="preview?.updated"></p>
 
             <div class="mt-auto flex flex-wrap gap-2 border-t border-line pt-5">
-                <a class="uh-btn-primary uh-btn-sm" :href="preview?.url || '#'">{{ __('View details') }}</a>
+                <a class="uh-btn-primary uh-btn-sm" :href="(preview?.url || '#') + '#contact'">{{ __('Inquire Now') }}</a>
                 <a class="uh-btn-whatsapp uh-btn-sm" x-show="preview?.whatsapp" :href="preview?.whatsapp || '#'" rel="noopener">
                     <x-icon name="whatsapp" class="size-4" />
-                    {{ __('WhatsApp') }}
+                    {{ __('WhatsApp Us') }}
                 </a>
+                <a class="uh-btn-outline uh-btn-sm" :href="preview?.url || '#'">{{ __('View details') }}</a>
                 <form method="POST" :action="preview?.saved ? preview.removeUrl : '{{ route('shortlist.add') }}'">
                     @csrf
                     <input type="hidden" name="_method" :value="preview?.saved ? 'DELETE' : 'POST'">

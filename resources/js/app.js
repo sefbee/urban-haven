@@ -57,9 +57,10 @@ Alpine.data('uhGallery', (count = 0) => ({
  */
 Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     filtersOpen: false,
+    submitting: false,
     more: hasAdvanced,
     showMap: window.matchMedia('(min-width: 1024px)').matches,
-    layout: 'list',
+    layout: 'grid',
     preview: null,
     slide: 0,
     init() {
@@ -69,7 +70,7 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
                 this.layout = stored;
             }
         } catch {
-            this.layout = 'list';
+            this.layout = 'grid';
         }
     },
     setLayout(layout) {
@@ -126,8 +127,171 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         }
     },
     lockBody() {
-        const mobileFilters = window.matchMedia('(max-width: 1023px)').matches && this.filtersOpen;
-        document.body.style.overflow = mobileFilters || this.preview ? 'hidden' : '';
+        const drawerOpen = this.filtersOpen;
+        document.body.style.overflow = drawerOpen || this.preview ? 'hidden' : '';
+    },
+}));
+
+/**
+ * Horizontal card rail with previous/next controls.
+ */
+Alpine.data('uhRail', () => ({
+    canPrev: false,
+    canNext: false,
+    init() {
+        this.update();
+        this.$refs.scroller?.addEventListener('scroll', () => this.update(), { passive: true });
+        window.addEventListener('resize', () => this.update(), { passive: true });
+    },
+    update() {
+        const scroller = this.$refs.scroller;
+        if (!scroller) {
+            return;
+        }
+
+        this.canPrev = scroller.scrollLeft > 8;
+        this.canNext = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 8;
+    },
+    prev() {
+        this.scrollBy(-1);
+    },
+    next() {
+        this.scrollBy(1);
+    },
+    scrollBy(direction) {
+        const scroller = this.$refs.scroller;
+        if (!scroller) {
+            return;
+        }
+
+        scroller.scrollBy({
+            left: direction * Math.max(280, scroller.clientWidth * 0.8),
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+        });
+    },
+}));
+
+/**
+ * Homepage hero search: purpose toggle and a dual-thumb price range.
+ */
+Alpine.data('uhHeroSearch', () => ({
+    purpose: 'sale',
+    min: 0,
+    max: 480_000_000,
+    submitting: false,
+    saleCeiling: 480_000_000,
+    rentCeiling: 500_000,
+    get ceiling() {
+        return this.purpose === 'rent' ? this.rentCeiling : this.saleCeiling;
+    },
+    get step() {
+        return this.purpose === 'rent' ? 1000 : 100_000;
+    },
+    get fillStyle() {
+        const span = this.ceiling || 1;
+        const start = (Math.max(0, Math.min(this.min, this.ceiling)) / span) * 100;
+        const end = (Math.max(0, Math.min(this.max, this.ceiling)) / span) * 100;
+
+        return `left:${start}%;width:${Math.max(0, end - start)}%;`;
+    },
+    setPurpose(next) {
+        this.purpose = next;
+        this.min = 0;
+        this.max = this.ceiling;
+    },
+    clampMin() {
+        this.min = Math.max(0, Math.min(Number(this.min) || 0, this.max));
+    },
+    clampMax() {
+        this.max = Math.max(this.min, Math.min(Number(this.max) || 0, this.ceiling));
+    },
+    submit() {
+        this.$nextTick(() => {
+            this.submitting = true;
+        });
+    },
+}));
+
+/**
+ * Chip-style multi-select for Dhaka location areas.
+ */
+Alpine.data('uhLocationTags', (areas = [], selectedIds = []) => ({
+    areas,
+    selected: selectedIds.map(String),
+    query: '',
+    open: false,
+    get selectedAreas() {
+        return this.areas.filter((area) => this.selected.includes(String(area.id)));
+    },
+    get suggestions() {
+        const query = this.query.trim().toLowerCase();
+
+        return this.areas.filter((area) => {
+            if (this.selected.includes(String(area.id))) {
+                return false;
+            }
+
+            return query === '' || String(area.name).toLowerCase().includes(query);
+        }).slice(0, 8);
+    },
+    add(id) {
+        const key = String(id);
+        if (!this.selected.includes(key)) {
+            this.selected.push(key);
+        }
+        this.query = '';
+        this.open = false;
+    },
+    remove(id) {
+        this.selected = this.selected.filter((value) => value !== String(id));
+    },
+    onEnter() {
+        if (this.suggestions[0]) {
+            this.add(this.suggestions[0].id);
+        }
+    },
+}));
+
+/**
+ * Home-loan EMI calculator using reducing-balance monthly instalments.
+ */
+Alpine.data('uhEmi', (price = 0) => ({
+    price: Number(price) || 0,
+    downPct: 20,
+    rate: 9,
+    years: 15,
+    format(value) {
+        return new Intl.NumberFormat('en-BD', { maximumFractionDigits: 0 }).format(Math.round(value || 0));
+    },
+    get downPayment() {
+        return this.price * (this.downPct / 100);
+    },
+    get principal() {
+        return Math.max(0, this.price - this.downPayment);
+    },
+    get months() {
+        return Math.max(1, this.years * 12);
+    },
+    get monthlyRate() {
+        return this.rate / 12 / 100;
+    },
+    get emi() {
+        if (this.principal <= 0) {
+            return 0;
+        }
+        const rate = this.monthlyRate;
+        if (rate === 0) {
+            return this.principal / this.months;
+        }
+        const factor = (1 + rate) ** this.months;
+
+        return (this.principal * rate * factor) / (factor - 1);
+    },
+    get totalPayable() {
+        return this.emi * this.months;
+    },
+    get totalInterest() {
+        return Math.max(0, this.totalPayable - this.principal);
     },
 }));
 
@@ -152,6 +316,42 @@ Alpine.data('uhShare', (url, title) => ({
         } catch {
             this.copied = false;
         }
+    },
+}));
+
+/**
+ * Fill lat/lng from the browser and resubmit the search form.
+ */
+Alpine.data('uhNearMe', () => ({
+    locating: false,
+    locate() {
+        if (!navigator.geolocation) {
+            return;
+        }
+
+        this.locating = true;
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const form = this.$el.closest('form');
+                const setHidden = (name, value) => {
+                    const field = form?.querySelector(`input[name="${name}"]`);
+                    if (field) {
+                        field.value = value;
+                    }
+                };
+                setHidden('lat', position.coords.latitude.toFixed(6));
+                setHidden('lng', position.coords.longitude.toFixed(6));
+                if (form && !form.querySelector('input[name="radius_km"]')?.value) {
+                    setHidden('radius_km', '3');
+                }
+                this.locating = false;
+                form?.requestSubmit();
+            },
+            () => {
+                this.locating = false;
+            },
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
+        );
     },
 }));
 

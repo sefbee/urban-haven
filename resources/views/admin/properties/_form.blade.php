@@ -95,7 +95,15 @@
                 </x-ui.select>
                 <x-ui.input name="bedrooms" label="Bedrooms" type="number" min="0" inputmode="numeric" :value="$model->bedrooms ?? ''" />
                 <x-ui.input name="bathrooms" label="Bathrooms" type="number" min="0" inputmode="numeric" :value="$model->bathrooms ?? ''" />
-                <x-ui.input name="floor_number" label="Floor" type="number" inputmode="numeric" :value="$model->floor_number ?? ''" optional />
+                <x-ui.input name="floor_number" label="Floor" type="number" inputmode="numeric" :value="$model?->floor_number ?? ''" optional />
+                <x-ui.select name="facing" label="Facing" optional>
+                    <option value="">Not specified</option>
+                    @foreach(config('urbanhaven.facings') as $value => $label)
+                        <option value="{{ $value }}" @selected(old('facing', $model?->facing ?? '') === $value)>{{ $label }}</option>
+                    @endforeach
+                </x-ui.select>
+                <x-ui.input name="road_width_ft" label="Road width (ft)" type="number" min="0" max="200" inputmode="numeric"
+                            :value="$model?->road_width_ft ?? ''" optional />
                 <div class="uh-field justify-end">
                     <input type="hidden" name="is_furnished" value="0">
                     <label class="uh-check">

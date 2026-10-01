@@ -33,6 +33,8 @@ class StorePropertyRequest extends FormRequest
             'bathrooms' => ['nullable', 'integer', 'min:0'],
             'floor_number' => ['nullable', 'integer'],
             'is_furnished' => ['sometimes', 'boolean'],
+            'facing' => ['nullable', 'in:'.implode(',', array_keys(config('urbanhaven.facings', [])))],
+            'road_width_ft' => ['nullable', 'integer', 'min:0', 'max:200'],
             'amenity_ids' => ['nullable', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
             'lat' => ['nullable', 'numeric'],

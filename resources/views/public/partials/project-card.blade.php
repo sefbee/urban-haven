@@ -16,7 +16,19 @@
             </span>
         @endif
         <span class="absolute left-3 top-3">
-            <x-ui.status :status="$project->development_stage" />
+            @php
+                $stageBadge = match ($project->development_stage) {
+                    'completed' => ['tone' => 'success', 'label' => __('Ready to Move')],
+                    'ongoing' => ['tone' => 'warn', 'label' => __('Under Construction')],
+                    'upcoming' => ['tone' => 'info', 'label' => __('Upcoming')],
+                    default => null,
+                };
+            @endphp
+            @if($stageBadge)
+                <x-ui.badge :tone="$stageBadge['tone']">{{ $stageBadge['label'] }}</x-ui.badge>
+            @else
+                <x-ui.status :status="$project->development_stage" />
+            @endif
         </span>
     </a>
 

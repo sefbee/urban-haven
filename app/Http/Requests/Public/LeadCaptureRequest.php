@@ -34,9 +34,13 @@ class LeadCaptureRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
-            if (! $this->filled('property_id') && ! $this->filled('project_id')) {
-                $validator->errors()->add('property_id', 'Choose a property or project.');
+            $openSources = ['valuation'];
+
+            if ($this->filled('property_id') || $this->filled('project_id') || in_array($this->input('source'), $openSources, true)) {
+                return;
             }
+
+            $validator->errors()->add('property_id', 'Choose a property or project.');
         });
     }
 }

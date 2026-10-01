@@ -20,7 +20,7 @@
             @endphp
             @if(filled($phone) || filled($email) || filled($whatsapp))
                 <aside class="uh-panel mb-10">
-                    <p class="uh-eyebrow">{{ __('Talk to an advisor') }}</p>
+                    <p class="uh-eyebrow">{{ __('Contact Urban Haven Agent') }}</p>
                     <p class="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
                         {{ __('Our sales desk is in Dhaka. Call, message or write — the same team handles viewings and paperwork.') }}
                     </p>
@@ -45,7 +45,7 @@
                             <li>
                                 <a class="uh-link-quiet inline-flex min-h-10 items-center gap-2" href="https://wa.me/{{ $whatsapp }}" rel="noopener">
                                     <x-icon name="whatsapp" class="size-4 text-[var(--color-gold-ink)]" />
-                                    {{ __('WhatsApp') }}
+                                    {{ __('WhatsApp Us') }}
                                 </a>
                             </li>
                         @endif

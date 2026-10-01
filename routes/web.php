@@ -24,6 +24,7 @@ use App\Http\Controllers\Public\PropertyController;
 use App\Http\Controllers\Public\PropertySearchController;
 use App\Http\Controllers\Public\ShortlistController;
 use App\Http\Controllers\Public\SitemapController;
+use App\Http\Controllers\Public\ToolsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -39,6 +40,8 @@ Route::post('/visits', [LeadController::class, 'visit'])->middleware('throttle:1
 Route::post('/locale', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/map-data', MapDataController::class)->name('map.data');
+Route::get('/tools', [ToolsController::class, 'index'])->name('tools');
+Route::get('/legal', [ToolsController::class, 'legal'])->name('legal');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
@@ -106,4 +109,4 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-Route::get('/{slug}', [CmsController::class, 'show'])->where('slug', '^(?!admin|properties|projects|compare|inquiries|visits|locale|sitemap\.xml|map-data|up|build|storage).*$')->name('cms.show');
+Route::get('/{slug}', [CmsController::class, 'show'])->where('slug', '^(?!admin|properties|projects|compare|inquiries|visits|locale|sitemap\.xml|map-data|tools|legal|up|build|storage).*$')->name('cms.show');

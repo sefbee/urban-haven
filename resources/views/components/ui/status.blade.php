@@ -37,7 +37,7 @@
         'low' => ['tone' => 'outline', 'label' => 'Low'],
         // Projects
         'upcoming' => ['tone' => 'info', 'label' => 'Upcoming'],
-        'ongoing' => ['tone' => 'warn', 'label' => 'Ongoing'],
+        'ongoing' => ['tone' => 'warn', 'label' => 'Under Construction'],
     ];
 
     $resolved = $map[$key] ?? ['tone' => 'neutral', 'label' => ucfirst(str_replace('_', ' ', $key))];

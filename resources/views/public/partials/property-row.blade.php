@@ -15,41 +15,20 @@
 <article x-data="{ payload: {{ \Illuminate\Support\Js::from($preview) }} }"
          class="uh-card flex flex-col"
          :class="layout === 'list' ? 'sm:flex-row' : ''">
-    <button type="button"
-            class="uh-media group relative block w-full shrink-0 text-left"
-            :class="layout === 'list' ? 'aspect-16/10 sm:aspect-auto sm:min-h-48 sm:w-72 lg:w-80' : 'aspect-4/3'"
-            @click="openPreview(payload)"
-            aria-label="{{ __('Quick view of :title', ['title' => $property->title]) }}">
-        @if($image)
-            <img src="{{ $image->url(768) }}"
-                 srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
-                 sizes="(min-width: 1024px) 320px, 100vw"
-                 alt=""
-                 class="size-full object-cover"
-                 :class="layout === 'list' ? 'sm:absolute sm:inset-0' : ''"
-                 loading="lazy" decoding="async">
-        @else
-            <span class="uh-media-placeholder" :class="layout === 'list' ? 'sm:absolute sm:inset-0' : ''">
-                <span class="flex items-center gap-2 text-sm font-medium">
-                    <x-icon name="image" class="size-4 opacity-70" />
-                    {{ $property->locationArea?->name ?? __('Urban Haven') }}
-                </span>
-            </span>
-        @endif
+    <div class="uh-media group relative block w-full shrink-0"
+         :class="layout === 'list' ? 'aspect-16/9 sm:aspect-auto sm:min-h-48 sm:w-72 lg:w-80' : 'aspect-16/9'">
+        @include('public.partials.property-carousel', ['sizes' => '(min-width: 1024px) 320px, 100vw'])
 
-        <span class="absolute inset-x-3 top-3 flex flex-wrap items-start justify-between gap-2">
+        <span class="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2">
             <span class="uh-badge uh-badge-dark">{{ $property->listing_type === 'rent' ? __('For rent') : __('For sale') }}</span>
-            @if($property->availability !== 'available')
-                <x-ui.status :status="$property->availability" />
-            @endif
+            <span class="rounded-md bg-ink/80 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-cream">#{{ $property->reference ?: $property->id }}</span>
         </span>
-
-        @if($photoCount > 1)
-            <span class="absolute bottom-3 left-3 rounded-md bg-ink/80 px-2 py-1 text-xs font-semibold text-cream">
-                <span class="uh-numeric">1/{{ $photoCount }}</span>
+        @if($property->availability !== 'available')
+            <span class="pointer-events-none absolute bottom-3 right-3 z-10">
+                <x-ui.status :status="$property->availability" />
             </span>
         @endif
-    </button>
+    </div>
 
     <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
         <div class="flex items-start justify-between gap-3">
@@ -99,15 +78,31 @@
             <p class="mt-2 text-xs text-[var(--color-muted)]">{{ __('Updated :time', ['time' => $property->last_updated_at->diffForHumans()]) }}</p>
         @endif
 
-        <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.show', $property->slug) }}">{{ __('View details') }}</a>
+        <p class="mt-4 text-xs font-semibold text-ink">{{ __('Contact Urban Haven Agent') }}</p>
+        <div class="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-4">
+            @if(filled(\App\Models\Setting::get('phone')))
+                <a class="uh-icon-action" href="tel:{{ preg_replace('/[^\d+]/', '', (string) \App\Models\Setting::get('phone')) }}"
+                   aria-label="{{ __('Call Phone') }}">
+                    <x-icon name="phone" class="size-4" />
+                </a>
+            @endif
+            <a class="uh-icon-action" href="{{ route('properties.show', $property->slug) }}#contact" aria-label="{{ __('Email/Inquiry') }}">
+                <x-icon name="mail" class="size-4" />
+            </a>
+            <button type="button" class="uh-icon-action"
+                    x-data="uhShare({{ \Illuminate\Support\Js::from(route('properties.show', $property->slug)) }}, {{ \Illuminate\Support\Js::from($property->title) }})"
+                    @click="share()" aria-label="{{ __('Share') }}">
+                <x-icon name="share" class="size-4" />
+            </button>
+            <a class="uh-btn-outline uh-btn-sm" href="{{ route('properties.show', $property->slug) }}">{{ __('View details') }}</a>
+            <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.show', $property->slug) }}#contact">{{ __('Inquire Now') }}</a>
             @if($whatsapp)
                 <a class="uh-btn-whatsapp uh-btn-sm" href="{{ $whatsapp }}" rel="noopener">
                     <x-icon name="whatsapp" class="size-4" />
-                    {{ __('WhatsApp') }}
+                    {{ __('WhatsApp Us') }}
                 </a>
             @endif
-            <button type="button" class="uh-btn-outline uh-btn-sm" @click="openPreview(payload)">
+            <button type="button" class="uh-btn-outline uh-btn-sm" @click="$dispatch('open-preview', payload)">
                 <x-icon name="expand" class="size-4" />
                 {{ __('Quick view') }}
             </button>

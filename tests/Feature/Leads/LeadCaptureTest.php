@@ -42,6 +42,21 @@ class LeadCaptureTest extends TestCase
         Queue::assertPushed(NotifyNewLeadJob::class);
     }
 
+    public function test_valuation_inquiry_does_not_require_a_listing(): void
+    {
+        Queue::fake();
+
+        $this->post(route('inquiries.store'), [
+            'name' => 'Nabila',
+            'phone' => '01713333333',
+            'source' => 'valuation',
+            'message' => 'Gulshan 1800 sqft apartment',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('leads', ['name' => 'Nabila', 'source' => 'valuation']);
+        Queue::assertPushed(NotifyNewLeadJob::class);
+    }
+
     public function test_eleventh_inquiry_returns_429(): void
     {
         $area = LocationArea::query()->create(['name' => 'Mirpur', 'city' => 'Dhaka', 'is_active' => true]);

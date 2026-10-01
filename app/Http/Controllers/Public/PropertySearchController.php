@@ -10,6 +10,7 @@ use App\Models\LocationArea;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Support\MoneyFormatter;
+use App\Support\SearchBands;
 use App\Support\SeoMeta;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -19,6 +20,14 @@ class PropertySearchController extends Controller
     public function index(SearchRequest $request, SearchService $search): View
     {
         $filters = $request->validated();
+        $filters['location_area_ids'] = collect($filters['location_area_ids'] ?? [])
+            ->when(filled($filters['location_area_id'] ?? null), fn ($ids) => $ids->push($filters['location_area_id']))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        unset($filters['location_area_id']);
         $results = $search->search($filters, (int) $request->integer('page', 1), (int) ($filters['per_page'] ?? 12));
         $types = PropertyType::query()->active()->orderBy('label')->get();
         $areas = LocationArea::query()
@@ -72,6 +81,7 @@ class PropertySearchController extends Controller
         unset($applied['page'], $applied['per_page'], $applied['sort']);
 
         $labels = [
+            'q' => fn ($value) => __('Search: :term', ['term' => $value]),
             'listing_type' => fn ($value) => $value === 'rent' ? __('For rent') : __('For sale'),
             'property_type_id' => fn ($value) => $types->firstWhere('id', (int) $value)?->label,
             'location_area_id' => fn ($value) => $areas->firstWhere('id', (int) $value)?->name,
@@ -80,19 +90,73 @@ class PropertySearchController extends Controller
             'max_price' => fn ($value) => __('Up to :price', ['price' => MoneyFormatter::formatBdt($value)]),
             'min_beds' => fn ($value) => __(':count+ bedrooms', ['count' => $value]),
             'max_beds' => fn ($value) => __('Up to :count bedrooms', ['count' => $value]),
+            'min_baths' => fn ($value) => __(':count+ bathrooms', ['count' => $value]),
             'availability' => fn ($value) => ucfirst((string) $value),
             'is_furnished' => fn ($value) => $value ? __('Furnished') : __('Unfurnished'),
+            'is_verified' => fn ($value) => $value ? __('Verified') : null,
+            'lat' => fn () => __('Properties Near Me'),
+            'lng' => fn () => null,
+            'radius_km' => fn () => null,
+            'price_band' => fn ($value) => SearchBands::prices()[$value]['label'] ?? null,
+            'area_band' => fn ($value) => SearchBands::areas()[$value]['label'] ?? null,
+            'facing' => fn ($value) => config('urbanhaven.facings.'.$value),
+            'min_road_width' => fn ($value) => __(':feet ft road', ['feet' => $value]),
+            'max_road_width' => fn ($value) => __('Up to :feet ft road', ['feet' => $value]),
         ];
 
         $chips = [];
 
         foreach ($applied as $key => $value) {
+            if (in_array($key, ['lng', 'radius_km'], true)) {
+                continue;
+            }
+
+            if ($key === 'verification') {
+                foreach ((array) $value as $flag) {
+                    $remaining = array_values(array_diff((array) $value, [$flag]));
+                    $chips[] = [
+                        'label' => $flag === 'unverified' ? __('Unverified') : __('Verified Listings'),
+                        'url' => route('properties.index', array_filter(['verification' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                    ];
+                }
+
+                continue;
+            }
+
+            if ($key === 'furnishing') {
+                foreach ((array) $value as $flag) {
+                    $remaining = array_values(array_diff((array) $value, [$flag]));
+                    $chips[] = [
+                        'label' => match ($flag) {
+                            'full' => __('Full Furnished'),
+                            'semi' => __('Semi Furnished'),
+                            default => __('Unfurnished'),
+                        },
+                        'url' => route('properties.index', array_filter(['furnishing' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                    ];
+                }
+
+                continue;
+            }
+
             if ($key === 'amenities') {
                 foreach ((array) $value as $amenityId) {
                     $remaining = array_values(array_diff((array) $value, [$amenityId]));
                     $chips[] = [
                         'label' => (string) $amenities->firstWhere('id', (int) $amenityId)?->label,
                         'url' => route('properties.index', array_filter(['amenities' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                    ];
+                }
+
+                continue;
+            }
+
+            if ($key === 'location_area_ids') {
+                foreach ((array) $value as $areaId) {
+                    $remaining = array_values(array_diff(array_map('intval', (array) $value), [(int) $areaId]));
+                    $chips[] = [
+                        'label' => (string) $areas->firstWhere('id', (int) $areaId)?->name,
+                        'url' => route('properties.index', array_filter(['location_area_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
                     ];
                 }
 

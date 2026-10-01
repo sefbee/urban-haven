@@ -54,6 +54,11 @@
         'grid' => '<rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>',
         'share' => '<circle cx="6.5" cy="12" r="2.2"/><circle cx="17" cy="6.5" r="2.2"/><circle cx="17" cy="17.5" r="2.2"/><path d="m8.4 11 6.2-3.4"/><path d="m8.4 13 6.2 3.4"/>',
         'play' => '<path d="M8 5.5v13l11-6.5-11-6.5Z"/>',
+        'calculator' => '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M8 16h.01"/><path d="M12 16h.01"/><path d="M16 16h.01"/>',
+        'compass' => '<circle cx="12" cy="12" r="9"/><path d="m14.6 9.4-1.3 4.9-4.9 1.3 1.3-4.9 4.9-1.3Z"/>',
+        'upload' => '<path d="M12 16V5"/><path d="m8 8 4-4 4 4"/><path d="M5 20h14"/>',
+        'minus' => '<path d="M5 12h14"/>',
+        'locate' => '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><circle cx="12" cy="12" r="8"/>',
     ];
 @endphp
 

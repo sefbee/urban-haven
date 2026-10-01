@@ -1,5 +1,4 @@
 @php
-    $image = $property->featuredImage();
     $showShortlist = $showShortlist ?? true;
     $saved = in_array($property->id, array_map('intval', session('shortlist', [])), true);
     $area = $property->area_value
@@ -9,37 +8,26 @@
     $exact = \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
     $headline = $property->listing_type !== 'rent' && $compact ? 'BDT '.$compact : $exact;
     $whatsapp = $property->whatsappEnquiryUrl();
-    $photoCount = $property->relationLoaded('media') ? $property->media->count() : 0;
+    $listingId = $property->reference ?: (string) $property->id;
+    $shareUrl = route('properties.show', $property->slug);
+    $contactPhone = \App\Models\Setting::get('phone');
+    $contactEmail = \App\Models\Setting::get('email');
 @endphp
 
 <article class="uh-card uh-card-hover flex flex-col">
-    <a href="{{ route('properties.show', $property->slug) }}" class="uh-media uh-media-zoom block aspect-4/3" tabindex="-1" aria-hidden="true">
-        @if($image)
-            <img src="{{ $image->url(768) }}"
-                 srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
-                 sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
-                 alt="" loading="lazy" decoding="async">
-        @else
-            <span class="uh-media-placeholder">
-                <span class="flex items-center gap-2 text-sm font-medium">
-                    <x-icon name="image" class="size-4 opacity-70" />
-                    {{ $property->locationArea?->name ?? __('Urban Haven') }}
-                </span>
-            </span>
-        @endif
+    <div class="uh-media uh-media-zoom relative aspect-16/9">
+        @include('public.partials.property-carousel', ['sizes' => '(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw'])
 
-        <span class="absolute inset-x-3 top-3 flex flex-wrap items-start justify-between gap-2">
+        <span class="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2">
             <x-ui.badge tone="dark">{{ $property->listing_type === 'rent' ? __('For rent') : __('For sale') }}</x-ui.badge>
-            @if($property->availability !== 'available')
-                <x-ui.status :status="$property->availability" />
-            @endif
+            <span class="rounded-md bg-ink/80 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-cream">#{{ $listingId }}</span>
         </span>
-        @if($photoCount > 1)
-            <span class="absolute bottom-3 left-3 rounded-md bg-ink/80 px-2 py-1 text-xs font-semibold text-cream">
-                <span class="uh-numeric">1/{{ $photoCount }}</span>
+        @if($property->availability !== 'available')
+            <span class="pointer-events-none absolute bottom-3 right-3">
+                <x-ui.status :status="$property->availability" />
             </span>
         @endif
-    </a>
+    </div>
 
     <div class="flex flex-1 flex-col p-4 sm:p-5">
         <p class="uh-price text-forest">{{ $headline }}</p>
@@ -48,7 +36,7 @@
         @endif
 
         <h3 class="uh-h3 mt-2">
-            <a class="line-clamp-2 transition hover:text-forest" href="{{ route('properties.show', $property->slug) }}">{{ $property->title }}</a>
+            <a class="line-clamp-2 transition hover:text-forest" href="{{ route('properties.show', $property->slug) }}" lang="{{ app()->getLocale() }}">{{ $property->title }}</a>
         </h3>
 
         <p class="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--color-muted)]">
@@ -57,54 +45,75 @@
         </p>
 
         <ul class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--color-muted)]">
+            @if($area)
+                <li class="flex items-center gap-1.5"><x-icon name="area" class="size-4 shrink-0" /><span class="uh-numeric">{{ $area }}</span></li>
+            @endif
             @if($property->bedrooms)
                 <li class="flex items-center gap-1.5"><x-icon name="bed" class="size-4 shrink-0" /><span class="uh-numeric">{{ $property->bedrooms }}</span> {{ __('bed') }}</li>
             @endif
             @if($property->bathrooms)
                 <li class="flex items-center gap-1.5"><x-icon name="bath" class="size-4 shrink-0" /><span class="uh-numeric">{{ $property->bathrooms }}</span> {{ __('bath') }}</li>
             @endif
-            @if($area)
-                <li class="flex items-center gap-1.5"><x-icon name="area" class="size-4 shrink-0" /><span class="uh-numeric">{{ $area }}</span></li>
-            @endif
-            @if($property->propertyType)
-                <li class="flex items-center gap-1.5"><x-icon name="building" class="size-4 shrink-0" />{{ $property->propertyType->label }}</li>
-            @endif
         </ul>
 
-        <div class="mt-5 flex items-center gap-2 border-t border-line pt-4">
-            <a class="uh-btn-primary uh-btn-sm flex-1" href="{{ route('properties.show', $property->slug) }}">
-                {{ __('View details') }}
-            </a>
-            @if($whatsapp)
-                <a class="uh-btn-whatsapp uh-btn-sm px-3" href="{{ $whatsapp }}" rel="noopener" aria-label="{{ __('WhatsApp about :title', ['title' => $property->title]) }}">
-                    <x-icon name="whatsapp" class="size-4" />
+        <p class="mt-4 text-xs font-semibold text-ink">{{ __('Contact Urban Haven Agent') }}</p>
+        <div class="mt-2 flex items-center gap-1.5 border-t border-line pt-4">
+            @if(filled($contactPhone))
+                <a class="uh-icon-action" href="tel:{{ preg_replace('/[^\d+]/', '', $contactPhone) }}"
+                   aria-label="{{ __('Call Phone') }}">
+                    <x-icon name="phone" class="size-4" />
                 </a>
             @endif
+            @if(filled($contactEmail))
+                <a class="uh-icon-action" href="mailto:{{ $contactEmail }}?subject={{ rawurlencode($property->title) }}"
+                   aria-label="{{ __('Email/Inquiry') }}">
+                    <x-icon name="mail" class="size-4" />
+                </a>
+            @else
+                <a class="uh-icon-action" href="{{ route('properties.show', $property->slug) }}#contact"
+                   aria-label="{{ __('Email/Inquiry') }}">
+                    <x-icon name="mail" class="size-4" />
+                </a>
+            @endif
+            <button type="button" class="uh-icon-action" x-data="uhShare({{ \Illuminate\Support\Js::from($shareUrl) }}, {{ \Illuminate\Support\Js::from($property->title) }})"
+                    @click="share()" aria-label="{{ __('Share') }}">
+                <x-icon name="share" class="size-4" />
+            </button>
             @if($showShortlist)
                 @if($saved)
                     <form method="POST" action="{{ route('shortlist.remove', $property->id) }}" x-data="uhForm" @submit="submit">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="uh-btn-outline uh-btn-sm text-forest" :disabled="submitting"
-                                title="{{ __('Remove from shortlist') }}"
+                        <button type="submit" class="uh-icon-action" :disabled="submitting"
                                 aria-label="{{ __('Remove :title from shortlist', ['title' => $property->title]) }}">
                             <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="!submitting" />
                             <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            <span class="hidden sm:inline">{{ __('Saved') }}</span>
                         </button>
                     </form>
                 @else
                     <form method="POST" action="{{ route('shortlist.add') }}" x-data="uhForm" @submit="submit">
                         @csrf
                         <input type="hidden" name="property_id" value="{{ $property->id }}">
-                        <button type="submit" class="uh-btn-outline uh-btn-sm" :disabled="submitting"
-                                title="{{ __('Save to shortlist') }}" aria-label="{{ __('Save :title to shortlist', ['title' => $property->title]) }}">
+                        <button type="submit" class="uh-icon-action" :disabled="submitting"
+                                aria-label="{{ __('Save :title to shortlist', ['title' => $property->title]) }}">
                             <x-icon name="heart" class="size-4" x-show="!submitting" />
                             <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            <span class="hidden sm:inline">{{ __('Save') }}</span>
                         </button>
                     </form>
                 @endif
+            @endif
+            <a class="uh-btn-outline uh-btn-sm ml-auto" href="{{ route('properties.show', $property->slug) }}">
+                {{ __('View details') }}
+            </a>
+            <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.show', $property->slug) }}#contact">
+                {{ __('Inquire Now') }}
+            </a>
+            @if($whatsapp)
+                <a class="uh-btn-whatsapp uh-btn-sm" href="{{ $whatsapp }}" rel="noopener">
+                    <x-icon name="whatsapp" class="size-4" />
+                    <span class="hidden sm:inline">{{ __('WhatsApp Us') }}</span>
+                    <span class="sm:hidden">{{ __('WhatsApp') }}</span>
+                </a>
             @endif
         </div>
     </div>

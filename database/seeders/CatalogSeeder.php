@@ -103,6 +103,8 @@ class CatalogSeeder extends Seeder
                 'bathrooms' => 3,
                 'area_value' => 1850,
                 'floor_number' => 7,
+                'facing' => 'south',
+                'road_width_ft' => 30,
                 'lat' => 23.7928,
                 'lng' => 90.4081,
                 'is_featured' => true,
@@ -175,6 +177,8 @@ class CatalogSeeder extends Seeder
                 'bathrooms' => $data['bathrooms'] ?? null,
                 'area_value' => $data['area_value'],
                 'floor_number' => $data['floor_number'] ?? null,
+                'facing' => $data['facing'] ?? null,
+                'road_width_ft' => $data['road_width_ft'] ?? null,
                 'lat' => $data['lat'],
                 'lng' => $data['lng'],
             ]);
@@ -190,8 +194,8 @@ class CatalogSeeder extends Seeder
             'label' => 'Homepage hero',
             'content' => [
                 'eyebrow' => 'Urban Haven Properties Ltd.',
-                'title' => 'Homes with quiet confidence in Dhaka.',
-                'body' => 'Search company-owned apartments, duplexes and project units. Every listing is published by our own team — not a marketplace of unknown sellers.',
+                'title' => 'Your Perfect Property Awaits',
+                'body' => 'Search houses, apartments, and land across Dhaka at prices you can verify with our desk.',
                 'cta_label' => 'Browse homes',
                 'cta_url' => '/properties',
             ],
@@ -234,6 +238,7 @@ class CatalogSeeder extends Seeder
             ['slug' => 'about', 'title' => 'About Urban Haven', 'body' => '<p>Urban Haven Properties Ltd. develops and sells its own inventory in Dhaka. This website is the public face of that work.</p>'],
             ['slug' => 'contact', 'title' => 'Contact', 'body' => '<p>Call, WhatsApp or send an enquiry. A member of the sales desk will follow up.</p>'],
             ['slug' => 'services', 'title' => 'Services', 'body' => '<p>Sales, lettings and project handover support for company inventory.</p>'],
+            ['slug' => 'blog', 'title' => 'Blog', 'body' => '<p>Guides on buying, renting and investing in Dhaka. New notes from the Urban Haven desk will appear here.</p>'],
         ] as $page) {
             $model = CmsPage::query()->updateOrCreate(['slug' => $page['slug']], [
                 'title' => $page['title'],

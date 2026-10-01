@@ -32,6 +32,48 @@ return [
         'retention_days' => (int) env('LEAD_RETENTION_DAYS', 730),
     ],
 
+    'facings' => [
+        'north' => 'North',
+        'south' => 'South',
+        'east' => 'East',
+        'west' => 'West',
+        'north-east' => 'North-East',
+        'north-west' => 'North-West',
+        'south-east' => 'South-East',
+        'south-west' => 'South-West',
+    ],
+
+    'price_bands' => [
+        'sale' => [
+            'label' => 'Buy',
+            'options' => [
+                'sale-under-50l' => ['label' => 'Under BDT 50 lakh', 'min' => null, 'max' => 5_000_000],
+                'sale-50l-1cr' => ['label' => 'BDT 50 lakh – 1 crore', 'min' => 5_000_000, 'max' => 10_000_000],
+                'sale-1-2cr' => ['label' => 'BDT 1 – 2 crore', 'min' => 10_000_000, 'max' => 20_000_000],
+                'sale-2-5cr' => ['label' => 'BDT 2 – 5 crore', 'min' => 20_000_000, 'max' => 50_000_000],
+                'sale-5cr-plus' => ['label' => 'BDT 5 crore+', 'min' => 50_000_000, 'max' => null],
+            ],
+        ],
+        'rent' => [
+            'label' => 'Rent',
+            'options' => [
+                'rent-under-20k' => ['label' => 'Under BDT 20,000', 'min' => null, 'max' => 20_000],
+                'rent-20-40k' => ['label' => 'BDT 20,000 – 40,000', 'min' => 20_000, 'max' => 40_000],
+                'rent-40-80k' => ['label' => 'BDT 40,000 – 80,000', 'min' => 40_000, 'max' => 80_000],
+                'rent-80k-150k' => ['label' => 'BDT 80,000 – 1.5 lakh', 'min' => 80_000, 'max' => 150_000],
+                'rent-150k-plus' => ['label' => 'BDT 1.5 lakh+', 'min' => 150_000, 'max' => null],
+            ],
+        ],
+    ],
+
+    'area_bands' => [
+        'under-1000' => ['label' => 'Under 1,000 sq ft', 'min' => null, 'max' => 1000],
+        '1000-1500' => ['label' => '1,000 – 1,500 sq ft', 'min' => 1000, 'max' => 1500],
+        '1500-2500' => ['label' => '1,500 – 2,500 sq ft', 'min' => 1500, 'max' => 2500],
+        '2500-5000' => ['label' => '2,500 – 5,000 sq ft', 'min' => 2500, 'max' => 5000],
+        '5000-plus' => ['label' => '5,000+ sq ft', 'min' => 5000, 'max' => null],
+    ],
+
     'search' => [
         'page_size' => 12,
         'max_page_size' => 24,
