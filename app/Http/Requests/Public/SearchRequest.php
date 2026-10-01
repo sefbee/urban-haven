@@ -2,9 +2,14 @@
 
 namespace App\Http\Requests\Public;
 
+use App\Models\Property;
+use App\Models\Setting;
 use App\Support\SearchBands;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SearchRequest extends FormRequest
 {
@@ -20,7 +25,7 @@ class SearchRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:120'],
-            'listing_type' => ['nullable', 'in:sale,rent'],
+            'listing_type' => ['nullable', Rule::in(Setting::enabledPurposes())],
             'property_type_id' => ['nullable', 'integer', 'exists:property_types,id'],
             'location_area_id' => ['nullable', 'integer', 'exists:location_areas,id'],
             'location_area_ids' => ['nullable', 'array', 'max:8'],
@@ -33,7 +38,7 @@ class SearchRequest extends FormRequest
             'min_beds' => ['nullable', 'integer', 'min:0', 'max:20'],
             'max_beds' => ['nullable', 'integer', 'min:0', 'max:20'],
             'min_baths' => ['nullable', 'integer', 'min:0', 'max:20'],
-            'availability' => ['nullable', 'string'],
+            'availability' => ['nullable', Rule::in(Property::AVAILABILITIES)],
             'is_furnished' => ['nullable', 'boolean'],
             'furnishing' => ['nullable', 'array', 'max:3'],
             'furnishing.*' => ['in:full,semi,unfurnished'],
@@ -48,10 +53,62 @@ class SearchRequest extends FormRequest
             'radius_km' => ['nullable', 'numeric', 'min:0.5', 'max:25'],
             'amenities' => ['nullable', 'array'],
             'amenities.*' => ['integer'],
+            'view' => ['nullable', Rule::in(['list', 'grid', 'map'])],
             'sort' => ['nullable', 'in:newest,price_asc,price_desc,area_desc,beds_desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:24'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'listing_type.in' => 'That purpose is not available.',
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                foreach ([
+                    'price' => 'The maximum price must be at least the minimum price.',
+                    'beds' => 'The maximum bedrooms must be at least the minimum.',
+                    'road_width' => 'The maximum road width must be at least the minimum.',
+                ] as $field => $message) {
+                    $min = $this->input('min_'.$field);
+                    $max = $this->input('max_'.$field);
+
+                    if (is_numeric($min) && is_numeric($max) && (float) $max < (float) $min) {
+                        $validator->errors()->add('max_'.$field, $message);
+                    }
+                }
+            },
+        ];
+    }
+
+    /**
+     * Invalid filters never produce an error page: the visitor lands on the same search with the bad values dropped.
+     */
+    protected function failedValidation(ValidatorContract $validator): void
+    {
+        if ($this->expectsJson()) {
+            parent::failedValidation($validator);
+        }
+
+        $invalid = collect($validator->errors()->keys())
+            ->map(fn (string $key): string => explode('.', $key)[0])
+            ->unique()
+            ->all();
+
+        $valid = collect($this->query())->except($invalid)->all();
+
+        throw new HttpResponseException(
+            redirect()->route('properties.index', $valid)->withErrors($validator, 'search'),
+        );
     }
 
     protected function prepareForValidation(): void

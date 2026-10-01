@@ -23,6 +23,7 @@ class StoreStaffRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults()],
             'role' => ['required', 'string', 'exists:roles,key'],
+            'phone' => ['nullable', 'string', 'max:32'],
         ];
     }
 }

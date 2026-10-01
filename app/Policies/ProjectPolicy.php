@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Project;
+use App\Models\PublicationState;
 use App\Models\User;
 
 class ProjectPolicy
@@ -22,9 +23,22 @@ class ProjectPolicy
         return $user->hasPermission('project.create');
     }
 
+    /**
+     * Editors work on drafts only; live projects change through the owner.
+     */
     public function update(User $user, Project $project): bool
     {
-        return $user->hasPermission('project.update');
+        if (! $user->hasPermission('project.update')) {
+            return false;
+        }
+
+        return $user->hasPermission('project.publish') || $project->editorialStatus() !== PublicationState::PUBLISHED;
+    }
+
+    public function submit(User $user, Project $project): bool
+    {
+        return $user->hasPermission('project.update')
+            && in_array($project->editorialStatus(), [PublicationState::DRAFT, PublicationState::UNPUBLISHED], true);
     }
 
     public function delete(User $user, Project $project): bool

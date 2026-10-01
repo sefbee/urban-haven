@@ -2,7 +2,7 @@
 
 @php
     $cover = $project->featuredImage();
-    $gallery = $project->media->filter(fn ($item) => $cover === null || $item->id !== $cover->id)->values();
+    $gallery = $project->galleryImages()->filter(fn ($item) => $cover === null || $item->id !== $cover->id)->values();
     $highlights = array_filter((array) ($project->highlights ?? []));
     $available = $project->properties;
     $decimals = (int) config('urbanhaven.maps.approximate_decimals', 2);
@@ -60,8 +60,14 @@
                         </div>
                     @endif
                     <div>
-                        <dt class="uh-eyebrow-light">{{ __('Homes available') }}</dt>
-                        <dd class="uh-numeric mt-1.5 font-medium">{{ $available->count() }}</dd>
+                        <dt class="uh-eyebrow-light">{{ __('Availability') }}</dt>
+                        <dd class="uh-numeric mt-1.5 font-medium">
+                            @if($availability['total'] > 0)
+                                {{ __(':available available · :reserved reserved · :sold sold', $availability) }}
+                            @else
+                                {{ __('Ask our team') }}
+                            @endif
+                        </dd>
                     </div>
                 </dl>
 
@@ -181,32 +187,42 @@
                             {{ __('Tell us what you are looking for and we will send the unit plans and current pricing.') }}
                         </p>
 
-                        <form method="POST" action="{{ route('inquiries.store') }}" class="mt-5 space-y-4"
-                              x-data="uhForm" @submit="submit">
-                            @csrf
-                            <input type="hidden" name="project_id" value="{{ $project->id }}">
-                            <x-ui.input name="name" id="proj-name" :label="__('Your name')" autocomplete="name" required />
-                            <x-ui.input name="phone" id="proj-phone" :label="__('Mobile number')" type="tel" dir="ltr"
-                                        inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX"
-                                        :hint="__('A Bangladeshi mobile number, e.g. 01712345678')" required />
-                            <x-ui.input name="email" id="proj-email" :label="__('Email')" type="email" dir="ltr"
-                                        autocomplete="email" optional />
-                            <x-ui.textarea name="message" id="proj-message" rows="3" optional
-                                           :label="__('What are you looking for?')"
-                                           :placeholder="__('Number of bedrooms, budget, timeline…')" />
-                            <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
-                                <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                                <span x-text="submitting ? '{{ __('Sending…') }}' : '{{ __('Inquire Now') }}'">{{ __('Inquire Now') }}</span>
-                            </button>
-                            <p class="uh-hint">{{ __('We only use your number to answer this enquiry.') }}</p>
-                        </form>
-
-                        <div class="mt-5 border-t border-line pt-5">
-                            <a class="uh-btn-gold uh-btn-block" href="{{ $whatsapp }}" rel="noopener">
-                                <x-icon name="whatsapp" class="size-4" />
-                                {{ __('WhatsApp Us') }}
-                            </a>
+                        <div class="mt-5" x-data="{ tab: 'enquire' }" @uh:open-visit.window="tab = 'visit'">
+                            <div class="mb-4 flex gap-1 rounded-lg bg-sand p-1" role="tablist" aria-label="{{ __('Contact options') }}">
+                                <button type="button" role="tab" class="flex-1 rounded-md px-3 py-1.5 text-sm font-semibold" :class="tab === 'enquire' ? 'bg-paper shadow-sm' : 'text-[var(--color-muted)]'" :aria-selected="tab === 'enquire'" @click="tab = 'enquire'">{{ __('Enquire') }}</button>
+                                <button type="button" role="tab" class="flex-1 rounded-md px-3 py-1.5 text-sm font-semibold" :class="tab === 'visit' ? 'bg-paper shadow-sm' : 'text-[var(--color-muted)]'" :aria-selected="tab === 'visit'" @click="tab = 'visit'">{{ __('Book a visit') }}</button>
+                            </div>
+                            <div x-show="tab === 'enquire'">
+                                @include('public.partials.lead-form', [
+                                    'formType' => 'inquiry',
+                                    'prefix' => 'proj',
+                                    'leadType' => 'property_inquiry',
+                                    'source' => 'project_page',
+                                    'projectId' => $project->id,
+                                    'submitLabel' => __('Inquire Now'),
+                                    'messageLabel' => __('What are you looking for?'),
+                                    'messagePlaceholder' => __('Number of bedrooms, budget, timeline…'),
+                                ])
+                            </div>
+                            <div x-show="tab === 'visit'" x-cloak>
+                                @include('public.partials.lead-form', [
+                                    'formType' => 'visit',
+                                    'prefix' => 'proj-visit',
+                                    'source' => 'project_page',
+                                    'projectId' => $project->id,
+                                ])
+                            </div>
                         </div>
+
+                        @if($whatsapp)
+                            <div class="mt-5 border-t border-line pt-5">
+                                <a class="uh-btn-gold uh-btn-block" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                                   data-track="whatsapp_click" data-track-project_id="{{ $project->id }}" data-track-location="project_aside">
+                                    <x-icon name="whatsapp" class="size-4" />
+                                    {{ __('WhatsApp Us') }}
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </aside>
@@ -237,11 +253,15 @@
 
         {{-- Mobile conversion bar --}}
         <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-ink/95 p-3 backdrop-blur-sm lg:hidden">
-            <a class="uh-btn-gold flex-1" href="{{ $whatsapp }}" rel="noopener">
-                <x-icon name="whatsapp" class="size-4" />
-                {{ __('WhatsApp Us') }}
-            </a>
+            @if($whatsapp)
+                <a class="uh-btn-gold flex-1" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                   data-track="whatsapp_click" data-track-project_id="{{ $project->id }}" data-track-location="project_mobile_bar">
+                    <x-icon name="whatsapp" class="size-4" />
+                    {{ __('WhatsApp Us') }}
+                </a>
+            @endif
             <a class="uh-btn-ondark flex-1" href="#enquire">{{ __('Inquire Now') }}</a>
+            <a class="uh-btn-ondark flex-1" href="#enquire" @click="$dispatch('uh:open-visit')">{{ __('Book a visit') }}</a>
         </div>
     </article>
 @endsection

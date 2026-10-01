@@ -3,31 +3,33 @@
         <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
             <div class="lg:col-span-7">
                 <h1 class="uh-h1 max-w-xl text-white">
-                    {{ __('Find a place that feels like home.') }}
+                    {{ $hero['title'] ?? __('Find a property in Dhaka') }}
                 </h1>
                 <p class="mt-4 max-w-lg text-sm leading-relaxed text-white/65 sm:text-base">
-                    {{ __('Explore verified properties and carefully selected projects from Urban Haven.') }}
+                    {{ $hero['body'] ?? __('Search apartments, homes, land and commercial space listed directly by Urban Haven.') }}
                 </p>
 
                 <form method="GET" action="{{ route('properties.index') }}"
                       class="mt-7 max-w-2xl"
-                      x-data="uhHeroSearch"
+                      x-data="uhHeroSearch(@js($purposes[0] ?? 'sale'))"
                       @submit="submit(); $event.target.querySelectorAll('input, select').forEach((field) => { if (field.value === '' && field.type !== 'hidden') field.disabled = true })">
                     <h2 class="sr-only">{{ __('Search properties') }}</h2>
 
-                    <div class="flex flex-wrap gap-2" role="tablist" aria-label="{{ __('Purpose') }}">
-                        <button type="button"
-                                class="inline-flex min-h-9 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
-                                :class="purpose === 'sale' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
-                                :aria-pressed="(purpose === 'sale').toString()"
-                                @click="setPurpose('sale')">{{ __('Buy') }}</button>
-                        <button type="button"
-                                class="inline-flex min-h-9 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
-                                :class="purpose === 'rent' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
-                                :aria-pressed="(purpose === 'rent').toString()"
-                                @click="setPurpose('rent')">{{ __('Rent') }}</button>
-                        <input type="hidden" name="listing_type" :value="purpose">
-                    </div>
+                    @if(count($purposes) > 1)
+                        <div class="flex flex-wrap gap-2" role="group" aria-label="{{ __('Buy or rent') }}">
+                            <button type="button"
+                                    class="inline-flex min-h-10 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
+                                    :class="purpose === 'sale' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
+                                    :aria-pressed="(purpose === 'sale').toString()"
+                                    @click="setPurpose('sale')">{{ __('Buy') }}</button>
+                            <button type="button"
+                                    class="inline-flex min-h-10 items-center rounded-md border px-4 text-xs font-bold uppercase tracking-wide transition"
+                                    :class="purpose === 'rent' ? 'border-emerald bg-emerald text-white' : 'border-white/20 bg-transparent text-white/75 hover:border-white/40'"
+                                    :aria-pressed="(purpose === 'rent').toString()"
+                                    @click="setPurpose('rent')">{{ __('Rent') }}</button>
+                        </div>
+                    @endif
+                    <input type="hidden" name="listing_type" :value="purpose" value="{{ $purposes[0] ?? 'sale' }}">
 
                     <div class="mt-4 space-y-3 rounded-xl border border-white/10 bg-hero-muted/80 p-4 sm:p-5">
                         <div class="grid gap-3 sm:grid-cols-3">
@@ -102,14 +104,16 @@
                         <button type="submit" class="uh-btn-emerald" :disabled="submitting">
                             <x-icon name="search" class="size-4" x-show="!submitting" />
                             <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            {{ __('Search') }}
+                            {{ __('Search Properties') }}
                         </button>
                     </div>
                 </form>
 
                 <div class="mt-5 flex flex-wrap gap-3">
-                    <a class="uh-btn-ondark uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore Properties') }}</a>
-                    <a class="uh-btn-ondark uh-btn-sm" href="{{ route('projects.index') }}">{{ __('Explore Projects') }}</a>
+                    <a class="uh-btn-ondark uh-btn-sm" href="{{ route('projects.index') }}">{{ __('Explore projects') }}</a>
+                    @if(filled($hero['cta_label'] ?? null) && filled($hero['cta_url'] ?? null) && str_starts_with($hero['cta_url'], '/'))
+                        <a class="uh-btn-ondark uh-btn-sm" href="{{ $hero['cta_url'] }}">{{ $hero['cta_label'] }}</a>
+                    @endif
                 </div>
             </div>
 

@@ -7,11 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\SearchRequest;
 use App\Models\Amenity;
 use App\Models\LocationArea;
-use App\Models\Property;
 use App\Models\PropertyType;
+use App\Models\Setting;
 use App\Support\MoneyFormatter;
 use App\Support\SearchBands;
 use App\Support\SeoMeta;
+use App\Support\StructuredData;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -36,15 +37,9 @@ class PropertySearchController extends Controller
             ->orderBy('name')
             ->get();
         $amenities = Amenity::query()->active()->orderBy('label')->get();
-        $decimals = (int) config('urbanhaven.maps.approximate_decimals', 3);
-
-        $mapMarkers = $search->mapListings($filters)->map(fn (Property $property): array => [
-            'title' => $property->title,
-            'url' => route('properties.show', $property->slug),
-            'price' => MoneyFormatter::formatBdt($property->price, $property->price_basis),
-            'lat' => round((float) $property->lat, $decimals),
-            'lng' => round((float) $property->lng, $decimals),
-        ])->values();
+        $indexableKeys = config('urbanhaven.seo.indexable_query_keys', ['listing_type', 'page']);
+        $hasFilters = collect($request->query())->keys()->diff($indexableKeys)->isNotEmpty();
+        $selectedType = filled($filters['property_type_id'] ?? null) ? $types->firstWhere('id', (int) $filters['property_type_id']) : null;
 
         return view('public.properties.index', [
             'properties' => $results,
@@ -53,7 +48,16 @@ class PropertySearchController extends Controller
             'areas' => $areas,
             'amenities' => $amenities,
             'cities' => LocationArea::query()->active()->distinct()->orderBy('city')->pluck('city'),
-            'mapMarkers' => $mapMarkers,
+            'mapDataUrl' => route('properties.map', $request->query()),
+            'purposes' => Setting::enabledPurposes(),
+            'showBedroomFilters' => $selectedType === null || $selectedType->hasResidentialFields(),
+            'searchErrors' => session('errors')?->getBag('search'),
+            'analyticsEvents' => [[
+                'event' => 'search',
+                'listing_type' => $filters['listing_type'] ?? 'any',
+                'property_type' => $selectedType?->key,
+                'results' => $results->total(),
+            ]],
             'activeFilters' => $this->activeFilters($filters, $areas, $types, $amenities),
             'sortOptions' => [
                 'newest' => __('Newest first'),
@@ -62,8 +66,24 @@ class PropertySearchController extends Controller
                 'area_desc' => __('Largest first'),
                 'beds_desc' => __('Most bedrooms'),
             ],
-            'seo' => SeoMeta::for(null, 'Properties for sale and rent in Dhaka', 'Search Urban Haven apartments, duplexes and commercial space.'),
+            'seo' => SeoMeta::for(null, $this->title($filters), 'Search Urban Haven apartments, duplexes, land and commercial space in Dhaka.', [
+                'noindex' => $hasFilters,
+                'canonical' => SeoMeta::canonical($indexableKeys),
+                'json_ld' => [StructuredData::breadcrumbs([[__('Home'), route('home')], [__('Properties'), route('properties.index')]])],
+            ]),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function title(array $filters): string
+    {
+        return match ($filters['listing_type'] ?? null) {
+            'sale' => 'Properties for sale in Dhaka',
+            'rent' => 'Properties for rent in Dhaka',
+            default => 'Properties for sale and rent in Dhaka',
+        };
     }
 
     /**

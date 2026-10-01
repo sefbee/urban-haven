@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\Publishable;
 use App\Support\AreaConverter;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,23 +17,47 @@ class Property extends Model
 {
     use HasMedia, HasSlug, Publishable;
 
+    public const AVAILABILITIES = ['available', 'reserved', 'sold', 'rented', 'off-market'];
+
+    public const AVAILABILITY_LABELS = [
+        'available' => 'Available',
+        'reserved' => 'Reserved',
+        'sold' => 'Sold',
+        'rented' => 'Rented',
+        'off-market' => 'Off market',
+    ];
+
+    public const UNAVAILABLE = ['sold', 'rented', 'off-market'];
+
+    public const PRICE_FIXED = 'fixed';
+
+    public const PRICE_ON_REQUEST = 'on_request';
+
     protected $fillable = [
         'slug',
         'reference',
         'project_id',
         'property_type_id',
         'location_area_id',
+        'address',
         'title',
         'description',
         'availability',
+        'reserved_at',
+        'reserved_by',
+        'reservation_expires_at',
         'listing_type',
+        'price_mode',
         'price',
         'price_basis',
+        'currency',
         'area_value',
         'area_unit',
         'area_sqft',
         'bedrooms',
         'bathrooms',
+        'balconies',
+        'parking_spaces',
         'floor_number',
         'is_furnished',
         'facing',
@@ -44,7 +69,10 @@ class Property extends Model
         'video_url',
         'virtual_tour_url',
         'trust_label',
+        'assigned_contact_id',
         'is_featured',
+        'display_priority',
+        'version',
         'last_updated_at',
         'featured_media_id',
     ];
@@ -62,6 +90,10 @@ class Property extends Model
             'is_featured' => 'boolean',
             'amenity_ids' => 'array',
             'last_updated_at' => 'datetime',
+            'reserved_at' => 'datetime',
+            'reservation_expires_at' => 'datetime',
+            'version' => 'integer',
+            'display_priority' => 'integer',
         ];
     }
 
@@ -74,6 +106,14 @@ class Property extends Model
 
             if (is_array($property->amenity_ids)) {
                 $property->amenity_ids = array_values(array_map('intval', $property->amenity_ids));
+            }
+
+            if ($property->price === null && $property->price_mode !== self::PRICE_ON_REQUEST) {
+                $property->price_mode = self::PRICE_ON_REQUEST;
+            }
+
+            if ($property->price_mode === self::PRICE_ON_REQUEST) {
+                $property->price = null;
             }
 
             $property->last_updated_at = now();
@@ -118,6 +158,93 @@ class Property extends Model
         return $this->hasMany(Unit::class);
     }
 
+    public function assignedContact(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_contact_id');
+    }
+
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(PropertyStatusHistory::class)->latest('id');
+    }
+
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
+
+    public function isUnavailable(): bool
+    {
+        return in_array($this->availability, self::UNAVAILABLE, true);
+    }
+
+    public function isPriceOnRequest(): bool
+    {
+        return $this->price_mode === self::PRICE_ON_REQUEST || $this->price === null;
+    }
+
+    public function availabilityLabel(): string
+    {
+        return self::AVAILABILITY_LABELS[$this->availability] ?? ucfirst(str_replace('_', ' ', (string) $this->availability));
+    }
+
+    public function fieldProfile(): string
+    {
+        return $this->propertyType?->field_profile ?? PropertyType::PROFILE_APARTMENT;
+    }
+
+    /**
+     * Coordinates safe to publish, honouring the owner's address display policy.
+     *
+     * @return array{lat: float, lng: float, approximate: bool}|null
+     */
+    public function publicCoordinates(): ?array
+    {
+        if ($this->lat === null || $this->lng === null) {
+            return null;
+        }
+
+        $lat = (float) $this->lat;
+        $lng = (float) $this->lng;
+
+        if (! self::coordinatesWithinServiceArea($lat, $lng)) {
+            return null;
+        }
+
+        $mode = (string) Setting::get('address_display_mode', 'approximate');
+
+        if ($mode === 'hidden') {
+            return null;
+        }
+
+        $approximate = $mode === 'approximate' || (bool) $this->map_approximation;
+
+        if ($approximate) {
+            $precision = max(1, min(4, (int) Setting::get('coordinate_precision', 2)));
+            $lat = round($lat, $precision);
+            $lng = round($lng, $precision);
+        }
+
+        return ['lat' => $lat, 'lng' => $lng, 'approximate' => $approximate];
+    }
+
+    public static function coordinatesWithinServiceArea(float $lat, float $lng): bool
+    {
+        $bounds = config('urbanhaven.maps.bounds');
+
+        return $lat >= $bounds['south'] && $lat <= $bounds['north']
+            && $lng >= $bounds['west'] && $lng <= $bounds['east'];
+    }
+
+    public function publicAddress(): ?string
+    {
+        return match ((string) Setting::get('address_display_mode', 'approximate')) {
+            'exact' => $this->address ?: $this->locationArea?->name,
+            'hidden' => null,
+            default => $this->locationArea?->name,
+        };
+    }
+
     public function amenities(): Collection
     {
         $ids = $this->amenity_ids ?? [];
@@ -134,9 +261,9 @@ class Property extends Model
      */
     public function whatsappEnquiryUrl(): ?string
     {
-        $number = preg_replace('/\D+/', '', (string) config('urbanhaven.whatsapp.number'));
+        $base = PhoneNumber::whatsappHref(Setting::get('whatsapp') ?: config('urbanhaven.whatsapp.number'));
 
-        if ($number === '') {
+        if ($base === null) {
             return null;
         }
 
@@ -145,6 +272,6 @@ class Property extends Model
             'reference' => $this->reference ?: $this->slug,
         ]));
 
-        return 'https://wa.me/'.$number.'?text='.$text;
+        return $base.'?text='.$text;
     }
 }

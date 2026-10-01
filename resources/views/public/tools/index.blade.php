@@ -20,25 +20,16 @@
                 <h2 class="uh-h3">{{ __('Valuation Tool') }}</h2>
                 <p class="mt-1.5 text-sm text-[var(--color-muted)]">{{ __('Share the basics. A member of the sales desk will call with a guided figure — we do not publish automated valuations.') }}</p>
 
-                <form method="POST" action="{{ route('inquiries.store') }}" class="mt-6 space-y-4" x-data="uhForm" @submit="submit">
-                    @csrf
-                    <input type="hidden" name="source" value="valuation">
-                    <x-ui.input name="name" :label="__('Your name')" autocomplete="name" required />
-                    <x-ui.input name="phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" required />
-                    <x-ui.input name="email" :label="__('Email')" type="email" dir="ltr" autocomplete="email" optional />
-                    <x-ui.select name="area_label" :label="__('Area')">
-                        <option value="">{{ __('Any area') }}</option>
-                        @foreach($areas as $area)
-                            <option value="{{ $area->name }}">{{ $area->name }}</option>
-                        @endforeach
-                    </x-ui.select>
-                    <x-ui.textarea name="message" :label="__('Property notes')" rows="4" required
-                                   :placeholder="__('Area, size in sq-ft or katha, property type, and whether it is for sale or rent.')" />
-                    <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
-                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                        {{ __('Request a valuation') }}
-                    </button>
-                </form>
+                <div class="mt-6">
+                    @include('public.partials.lead-form', [
+                        'leadType' => 'general_contact',
+                        'source' => 'valuation',
+                        'prefix' => 'valuation',
+                        'submitLabel' => __('Request a valuation call'),
+                        'messageLabel' => __('About your property'),
+                        'messagePlaceholder' => __('Area, size in sq ft or katha, property type, and whether it is for sale or rent.'),
+                    ])
+                </div>
             </div>
         </div>
 
@@ -46,7 +37,7 @@
             @include('public.partials.emi-calculator', ['price' => 10000000, 'editable' => true, 'headingId' => 'tools-emi'])
         </div>
 
-        @php($whatsappNumber = preg_replace('/\D+/', '', (string) config('urbanhaven.whatsapp.number')))
+        @php($whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp')))
         <div class="lg:col-span-2">
             <div class="uh-panel">
                 <h2 class="uh-h3">{{ __('Contact Urban Haven Agent') }}</h2>
@@ -55,10 +46,10 @@
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
                     <a class="uh-btn-gold" href="{{ route('cms.show', 'contact') }}">
-                        {{ __('Inquire Now') }}
+                        {{ __('Contact us') }}
                     </a>
-                    @if(filled($whatsappNumber))
-                        <a class="uh-btn-whatsapp" href="https://wa.me/{{ $whatsappNumber }}" rel="noopener">
+                    @if($whatsappHref)
+                        <a class="uh-btn-whatsapp" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="tools">
                             <x-icon name="whatsapp" class="size-4" />
                             {{ __('WhatsApp Us') }}
                         </a>

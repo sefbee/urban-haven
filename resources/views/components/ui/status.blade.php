@@ -21,8 +21,7 @@
         'contacted' => ['tone' => 'warn', 'label' => 'Contacted'],
         'qualified' => ['tone' => 'info', 'label' => 'Qualified'],
         'visit_scheduled' => ['tone' => 'warn', 'label' => 'Visit scheduled'],
-        'negotiation' => ['tone' => 'warn', 'label' => 'Negotiating'],
-        'negotiating' => ['tone' => 'warn', 'label' => 'Negotiating'],
+        'negotiation' => ['tone' => 'warn', 'label' => 'Negotiation'],
         'won' => ['tone' => 'success', 'label' => 'Won'],
         'lost' => ['tone' => 'danger', 'label' => 'Lost'],
         // Visits & priority
@@ -31,9 +30,11 @@
         'confirmed' => ['tone' => 'success', 'label' => 'Confirmed'],
         'completed' => ['tone' => 'success', 'label' => 'Completed'],
         'cancelled' => ['tone' => 'danger', 'label' => 'Cancelled'],
-        'urgent' => ['tone' => 'danger', 'label' => 'Urgent'],
+        'no_show' => ['tone' => 'danger', 'label' => 'No-show'],
+        'done' => ['tone' => 'success', 'label' => 'Done'],
+        'open' => ['tone' => 'info', 'label' => 'Open'],
+        'medium' => ['tone' => 'info', 'label' => 'Medium'],
         'high' => ['tone' => 'warn', 'label' => 'High'],
-        'normal' => ['tone' => 'outline', 'label' => 'Normal'],
         'low' => ['tone' => 'outline', 'label' => 'Low'],
         // Projects
         'upcoming' => ['tone' => 'info', 'label' => 'Upcoming'],

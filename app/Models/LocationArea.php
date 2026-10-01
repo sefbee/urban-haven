@@ -12,13 +12,23 @@ class LocationArea extends Model
 {
     use HasSlug;
 
-    protected $fillable = ['name', 'slug', 'city', 'is_active'];
+    protected $fillable = ['name', 'slug', 'city', 'intro', 'meta_description', 'lat', 'lng', 'is_active'];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'lat' => 'decimal:7',
+            'lng' => 'decimal:7',
         ];
+    }
+
+    /**
+     * Location landing pages exist only when the owner has written useful local copy.
+     */
+    public function hasLandingPage(): bool
+    {
+        return $this->is_active && filled($this->intro);
     }
 
     public function getSlugOptions(): SlugOptions
@@ -40,5 +50,10 @@ class LocationArea extends Model
     public function properties(): HasMany
     {
         return $this->hasMany(Property::class);
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
     }
 }

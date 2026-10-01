@@ -8,8 +8,15 @@ use Illuminate\Http\Response;
 
 class SitemapController extends Controller
 {
-    public function __invoke(SitemapGenerator $sitemap): Response
+    public const SECTIONS = ['pages', 'properties', 'projects', 'locations', 'articles'];
+
+    public function index(SitemapGenerator $sitemap): Response
     {
-        return response($sitemap->xml(), 200, ['Content-Type' => 'application/xml']);
+        return response($sitemap->index(), 200, ['Content-Type' => 'application/xml']);
+    }
+
+    public function section(string $section, SitemapGenerator $sitemap): Response
+    {
+        return response($sitemap->section($section), 200, ['Content-Type' => 'application/xml']);
     }
 }

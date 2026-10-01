@@ -1,32 +1,50 @@
 @php
     $user = auth()->user();
+    $can = fn (string $permission): bool => (bool) $user?->hasPermission($permission);
+    $canReview = $can('property.publish') || $can('project.publish');
     $navGroups = [
         'Overview' => [
             ['pattern' => 'admin.dashboard', 'label' => 'Dashboard', 'url' => route('admin.dashboard'), 'icon' => 'dashboard'],
             ['pattern' => 'admin.notifications.*', 'label' => 'Notifications', 'url' => route('admin.notifications.index'), 'icon' => 'bell'],
         ],
-        'Inventory' => [
-            ['pattern' => 'admin.properties.*', 'label' => 'Properties', 'url' => route('admin.properties.index'), 'icon' => 'home'],
-            ['pattern' => 'admin.projects.*', 'label' => 'Projects', 'url' => route('admin.projects.index'), 'icon' => 'building'],
-        ],
-        'Sales' => [
-            ['pattern' => 'admin.leads.*', 'label' => 'Leads', 'url' => route('admin.leads.index'), 'icon' => 'inbox'],
-            ['pattern' => 'admin.visits.*', 'label' => 'Site visits', 'url' => route('admin.visits.index'), 'icon' => 'calendar'],
-        ],
-        'Content' => [
-            ['pattern' => 'admin.cms.*', 'label' => 'Pages', 'url' => route('admin.cms.index'), 'icon' => 'document'],
-        ],
+        'Inventory' => array_values(array_filter([
+            $can('property.view') || $can('property.update') ? ['pattern' => 'admin.properties.*', 'label' => 'Properties', 'url' => route('admin.properties.index'), 'icon' => 'home'] : null,
+            $can('project.view') || $can('project.update') ? ['pattern' => 'admin.projects.*', 'label' => 'Projects', 'url' => route('admin.projects.index'), 'icon' => 'building'] : null,
+            $canReview ? ['pattern' => 'admin.review.*', 'label' => 'Review queue', 'url' => route('admin.review.index'), 'icon' => 'check-circle'] : null,
+        ])),
+        'Sales' => array_values(array_filter([
+            $can('lead.view') ? ['pattern' => 'admin.leads.*', 'label' => 'Leads', 'url' => route('admin.leads.index'), 'icon' => 'inbox'] : null,
+            $can('lead.view') ? ['pattern' => 'admin.follow-ups.*', 'label' => 'Follow-ups', 'url' => route('admin.follow-ups.index'), 'icon' => 'clock'] : null,
+            $can('lead.view') ? ['pattern' => 'admin.visits.*', 'label' => 'Site visits', 'url' => route('admin.visits.index'), 'icon' => 'calendar'] : null,
+        ])),
+        'Content' => array_values(array_filter([
+            $can('cms.update') || $can('cms.create') ? ['pattern' => 'admin.cms.*', 'label' => 'Pages & homepage', 'url' => route('admin.cms.index'), 'icon' => 'document'] : null,
+            $user?->can('viewAny', App\Models\Post::class) ? ['pattern' => 'admin.posts.*', 'label' => 'Articles', 'url' => route('admin.posts.index'), 'icon' => 'list'] : null,
+            $can('cms.update') || $can('cms.create') ? ['pattern' => 'admin.faqs.*', 'label' => 'FAQs', 'url' => route('admin.faqs.index'), 'icon' => 'info'] : null,
+            $can('cms.publish') ? ['pattern' => 'admin.menus.*', 'label' => 'Menus', 'url' => route('admin.menus.index'), 'icon' => 'menu'] : null,
+        ])),
     ];
 
-    $administration = [];
-    if ($user?->can('viewAny', App\Models\User::class)) {
-        $administration[] = ['pattern' => 'admin.staff.*', 'label' => 'Staff', 'url' => route('admin.staff.index'), 'icon' => 'users'];
-    }
-    if ($user?->isOwnerAdmin()) {
-        $administration[] = ['pattern' => 'admin.settings.*', 'label' => 'Settings', 'url' => route('admin.settings.index'), 'icon' => 'settings'];
-    }
+    $administration = array_values(array_filter([
+        $user?->can('viewAny', App\Models\User::class) ? ['pattern' => 'admin.staff.*', 'label' => 'Staff', 'url' => route('admin.staff.index'), 'icon' => 'users'] : null,
+        $user?->can('redirect.manage') ? ['pattern' => 'admin.redirects.*', 'label' => 'Redirects', 'url' => route('admin.redirects.index'), 'icon' => 'arrow-right'] : null,
+        $user?->can('audit.view') ? ['pattern' => 'admin.audit.*', 'label' => 'Audit log', 'url' => route('admin.audit.index'), 'icon' => 'shield'] : null,
+        $user?->can('settings.update') ? ['pattern' => 'admin.settings.*', 'label' => 'Settings', 'url' => route('admin.settings.index'), 'icon' => 'settings'] : null,
+    ]));
     if ($administration !== []) {
         $navGroups['Administration'] = $administration;
+    }
+    $navGroups = array_filter($navGroups);
+
+    $systemWarnings = [];
+    if ($user?->isOwnerAdmin()) {
+        if (! \App\Support\HealthStatus::mailConfigured()) {
+            $systemWarnings[] = 'Email is not configured, so staff alerts and enquiry acknowledgements are not being sent. Set the mail settings in the server environment.';
+        }
+        $failedJobs = \Illuminate\Support\Facades\Cache::remember('uh:admin:failed-jobs', 300, fn (): int => \Illuminate\Support\Facades\Schema::hasTable('failed_jobs') ? \Illuminate\Support\Facades\DB::table('failed_jobs')->count() : 0);
+        if ($failedJobs > 0) {
+            $systemWarnings[] = trans_choice(':count background job has failed (for example a notification email). Run "php artisan queue:failed" on the server to inspect it.|:count background jobs have failed (for example notification emails). Run "php artisan queue:failed" on the server to inspect them.', $failedJobs);
+        }
     }
 @endphp
 <!DOCTYPE html>
@@ -122,6 +140,9 @@
                 </header>
 
                 <main id="main" class="flex-1 px-4 py-6 md:px-7 md:py-8">
+                    @foreach($systemWarnings as $warning)
+                        <x-ui.alert tone="warn" class="mb-4">{{ $warning }}</x-ui.alert>
+                    @endforeach
                     <x-ui.flash />
                     @yield('content')
                 </main>

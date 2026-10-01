@@ -8,7 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyType extends Model
 {
-    protected $fillable = ['key', 'label', 'is_active'];
+    public const PROFILE_APARTMENT = 'apartment';
+
+    public const PROFILE_PLOT = 'plot';
+
+    public const PROFILE_COMMERCIAL = 'commercial';
+
+    public const PROFILES = [self::PROFILE_APARTMENT, self::PROFILE_PLOT, self::PROFILE_COMMERCIAL];
+
+    public const CATEGORIES = ['residential', 'commercial', 'land'];
+
+    protected $fillable = ['key', 'label', 'category', 'field_profile', 'is_active'];
 
     protected function casts(): array
     {
@@ -24,6 +34,11 @@ class PropertyType extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function hasResidentialFields(): bool
+    {
+        return $this->field_profile !== self::PROFILE_PLOT;
     }
 
     public function properties(): HasMany

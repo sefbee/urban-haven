@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreStaffRequest;
 use App\Http\Requests\Admin\UpdateStaffRequest;
+use App\Models\Lead;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Auth\MfaService;
 use App\Services\Auth\StaffService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StaffController extends Controller
@@ -45,6 +49,8 @@ class StaffController extends Controller
         return view('admin.staff.edit', [
             'staffMember' => $staff->load('roles'),
             'roles' => Role::query()->orderBy('label')->get(),
+            'openLeadCount' => $staff->assignedLeads()->whereNotIn('status', Lead::CLOSED_STATUSES)->count(),
+            'reassignOptions' => User::query()->salesStaff()->whereKeyNot($staff->id)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -55,11 +61,24 @@ class StaffController extends Controller
         return redirect()->route('admin.staff.index')->with('status', 'Staff account updated.');
     }
 
-    public function deactivate(User $staff, StaffService $staffService): RedirectResponse
+    public function deactivate(Request $request, User $staff, StaffService $staffService): RedirectResponse
     {
         $this->authorize('deactivate', $staff);
-        $staffService->deactivate($staff, request()->user());
+        $validated = $request->validate([
+            'reassign_to' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
+        ]);
+
+        $staffService->deactivate($staff, $request->user(), isset($validated['reassign_to']) ? User::query()->find($validated['reassign_to']) : null);
 
         return redirect()->route('admin.staff.index')->with('status', 'Staff account deactivated.');
+    }
+
+    public function resetMfa(Request $request, User $staff, MfaService $mfa): RedirectResponse
+    {
+        $this->authorize('update', $staff);
+        $mfa->reset($staff, $request->user());
+        app(StaffService::class)->invalidateSessions($staff);
+
+        return back()->with('status', 'Two-factor authentication reset. '.$staff->name.' will set it up again at next sign-in.');
     }
 }

@@ -1,5 +1,5 @@
 @php
-    $images = $property->relationLoaded('media') ? $property->media->take(8)->values() : collect();
+    $images = $property->relationLoaded('media') ? $property->galleryImages()->take(8)->values() : collect();
 
     if ($property->featured_media_id && $images->isNotEmpty()) {
         $images = $images->sortBy(fn ($image) => $image->id === $property->featured_media_id ? 0 : 1)->values();

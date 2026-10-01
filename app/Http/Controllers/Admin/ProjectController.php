@@ -37,13 +37,17 @@ class ProjectController extends Controller
         return redirect()->route('admin.projects.edit', $project)->with('status', 'Project created.');
     }
 
-    public function edit(Project $project): View
+    public function edit(Project $project, InventoryService $inventory): View
     {
-        $this->authorize('update', $project);
+        $this->authorize('view', $project);
+        $project->load(['publicationState', 'seoOverride', 'media']);
 
-        return view('admin.projects.edit', array_merge($this->formData(), [
-            'project' => $project->load(['publicationState', 'seoOverride']),
-        ]));
+        return view('admin.projects.edit', [
+            ...$this->formData(),
+            'project' => $project,
+            'checklist' => $inventory->publishChecklist($project),
+            'canEdit' => request()->user()->can('update', $project),
+        ]);
     }
 
     public function update(UpdateProjectRequest $request, Project $project, InventoryService $inventory): RedirectResponse

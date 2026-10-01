@@ -126,6 +126,7 @@
             </div>
         </fieldset>
 
+        @if($showBedroomFilters ?? true)
         <fieldset class="mt-6" x-data="{ count: {{ $minBeds !== '' ? (int) $minBeds : 0 }} }">
             <legend class="uh-legend">{{ __('Bedroom') }}</legend>
             <div class="mt-2 flex items-center gap-3">
@@ -157,6 +158,8 @@
                 <input type="hidden" form="property-filters" name="min_baths" :value="count || ''" :disabled="count === 0">
             </div>
         </fieldset>
+
+        @endif
 
         @if($amenities->isNotEmpty())
             <fieldset class="mt-6">

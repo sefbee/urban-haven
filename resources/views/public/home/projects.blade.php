@@ -3,7 +3,7 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div class="max-w-2xl">
                 <h2 class="uh-h2">{{ __('Featured Projects') }}</h2>
-                <p class="uh-lede mt-3">{{ __('Discover thoughtfully planned residential developments in desirable locations.') }}</p>
+                <p class="uh-lede mt-3">{{ __('Developments by Urban Haven, with their current stage and listed units.') }}</p>
             </div>
             <a class="uh-link-quiet inline-flex items-center gap-1.5 text-sm" href="{{ route('projects.index') }}">
                 {{ __('All projects') }}

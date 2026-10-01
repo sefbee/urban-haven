@@ -4,6 +4,7 @@ namespace App\Services\Search;
 
 use App\Contracts\SearchService as SearchServiceContract;
 use App\Models\Property;
+use App\Models\Setting;
 use App\Support\SearchBands;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,11 +32,15 @@ class SearchService implements SearchServiceContract
      */
     public function mapListings(array $filters, int $limit = 150): Collection
     {
+        $bounds = config('urbanhaven.maps.bounds');
+
         return $this->filtered($filters, withRelations: false)
             ->whereNotNull('lat')
             ->whereNotNull('lng')
+            ->whereBetween('lat', [$bounds['south'], $bounds['north']])
+            ->whereBetween('lng', [$bounds['west'], $bounds['east']])
             ->limit($limit)
-            ->get(['id', 'title', 'slug', 'lat', 'lng', 'price', 'price_basis']);
+            ->get(['id', 'title', 'slug', 'lat', 'lng', 'price', 'price_mode', 'price_basis', 'map_approximation', 'listing_type']);
     }
 
     /**
@@ -44,7 +49,11 @@ class SearchService implements SearchServiceContract
      */
     private function filtered(array $filters, bool $withRelations = true): Builder
     {
-        $query = Property::query()->published();
+        $query = Property::query()->published()->whereIn('listing_type', Setting::enabledPurposes() ?: ['__none__']);
+
+        if (empty($filters['availability'])) {
+            $query->whereNotIn('availability', Property::UNAVAILABLE);
+        }
 
         if ($withRelations) {
             $query->with(['propertyType', 'locationArea', 'media', 'publicationState']);
@@ -55,7 +64,7 @@ class SearchService implements SearchServiceContract
             'price_desc' => $query->orderByRaw('price is null, price desc')->orderByDesc('id'),
             'area_desc' => $query->orderByRaw('area_sqft is null, area_sqft desc')->orderByDesc('id'),
             'beds_desc' => $query->orderByRaw('bedrooms is null, bedrooms desc')->orderByDesc('id'),
-            default => $query->orderByDesc('id'),
+            default => $query->orderByRaw('display_priority is null, display_priority asc')->orderByDesc('id'),
         };
 
         if (! empty($filters['listing_type'])) {

@@ -22,6 +22,9 @@ class CmsPagePolicy
         return $user->hasPermission('cms.create');
     }
 
+    /**
+     * Editors may revise live pages, but their changes are held as pending until an owner publishes them.
+     */
     public function update(User $user, CmsPage $cmsPage): bool
     {
         return $user->hasPermission('cms.update');
@@ -30,5 +33,10 @@ class CmsPagePolicy
     public function delete(User $user, CmsPage $cmsPage): bool
     {
         return $user->hasPermission('cms.delete');
+    }
+
+    public function publish(User $user, CmsPage $cmsPage): bool
+    {
+        return $user->hasPermission('cms.publish');
     }
 }

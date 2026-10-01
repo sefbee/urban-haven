@@ -19,6 +19,8 @@
             @method('PUT')
             <x-ui.input name="name" label="Full name" :value="$staffMember->name" required />
             <x-ui.input name="email" label="Work email" type="email" dir="ltr" :value="$staffMember->email" required />
+            <x-ui.input name="phone" label="Direct phone" type="tel" dir="ltr" :value="$staffMember->phone" optional
+                        hint="Shown as the call number on listings this person is the contact for." />
             <x-ui.input name="password" label="New password" type="password" autocomplete="new-password" optional
                         hint="Leave blank to keep the current password." />
             <x-ui.select name="role" label="Role">
@@ -49,14 +51,45 @@
 
                 @if($staffMember->is_active)
                     <p class="mt-3 text-xs leading-relaxed text-[var(--color-muted)]">
-                        Deactivating blocks sign-in immediately. Their leads and notes stay in place.
+                        Deactivating blocks sign-in immediately and ends their sessions.
+                        @if($openLeadCount > 0)
+                            They have <strong>{{ $openLeadCount }} open {{ Str::plural('lead', $openLeadCount) }}</strong>, which must move to someone else first.
+                        @endif
                     </p>
-                    <form method="POST" action="{{ route('admin.staff.deactivate', $staffMember) }}" class="mt-4"
-                          x-data="uhConfirm('Deactivate {{ $staffMember->name }}? They will not be able to sign in.')">
+                    @error('staff')<p class="mt-2 text-xs text-[var(--color-danger)]">{{ $message }}</p>@enderror
+                    <form method="POST" action="{{ route('admin.staff.deactivate', $staffMember) }}" class="mt-4 space-y-3"
+                          x-data="uhConfirm(@js('Deactivate '.$staffMember->name.'? They will not be able to sign in.'))">
                         @csrf
+                        @if($openLeadCount > 0)
+                            <x-ui.select name="reassign_to" label="Reassign open leads to" required>
+                                <option value="">Choose a staff member</option>
+                                @foreach($reassignOptions as $option)
+                                    <option value="{{ $option->id }}">{{ $option->name }}</option>
+                                @endforeach
+                            </x-ui.select>
+                        @endif
                         <button type="submit" class="uh-btn-danger uh-btn-sm uh-btn-block" @click="confirm($event)">
                             Deactivate account
                         </button>
+                    </form>
+                @endif
+            </section>
+
+            <section class="uh-panel">
+                <h2 class="uh-h4">Two-factor authentication</h2>
+                <p class="mt-2">
+                    @if($staffMember->hasMfaEnabled())
+                        <x-ui.badge tone="success">Enabled {{ \App\Support\DisplayTimezone::format($staffMember->mfa_enabled_at, 'j M Y') }}</x-ui.badge>
+                    @else
+                        <x-ui.badge tone="outline">Not set up</x-ui.badge>
+                    @endif
+                </p>
+                @if($staffMember->hasMfaEnabled())
+                    <p class="mt-3 text-xs leading-relaxed text-[var(--color-muted)]">Reset if they lost their phone and recovery codes. They will enrol again at next sign-in.</p>
+                    <form method="POST" action="{{ route('admin.staff.mfa.reset', $staffMember) }}" class="mt-4"
+                          x-data="uhConfirm(@js('Reset two-factor authentication for '.$staffMember->name.'?'))">
+                        @csrf
+                        <button type="submit" class="uh-btn-ghost uh-btn-sm uh-btn-block" @click="confirm($event)">Reset two-factor</button>
                     </form>
                 @endif
             </section>

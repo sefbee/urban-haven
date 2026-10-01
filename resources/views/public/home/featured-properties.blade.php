@@ -11,7 +11,7 @@
                 <p class="uh-lede mt-3">{{ __('Explore selected properties available through Urban Haven.') }}</p>
             </div>
             @if($showTabs)
-                <div class="flex flex-wrap gap-2" role="tablist" aria-label="{{ __('Listing type') }}">
+                <div class="flex flex-wrap gap-2" role="group" aria-label="{{ __('Listing type') }}">
                     <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'sale').toString()"
                             :class="tab === 'sale' ? 'uh-home-tab-active' : ''" @click="tab = 'sale'">{{ __('Buy') }}</button>
                     <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'rent').toString()"

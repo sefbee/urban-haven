@@ -3,20 +3,31 @@
 namespace App\Services\Auth;
 
 use App\Contracts\AuditLogger;
+use App\Contracts\LeadService;
+use App\Models\Lead;
+use App\Models\LeadFollowUp;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class StaffService
 {
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly LeadService $leads,
+    ) {}
 
+    /**
+     * @param  array{name: string, email: string, password: string, role: string, phone?: ?string}  $data
+     */
     public function create(array $data, User $actor): User
     {
         return DB::transaction(function () use ($data, $actor) {
             $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
                 'password' => $data['password'],
                 'is_active' => true,
             ]);
@@ -38,6 +49,9 @@ class StaffService
         });
     }
 
+    /**
+     * @param  array{name: string, email: string, password?: ?string, role?: ?string, phone?: ?string}  $data
+     */
     public function update(User $user, array $data, User $actor): User
     {
         return DB::transaction(function () use ($user, $data, $actor) {
@@ -46,6 +60,7 @@ class StaffService
             $user->fill([
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'phone' => $data['phone'] ?? $user->phone,
             ]);
 
             if (! empty($data['password'])) {
@@ -74,9 +89,34 @@ class StaffService
         });
     }
 
-    public function deactivate(User $user, User $actor): void
+    /**
+     * Open leads must move to another active staff member first so no lead is orphaned.
+     */
+    public function deactivate(User $user, User $actor, ?User $reassignTo = null): void
     {
-        $user->forceFill(['is_active' => false])->save();
+        if ($user->is($actor)) {
+            throw ValidationException::withMessages(['staff' => 'You cannot deactivate your own account.']);
+        }
+
+        if ($user->isOwnerAdmin() && User::query()->where('is_active', true)->whereKeyNot($user->id)->whereHas('roles', fn ($q) => $q->where('key', Role::OWNER_ADMIN))->doesntExist()) {
+            throw ValidationException::withMessages(['staff' => 'At least one active owner administrator is required.']);
+        }
+
+        $openLeads = $user->assignedLeads()->whereNotIn('status', Lead::CLOSED_STATUSES);
+
+        if ($openLeads->exists() && ($reassignTo === null || ! $reassignTo->is_active || $reassignTo->is($user))) {
+            throw ValidationException::withMessages(['reassign_to' => 'Choose an active staff member to take over this person\'s open leads.']);
+        }
+
+        DB::transaction(function () use ($user, $actor, $reassignTo, $openLeads): void {
+            if ($reassignTo !== null) {
+                $openLeads->get()->each(fn (Lead $lead) => $this->leads->assign($lead, $reassignTo, $actor));
+                LeadFollowUp::query()->where('user_id', $user->id)->where('status', LeadFollowUp::OPEN)->update(['user_id' => $reassignTo->id]);
+            }
+
+            $user->forceFill(['is_active' => false])->save();
+        });
+
         $this->invalidateSessions($user);
 
         $this->auditLogger->record(

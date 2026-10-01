@@ -5,13 +5,15 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'is_active', 'last_login_at'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'is_active', 'last_login_at'])]
+#[Hidden(['password', 'remember_token', 'mfa_secret', 'mfa_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -24,12 +26,20 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'mfa_secret' => 'encrypted',
+            'mfa_recovery_codes' => 'encrypted:array',
+            'mfa_enabled_at' => 'datetime',
         ];
     }
 
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
+    }
+
+    public function assignedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
     }
 
     public function hasRole(string $key): bool
@@ -55,5 +65,43 @@ class User extends Authenticatable
     public function isOwnerAdmin(): bool
     {
         return $this->hasRole(Role::OWNER_ADMIN);
+    }
+
+    /**
+     * Sales users only ever see leads assigned to them; owners see everything.
+     */
+    public function canSeeAllLeads(): bool
+    {
+        return $this->isOwnerAdmin() || $this->hasPermission('lead.view_all');
+    }
+
+    public function hasMfaEnabled(): bool
+    {
+        return $this->mfa_enabled_at !== null && filled($this->mfa_secret);
+    }
+
+    public function requiresMfa(): bool
+    {
+        if (! config('urbanhaven.mfa.enforce', true)) {
+            return false;
+        }
+
+        foreach ((array) config('urbanhaven.mfa.required_roles', [Role::OWNER_ADMIN]) as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeSalesStaff(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->whereIn('key', [Role::SALES_USER, Role::OWNER_ADMIN]));
     }
 }

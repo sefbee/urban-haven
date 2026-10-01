@@ -18,8 +18,17 @@ use Illuminate\Support\Facades\Hash;
 
 class CatalogSeeder extends Seeder
 {
+    /**
+     * Demo accounts and listings for local development only. Production starts empty; use uh:create-owner.
+     */
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn('CatalogSeeder skipped: demo data is only seeded in local and testing environments.');
+
+            return;
+        }
+
         $owner = User::query()->updateOrCreate(
             ['email' => 'owner@urbanhaven.test'],
             [
@@ -59,14 +68,14 @@ class CatalogSeeder extends Seeder
         $dhanmondi = LocationArea::query()->updateOrCreate(['slug' => 'dhanmondi'], ['name' => 'Dhanmondi', 'city' => 'Dhaka', 'is_active' => true]);
         $banani = LocationArea::query()->updateOrCreate(['slug' => 'banani'], ['name' => 'Banani', 'city' => 'Dhaka', 'is_active' => true]);
 
-        $apartment = PropertyType::query()->updateOrCreate(['key' => 'apartment'], ['label' => 'Apartment', 'is_active' => true]);
-        $duplex = PropertyType::query()->updateOrCreate(['key' => 'duplex'], ['label' => 'Duplex', 'is_active' => true]);
-        $commercial = PropertyType::query()->updateOrCreate(['key' => 'commercial'], ['label' => 'Commercial', 'is_active' => true]);
+        $apartment = PropertyType::query()->where('key', 'apartment')->firstOrFail();
+        $duplex = PropertyType::query()->where('key', 'duplex')->firstOrFail();
+        $commercial = PropertyType::query()->where('key', 'commercial')->firstOrFail();
 
-        $pool = Amenity::query()->updateOrCreate(['key' => 'pool'], ['label' => 'Swimming pool', 'is_active' => true]);
-        $gym = Amenity::query()->updateOrCreate(['key' => 'gym'], ['label' => 'Gym', 'is_active' => true]);
-        $parking = Amenity::query()->updateOrCreate(['key' => 'parking'], ['label' => 'Parking', 'is_active' => true]);
-        $security = Amenity::query()->updateOrCreate(['key' => 'security'], ['label' => '24/7 security', 'is_active' => true]);
+        $pool = Amenity::query()->where('key', 'pool')->firstOrFail();
+        $gym = Amenity::query()->where('key', 'gym')->firstOrFail();
+        $parking = Amenity::query()->where('key', 'parking')->firstOrFail();
+        $security = Amenity::query()->where('key', 'security')->firstOrFail();
 
         $project = Project::query()->updateOrCreate(['slug' => 'haven-residences-gulshan'], [
             'name' => 'Haven Residences Gulshan',

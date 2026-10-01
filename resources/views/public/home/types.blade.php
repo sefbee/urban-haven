@@ -26,7 +26,7 @@
                     </span>
                     <span class="mt-5 block text-lg font-semibold tracking-tight">{{ $type->label }}</span>
                     <span class="mt-1 block text-sm text-cream/65">
-                        {{ __(':count available', ['count' => $type->properties_count]) }}
+                        {{ trans_choice(':count property|:count properties', $type->properties_count, ['count' => $type->properties_count]) }}
                     </span>
                     <span class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-gold">
                         {{ __('View listings') }}

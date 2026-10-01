@@ -5,6 +5,11 @@ namespace App\Support;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Tag-style invalidation that works on every cache store. Each tag owns a version
+ * counter baked into the key, so flushing a tag never touches unrelated entries
+ * such as rate limiter counters or sessions.
+ */
 final class TaggedCache
 {
     /**
@@ -12,11 +17,7 @@ final class TaggedCache
      */
     public static function remember(array $tags, string $key, int $seconds, Closure $callback): mixed
     {
-        if (self::supportsTags()) {
-            return Cache::tags($tags)->remember($key, $seconds, $callback);
-        }
-
-        return Cache::remember($key, $seconds, $callback);
+        return Cache::remember(self::versionedKey($tags, $key), $seconds, $callback);
     }
 
     /**
@@ -24,17 +25,28 @@ final class TaggedCache
      */
     public static function flush(array $tags): void
     {
-        if (self::supportsTags()) {
-            Cache::tags($tags)->flush();
-
-            return;
+        foreach ($tags as $tag) {
+            Cache::forever(self::versionKey($tag), self::version($tag) + 1);
         }
-
-        Cache::flush();
     }
 
-    public static function supportsTags(): bool
+    /**
+     * @param  list<string>  $tags
+     */
+    private static function versionedKey(array $tags, string $key): string
     {
-        return in_array(config('cache.default'), ['redis', 'memcached'], true);
+        $versions = array_map(fn (string $tag): string => $tag.'.'.self::version($tag), $tags);
+
+        return 'uh-tc:'.implode('|', $versions).':'.$key;
+    }
+
+    private static function version(string $tag): int
+    {
+        return (int) Cache::get(self::versionKey($tag), 1);
+    }
+
+    private static function versionKey(string $tag): string
+    {
+        return 'uh-tc-version:'.$tag;
     }
 }

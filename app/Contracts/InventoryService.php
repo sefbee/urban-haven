@@ -15,11 +15,22 @@ interface InventoryService
     public function createProperty(array $validated, User $actor): Property;
 
     /**
+     * Rejects the write with a conflict when the submitted version is stale.
+     *
      * @param  array<string, mixed>  $validated
      */
     public function updateProperty(Property $property, array $validated, User $actor): Property;
 
+    public function updateAvailability(Property $property, string $availability, ?int $expectedVersion, User $actor, ?string $note = null, mixed $reservationExpiresAt = null): Property;
+
+    public function releaseExpiredReservations(): int;
+
     public function deleteProperty(Property $property, User $actor): void;
+
+    /**
+     * @return list<string> Missing prerequisites; empty when the record may be published.
+     */
+    public function publishChecklist(Property|Project $model): array;
 
     public function publishProperty(Property $property, User $actor): void;
 
@@ -44,6 +55,8 @@ interface InventoryService
     public function submitForReview(Property|Project $model, User $actor): void;
 
     public function approve(Property|Project $model, User $actor): void;
+
+    public function returnToDraft(Property|Project $model, string $note, User $actor): void;
 
     /**
      * @param  array<string, mixed>  $validated

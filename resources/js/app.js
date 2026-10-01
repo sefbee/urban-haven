@@ -1,15 +1,7 @@
 import Alpine from 'alpinejs';
-import L from 'leaflet';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerRetina from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconUrl: markerIcon,
-    iconRetinaUrl: markerRetina,
-    shadowUrl: markerShadow,
-});
+import { track, bootAnalytics, bindTrackedClicks } from './analytics';
+import { registerSavedStore } from './saved';
+import { bootMaps, refreshMaps } from './maps';
 
 const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -94,7 +86,10 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     },
     toggleMap() {
         this.showMap = !this.showMap;
-        this.$nextTick(() => window.dispatchEvent(new Event('uh:refresh-maps')));
+        this.$nextTick(() => {
+            bootMaps();
+            refreshMaps();
+        });
     },
     openPreview(payload) {
         this.slide = 0;
@@ -181,13 +176,16 @@ Alpine.data('uhHomeTabs', (initial = 'sale') => ({
 /**
  * Homepage hero search: purpose toggle and a dual-thumb price range.
  */
-Alpine.data('uhHeroSearch', () => ({
-    purpose: 'sale',
+Alpine.data('uhHeroSearch', (initial = 'sale') => ({
+    purpose: initial,
     min: 0,
     max: 480_000_000,
     submitting: false,
     saleCeiling: 480_000_000,
     rentCeiling: 500_000,
+    init() {
+        this.max = this.ceiling;
+    },
     get ceiling() {
         return this.purpose === 'rent' ? this.rentCeiling : this.saleCeiling;
     },
@@ -373,6 +371,129 @@ Alpine.data('uhForm', () => ({
 }));
 
 /**
+ * Property editor: hides residential fields for plot-type listings and the price for on-request listings.
+ */
+Alpine.data('uhPropertyForm', ({ profiles = {}, typeId = '', priceMode = 'fixed' } = {}) => ({
+    submitting: false,
+    profiles,
+    typeId,
+    priceMode,
+    get isPlot() {
+        return this.profiles[this.typeId] === 'plot';
+    },
+    submit() {
+        this.submitting = true;
+    },
+}));
+
+/**
+ * Enquiry and visit forms. Submits over fetch so the visitor stays on the page; without
+ * JavaScript the same form posts normally and lands on the thank-you page. The success
+ * event fires only after the server confirms the lead was stored.
+ */
+const newToken = () =>
+    window.crypto?.randomUUID
+        ? window.crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+              const random = (Math.random() * 16) | 0;
+              return (char === 'x' ? random : (random & 0x3) | 0x8).toString(16);
+          });
+
+Alpine.data('uhLeadForm', (formName = 'inquiry') => ({
+    formName,
+    submitting: false,
+    started: false,
+    done: false,
+    message: '',
+    error: '',
+    errors: {},
+    token: '',
+    init() {
+        this.token = this.$el.querySelector('input[name="submission_token"]')?.value || newToken();
+        this.syncToken();
+    },
+    syncToken() {
+        const field = this.$el.querySelector('input[name="submission_token"]');
+        if (field) {
+            field.value = this.token;
+        }
+    },
+    start() {
+        if (!this.started) {
+            this.started = true;
+            track('form_start', { form_name: this.formName });
+        }
+    },
+    fieldError(name) {
+        return (this.errors[name] || [])[0] || '';
+    },
+    async submit(event) {
+        if (this.submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!window.fetch) {
+            this.submitting = true;
+            return;
+        }
+
+        event.preventDefault();
+        this.submitting = true;
+        this.error = '';
+        this.errors = {};
+
+        const form = event.target;
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                this.done = true;
+                this.message = payload.message || '';
+                if (payload.event) {
+                    track(payload.event.event, payload.event);
+                }
+                return;
+            }
+
+            if (response.status === 422) {
+                this.errors = payload.errors || {};
+                this.error = payload.message || 'Please check the highlighted fields.';
+                track('form_error', { form_name: this.formName, fields: Object.keys(this.errors).join(',') });
+            } else if (response.status === 419) {
+                this.error = 'This page has expired. Refresh and try again.';
+            } else {
+                this.error = payload.message || 'We could not send your request. Please try again or call us.';
+            }
+        } catch {
+            this.error = 'You appear to be offline. Check your connection and try again, or call us.';
+        } finally {
+            this.submitting = false;
+        }
+    },
+}));
+
+/**
+ * Analytics consent banner. Nothing third-party loads until the visitor chooses "Allow".
+ */
+Alpine.data('uhConsent', (current = null) => ({
+    open: current !== 'granted' && current !== 'denied',
+    choose(choice) {
+        const cookie = window.uhAnalytics?.cookie || 'uh_consent';
+        document.cookie = `${cookie}=${choice}; Max-Age=${60 * 60 * 24 * 180}; Path=/; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+        this.open = false;
+        bootAnalytics(choice);
+    },
+}));
+
+/**
  * Confirmation gate for destructive staff actions.
  */
 Alpine.data('uhConfirm', (message = 'Are you sure?') => ({
@@ -385,80 +506,27 @@ Alpine.data('uhConfirm', (message = 'Are you sure?') => ({
     },
 }));
 
+registerSavedStore(Alpine);
+
 window.Alpine = Alpine;
-window.L = L;
+window.uhTrack = track;
 Alpine.start();
 
-/**
- * Boot every [data-uh-map] element on the page. Markers are optional, so the
- * same component serves the search results map and a single property location.
- */
-const maps = [];
+document.addEventListener('DOMContentLoaded', () => {
+    bootMaps();
+    bindTrackedClicks();
 
-const bootMaps = () => {
-    document.querySelectorAll('[data-uh-map]').forEach((element) => {
-        if (element.dataset.uhMapReady === 'true') {
-            return;
-        }
-        element.dataset.uhMapReady = 'true';
+    const consent = document.cookie.match(new RegExp(`(?:^|; )${window.uhAnalytics?.cookie || 'uh_consent'}=([^;]*)`))?.[1];
+    bootAnalytics(consent);
 
-        const lat = Number(element.dataset.lat || 23.8103);
-        const lng = Number(element.dataset.lng || 90.4125);
-        const zoom = Number(element.dataset.zoom || 12);
-
-        const map = L.map(element, {
-            scrollWheelZoom: false,
-            zoomControl: true,
-        }).setView([lat, lng], zoom);
-
-        L.tileLayer(element.dataset.tiles, {
-            attribution: element.dataset.attribution,
-            maxZoom: 19,
-        }).addTo(map);
-
-        map.on('focus', () => map.scrollWheelZoom.enable());
-        map.on('blur', () => map.scrollWheelZoom.disable());
-
-        let points = [];
+    const pageEvents = document.getElementById('uh-page-events');
+    if (pageEvents) {
         try {
-            points = JSON.parse(element.dataset.properties || '[]');
+            JSON.parse(pageEvents.textContent || '[]').forEach((payload) => track(payload.event, payload));
         } catch {
-            points = [];
+            // Malformed payloads are ignored rather than breaking the page.
         }
-
-        if (element.dataset.radius) {
-            L.circle([lat, lng], {
-                radius: Number(element.dataset.radius),
-                color: '#2f5a43',
-                weight: 1,
-                fillColor: '#2f5a43',
-                fillOpacity: 0.12,
-            }).addTo(map);
-        }
-
-        const markers = points.map((point) => {
-            const popup = [
-                `<strong>${escapeHtml(point.title)}</strong>`,
-                escapeHtml(point.price),
-                `<a href="${escapeHtml(point.url)}">View details</a>`,
-            ].join('<br>');
-
-            return L.marker([point.lat, point.lng]).addTo(map).bindPopup(popup);
-        });
-
-        if (markers.length > 1) {
-            map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2), {
-                animate: !prefersReducedMotion(),
-            });
-        }
-
-        maps.push(map);
-    });
-};
-
-document.addEventListener('DOMContentLoaded', bootMaps);
-
-/** Maps rendered inside a hidden container need a nudge once revealed. */
-window.addEventListener('uh:refresh-maps', () => {
-    maps.forEach((map) => map.invalidateSize());
+    }
 });
+
+window.addEventListener('uh:refresh-maps', refreshMaps);

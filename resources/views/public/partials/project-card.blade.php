@@ -23,7 +23,7 @@
         <span class="absolute left-3 top-3">
             @php
                 $stageBadge = match ($project->development_stage) {
-                    'completed' => ['tone' => 'success', 'label' => __('Ready to Move')],
+                    'completed' => ['tone' => 'success', 'label' => __('Completed')],
                     'ongoing' => ['tone' => 'warn', 'label' => __('Under Construction')],
                     'upcoming' => ['tone' => 'info', 'label' => __('Upcoming')],
                     default => null,
@@ -49,16 +49,25 @@
             <p class="mt-3 text-sm font-semibold text-gold">{{ __('From :price', ['price' => $startingLabel]) }}</p>
         @endif
 
-        <div class="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-cream/70">
-            @if($unitCount !== null)
-                <span><span class="uh-numeric font-semibold text-cream">{{ $unitCount }}</span> {{ $unitCount === 1 ? __('home available') : __('homes available') }}</span>
-            @else
-                <span>{{ $project->developer_name }}</span>
-            @endif
-            <a class="inline-flex items-center gap-1.5 font-semibold text-gold" href="{{ route('projects.show', $project->slug) }}">
-                {{ __('View Project') }}
-                <x-icon name="arrow-right" class="size-3.5" />
-            </a>
-        </div>
+        @if($unitCount !== null)
+            <p class="mt-4 text-xs text-cream/70">
+                <span class="uh-numeric font-semibold text-cream">{{ $unitCount }}</span>
+                {{ $unitCount === 1 ? __('property listed') : __('properties listed') }}
+            </p>
+        @elseif($project->developer_name)
+            <p class="mt-4 text-xs text-cream/70">{{ $project->developer_name }}</p>
+        @endif
+
+        @include('public.partials.card-actions', [
+            'url' => route('projects.show', $project->slug),
+            'title' => $project->name,
+            'whatsapp' => $project->whatsappEnquiryUrl(),
+            'trackProjectId' => $project->id,
+            'trackLocation' => 'project_card',
+            'detailsLabel' => __('View Project'),
+            'detailsClass' => 'text-sm font-semibold text-gold transition hover:text-cream',
+            'dividerClass' => 'mt-5 border-white/10',
+            'iconClass' => 'uh-icon-action border-white/20 bg-transparent text-cream hover:border-gold hover:text-gold',
+        ])
     </div>
 </article>

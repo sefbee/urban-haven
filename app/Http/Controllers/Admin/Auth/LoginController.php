@@ -8,6 +8,8 @@ use App\Services\Auth\StaffService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class LoginController extends Controller
@@ -24,12 +26,20 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $throttleKey = 'login:'.Str::lower($credentials['email']).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return back()->withErrors(['email' => 'Too many sign-in attempts. Try again in '.RateLimiter::availableIn($throttleKey).' seconds.'])->onlyInput('email');
+        }
+
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::hit($throttleKey, 300);
             $staff->recordFailedLogin($credentials['email'], $request->ip());
 
             return back()->withErrors(['email' => 'Those credentials do not match our records.'])->onlyInput('email');
         }
 
+        RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
         $user = $request->user();
 

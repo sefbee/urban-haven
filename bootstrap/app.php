@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Middleware\CaptureFirstTouchAttribution;
+use App\Http\Middleware\EnsureMfaIsSatisfied;
 use App\Http\Middleware\EnsureStaffIsActive;
+use App\Http\Middleware\ResolveRedirects;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Support\JsonError;
 use Illuminate\Foundation\Application;
@@ -15,13 +19,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(SecurityHeaders::class);
+
         $middleware->web(append: [
             SetLocale::class,
+            CaptureFirstTouchAttribution::class,
+            ResolveRedirects::class,
         ]);
 
         $middleware->alias([
             'staff.active' => EnsureStaffIsActive::class,
+            'staff.mfa' => EnsureMfaIsSatisfied::class,
         ]);
+
+        $middleware->encryptCookies(except: ['uh_consent']);
 
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
@@ -30,6 +41,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->dontFlash(['password', 'password_confirmation', 'current_password', 'code']);
 
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {

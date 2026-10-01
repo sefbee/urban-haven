@@ -1,58 +1,82 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Urban Haven
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Public property website and staff admin for Urban Haven Properties Ltd. (Dhaka). Laravel 13, PHP 8.4, MySQL 8, Blade, Alpine and Tailwind 4.
 
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm ci
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed   # demo accounts and listings are only seeded in local/testing
+composer run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Demo staff logins (local only): `owner@urbanhaven.test`, `editor@urbanhaven.test`, `sales@urbanhaven.test`, password `password`.
 
-## Contributing
+Tests use the `urban_haven_testing` MySQL database:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan test --compact
+vendor/bin/pint --dirty
+```
 
-## Code of Conduct
+## Roles
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Role | Can |
+| --- | --- |
+| Owner admin | Everything, including publishing, settings, staff, audit log and lead export |
+| Content editor | Draft listings, projects, pages, articles and FAQs, and submit them for review. Cannot publish or see leads |
+| Sales user | Work the leads and visits assigned to them |
 
-## Security Vulnerabilities
+## Production deploy
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Server requirements: PHP 8.4 (gd, intl, pdo_mysql, zip), MySQL 8, Nginx, Supervisor, Node 22 for builds, `mysqldump`, and `gpg` if backups are encrypted.
 
-## License
+1. Copy `deploy/nginx.conf` and `deploy/php-fpm.conf`, then set the real `server_name` and TLS certificate.
+2. Create `.env` from `.env.example` with `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…`, `SESSION_SECURE_COOKIE=true`, real `MAIL_*` credentials, `WHATSAPP_NUMBER` and any analytics IDs.
+3. Run `deploy/deploy.sh main`. This builds assets, backs up, migrates, seeds roles and reference taxonomy, caches config, routes and views, restarts workers and runs `uh:health`.
+4. Create the first owner with `php artisan uh:create-owner`. It prompts for the password; demo accounts are never seeded in production.
+5. Install workers with `deploy/supervisor.conf` and the scheduler, backups and health checks with `crontab -u www-data deploy/crontab`.
+6. Point an uptime monitor at `https://…/up`. It returns 200 only when the database and cache respond.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Backups and restore
+
+`deploy/backup.sh` runs nightly from cron. It dumps the database and archives `storage/app/private` and `storage/app/public` into `BACKUP_PATH`. Archives are encrypted when `BACKUP_GPG_RECIPIENT` is set, and anything older than `BACKUP_RETENTION_DAYS` (default 30) is deleted. Copy that directory off the server.
+
+To restore:
+
+```bash
+gpg --decrypt db-STAMP.sql.gz.gpg | gunzip | mysql urban_haven
+gpg --decrypt files-STAMP.tar.gz.gpg | tar -xz -C storage/app
+php artisan optimize:clear
+```
+
+Do a test restore into a scratch database before launch and then once a quarter.
+
+## Launch checklist
+
+- [ ] `php artisan uh:health` passes on the server: database, cache, storage, queue backlog and mail.
+- [ ] Settings → Email delivery → "Send test email" arrives in the sales inbox.
+- [ ] Company name, phone, WhatsApp, address, office hours and consent text are set in Settings.
+- [ ] Every published listing has a reference, price (or "on request"), area and a cover image with alt text. The publish checklist enforces this.
+- [ ] Each location area that should get a landing page is active and has an owner-written intro. Areas without one return 404 and stay out of the sitemap.
+- [ ] `robots.txt` allows crawling and `/sitemap.xml` lists the published pages. Submit the sitemap in Google Search Console.
+- [ ] Analytics IDs are set and load only after cookie consent.
+- [ ] Old-site URLs are imported under Redirects (CSV) and spot-checked.
+- [ ] The owner and every staff account have enrolled in two-factor authentication.
+- [ ] A backup has run and a test restore has succeeded.
+
+## UAT script
+
+Run on staging with the content team and the sales desk:
+
+1. Search by purpose, type, location and budget. Change filters and share the URL; the same results load.
+2. Open a listing, submit an enquiry, then submit the same enquiry again within a minute. Only one lead is created. A later repeat creates a new lead marked as a repeat of the first.
+3. Book a site visit from a listing and from a project page. Confirm it in Admin → Visits, then mark it completed with an outcome note.
+4. As the editor, edit a live page and a listing. The public site is unchanged until the owner publishes. The editor has no publish buttons, and direct publish requests return 403.
+5. As a sales user, open another user's lead by URL. Expect 404 or 403.
+6. Move a lead through all 7 stages. Closing as Lost requires a loss reason.
+7. Save and compare listings on a phone, then open the shortlist page.
+8. Export leads as the owner. Check the CSV opens safely in Excel and that the export appears in the audit log.

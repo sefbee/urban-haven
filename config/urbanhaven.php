@@ -29,7 +29,38 @@ return [
 
     'lead' => [
         'repeat_window_days' => (int) env('LEAD_REPEAT_WINDOW_DAYS', 30),
+        'duplicate_window_seconds' => (int) env('LEAD_DUPLICATE_WINDOW_SECONDS', 60),
         'retention_days' => (int) env('LEAD_RETENTION_DAYS', 730),
+        'per_phone_per_hour' => (int) env('LEAD_PER_PHONE_PER_HOUR', 5),
+        'visit_window_days' => 90,
+        'export_queue_threshold' => (int) env('LEAD_EXPORT_QUEUE_THRESHOLD', 2000),
+    ],
+
+    'inventory' => [
+        'reference_prefix' => env('PROPERTY_REFERENCE_PREFIX', 'UH'),
+        'reservation_days' => (int) env('RESERVATION_DAYS', 14),
+    ],
+
+    'mfa' => [
+        'enforce' => (bool) env('MFA_ENFORCED', true),
+        'required_roles' => ['owner_admin'],
+        'issuer' => env('MFA_ISSUER', env('APP_NAME', 'Urban Haven')),
+    ],
+
+    'analytics' => [
+        'gtm_id' => env('ANALYTICS_GTM_ID'),
+        'ga4_id' => env('ANALYTICS_GA4_ID'),
+        'meta_pixel_id' => env('ANALYTICS_META_PIXEL_ID'),
+        'consent_cookie' => 'uh_consent',
+    ],
+
+    'seo' => [
+        'google_site_verification' => env('GOOGLE_SITE_VERIFICATION'),
+        'indexable_query_keys' => ['listing_type', 'page'],
+    ],
+
+    'backups' => [
+        'retention_days' => (int) env('BACKUP_RETENTION_DAYS', 30),
     ],
 
     'facings' => [
@@ -93,6 +124,9 @@ return [
         'default_lat' => (float) env('MAP_DEFAULT_LAT', 23.8103),
         'default_lng' => (float) env('MAP_DEFAULT_LNG', 90.4125),
         'approximate_decimals' => 2,
+        'cluster_threshold' => (int) env('MAP_CLUSTER_THRESHOLD', 60),
+        'max_points' => (int) env('MAP_MAX_POINTS', 500),
+        'bounds' => ['south' => 20.5, 'north' => 26.7, 'west' => 88.0, 'east' => 92.7],
     ],
 
     'media' => [

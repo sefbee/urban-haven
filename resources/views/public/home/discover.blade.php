@@ -7,8 +7,14 @@
             <nav aria-label="{{ __('Properties') }}">
                 <h3 class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-gold-ink)]">{{ __('Properties') }}</h3>
                 <ul class="mt-3 space-y-1 text-sm">
-                    <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index', ['listing_type' => 'sale']) }}">{{ __('Properties for Sale') }}</a></li>
-                    <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for Rent') }}</a></li>
+                    @if(in_array('sale', $purposes, true))
+                        <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index', ['listing_type' => 'sale']) }}">{{ __('Properties for sale') }}</a></li>
+                    @endif
+                    @if(in_array('rent', $purposes, true))
+                        <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
+                    @endif
+                    <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('articles.index') }}">{{ __('Articles and guides') }}</a></li>
+                    <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('faq') }}">{{ __('Frequently asked questions') }}</a></li>
                     <li><a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index') }}">{{ __('All Properties') }}</a></li>
                 </ul>
             </nav>
@@ -41,7 +47,7 @@
                         @endforeach
                         @foreach($areas->take(6) as $area)
                             <li>
-                                <a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ route('properties.index', ['location_area_id' => $area->id]) }}">
+                                <a class="uh-link-quiet inline-flex min-h-9 items-center" href="{{ $area->hasLandingPage() ? route('locations.show', $area->slug) : route('properties.index', ['location_area_id' => $area->id]) }}">
                                     {{ $area->name }}
                                 </a>
                             </li>

@@ -26,12 +26,26 @@ class UnitController extends Controller
             'unit_number' => ['required', 'string', 'max:50'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:available,reserved,sold,rented'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ]);
         $validated['property_id'] = $property->id;
         $inventory->createUnit($validated, $request->user());
 
         return redirect()->route('admin.properties.edit', $property)->with('status', 'Unit added.');
+    }
+
+    public function update(Request $request, Unit $unit, InventoryService $inventory): RedirectResponse
+    {
+        $this->authorize('updateAvailability', $unit->property);
+        $validated = $request->validate([
+            'unit_number' => ['required', 'string', 'max:50'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['required', 'in:available,reserved,sold,rented'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $inventory->updateUnit($unit, $validated, $request->user());
+
+        return redirect()->route('admin.properties.edit', $unit->property)->with('status', 'Unit '.$unit->unit_number.' updated.');
     }
 
     public function destroy(Unit $unit, InventoryService $inventory): RedirectResponse

@@ -4,45 +4,65 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Support\SeoMeta;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Shortlist, compare and recently viewed live in the visitor's browser (versioned localStorage);
+ * the server only renders cards for IDs that are still published, so stale entries can be dropped.
+ */
 class ShortlistController extends Controller
 {
-    public function add(Request $request): JsonResponse|RedirectResponse
-    {
-        $validated = $request->validate(['property_id' => ['required', 'integer', 'exists:properties,id']]);
-        $list = $request->session()->get('shortlist', []);
-        if (count($list) >= 4 && ! in_array((int) $validated['property_id'], $list, true)) {
-            $message = 'You can compare up to 4 properties.';
+    private const MAX_IDS = 24;
 
-            return $request->expectsJson()
-                ? response()->json(['message' => $message], 422)
-                : back()->withErrors(['shortlist' => $message]);
+    public function shortlist(): View
+    {
+        return view('public.shortlist', [
+            'seo' => SeoMeta::for(null, 'Your shortlist', null, ['noindex' => true]),
+        ]);
+    }
+
+    public function compare(): View
+    {
+        return view('public.compare', [
+            'compareLimit' => (int) config('urbanhaven.search.compare_limit', 4),
+            'seo' => SeoMeta::for(null, 'Compare properties', null, ['noindex' => true]),
+        ]);
+    }
+
+    public function cards(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['nullable', 'string', 'max:300', 'regex:/^\d{1,10}(,\d{1,10}){0,'.(self::MAX_IDS - 1).'}$/'],
+            'view' => ['nullable', 'in:card,compare,strip'],
+        ]);
+
+        $ids = collect(explode(',', (string) ($validated['ids'] ?? '')))
+            ->map(fn (string $id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->take(self::MAX_IDS)
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return response()->json(['ids' => [], 'html' => '']);
         }
-        $list[] = (int) $validated['property_id'];
-        $request->session()->put('shortlist', array_values(array_unique($list)));
 
-        return $request->expectsJson()
-            ? response()->json(['shortlist' => $request->session()->get('shortlist')])
-            : back()->with('status', 'Added to shortlist.');
-    }
+        $properties = Property::query()
+            ->published()
+            ->whereKey($ids->all())
+            ->with(['propertyType', 'locationArea', 'media'])
+            ->get()
+            ->sortBy(fn (Property $property): int|false => $ids->search($property->id))
+            ->values();
 
-    public function remove(Request $request, int $property): RedirectResponse
-    {
-        $list = collect($request->session()->get('shortlist', []))->reject(fn ($id) => (int) $id === $property)->values()->all();
-        $request->session()->put('shortlist', $list);
+        $view = $validated['view'] ?? 'card';
 
-        return back()->with('status', 'Removed from shortlist.');
-    }
-
-    public function index(Request $request): View
-    {
-        $ids = $request->session()->get('shortlist', []);
-        $properties = Property::query()->published()->with(['propertyType', 'locationArea', 'media'])->whereIn('id', $ids)->get();
-
-        return view('public.compare', ['properties' => $properties]);
+        return response()->json([
+            'ids' => $properties->pluck('id')->all(),
+            'html' => view('public.partials.saved-'.$view, ['properties' => $properties])->render(),
+        ])->header('Cache-Control', 'private, max-age=60');
     }
 }

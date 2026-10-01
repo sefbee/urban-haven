@@ -45,7 +45,7 @@ class SecurityTest extends TestCase
             'price_basis' => 'total_sale',
             'area_unit' => 'sqft',
         ]);
-        $property->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $property->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $this->get(route('properties.show', $property->slug))
             ->assertOk()

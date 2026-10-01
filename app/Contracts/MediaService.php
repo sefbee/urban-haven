@@ -9,7 +9,12 @@ use Illuminate\Http\UploadedFile;
 
 interface MediaService
 {
-    public function store(Model $owner, UploadedFile $file, string $collection): Media;
+    public function store(Model $owner, UploadedFile $file, string $collection, ?string $altText = null): Media;
+
+    /**
+     * Alt text is mandatory before an image can be made public.
+     */
+    public function updateDetails(Media $media, ?string $altText, bool $isPublic, User $actor): Media;
 
     /**
      * @param  array<int, int>  $orderedIds

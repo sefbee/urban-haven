@@ -13,7 +13,11 @@ class Redirect extends Model
         'from_path',
         'to_path',
         'http_code',
+        'reason',
+        'created_by',
         'is_active',
+        'hits',
+        'last_hit_at',
         'created_at',
     ];
 
@@ -23,7 +27,16 @@ class Redirect extends Model
             'is_active' => 'boolean',
             'http_code' => 'integer',
             'created_at' => 'datetime',
+            'last_hit_at' => 'datetime',
+            'hits' => 'integer',
         ];
+    }
+
+    public static function normalizePath(string $path): string
+    {
+        $path = '/'.ltrim((string) parse_url($path, PHP_URL_PATH), '/');
+
+        return $path === '/' ? $path : rtrim($path, '/');
     }
 
     /**

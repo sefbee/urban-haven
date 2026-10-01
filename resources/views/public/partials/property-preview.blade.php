@@ -63,22 +63,19 @@
             <p class="mt-3 text-xs text-[var(--color-muted)]" x-show="preview?.updated" x-text="preview?.updated"></p>
 
             <div class="mt-auto flex flex-wrap gap-2 border-t border-line pt-5">
-                <a class="uh-btn-primary uh-btn-sm" :href="(preview?.url || '#') + '#contact'">{{ __('Inquire Now') }}</a>
-                <a class="uh-btn-whatsapp uh-btn-sm" x-show="preview?.whatsapp" :href="preview?.whatsapp || '#'" rel="noopener">
+                <a class="uh-btn-primary uh-btn-sm" :href="(preview?.url || '#') + '#contact'">{{ __('Enquire') }}</a>
+                <a class="uh-btn-whatsapp uh-btn-sm" x-show="preview?.whatsapp" :href="preview?.whatsapp || '#'" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="quick_view">
                     <x-icon name="whatsapp" class="size-4" />
                     {{ __('WhatsApp Us') }}
                 </a>
                 <a class="uh-btn-outline uh-btn-sm" :href="preview?.url || '#'">{{ __('View details') }}</a>
-                <form method="POST" :action="preview?.saved ? preview.removeUrl : '{{ route('shortlist.add') }}'">
-                    @csrf
-                    <input type="hidden" name="_method" :value="preview?.saved ? 'DELETE' : 'POST'">
-                    <input type="hidden" name="property_id" :value="preview?.id || ''">
-                    <button type="submit" class="uh-btn-outline uh-btn-sm">
-                        <x-icon name="heart" class="size-4" x-show="!preview?.saved" />
-                        <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="preview?.saved" x-cloak />
-                        <span x-text="preview?.saved ? '{{ __('Saved') }}' : '{{ __('Save') }}'"></span>
-                    </button>
-                </form>
+<button type="button" class="uh-btn-outline uh-btn-sm" x-show="preview?.id"
+                        @click="$store.saved.toggle('shortlist', preview.id)"
+                        :aria-pressed="(preview?.id && $store.saved.has('shortlist', preview.id)).toString()">
+                    <x-icon name="heart" class="size-4" x-show="!(preview?.id && $store.saved.has('shortlist', preview.id))" />
+                    <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="preview?.id && $store.saved.has('shortlist', preview.id)" x-cloak />
+                    <span x-text="preview?.id && $store.saved.has('shortlist', preview.id) ? @js(__('Saved')) : @js(__('Save'))"></span>
+                </button>
             </div>
         </div>
     </div>

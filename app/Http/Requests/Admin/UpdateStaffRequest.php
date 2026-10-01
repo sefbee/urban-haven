@@ -25,6 +25,7 @@ class UpdateStaffRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($staff)],
             'password' => ['nullable', Password::defaults()],
             'role' => ['nullable', 'string', 'exists:roles,key'],
+            'phone' => ['nullable', 'string', 'max:32'],
         ];
     }
 }

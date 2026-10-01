@@ -34,13 +34,30 @@ class LoginTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'auth.login_failed']);
     }
 
-    public function test_sixth_login_attempt_returns_429(): void
+    public function test_sixth_attempt_on_one_account_is_locked_even_with_the_right_password(): void
     {
+        $user = User::factory()->create(['password' => 'password']);
+        $this->assignRole($user, Role::SALES_USER);
+
         for ($i = 0; $i < 5; $i++) {
-            $this->post(route('admin.login.store'), ['email' => 'a@b.c', 'password' => 'x']);
+            $this->post(route('admin.login.store'), ['email' => $user->email, 'password' => 'wrong']);
         }
 
-        $this->post(route('admin.login.store'), ['email' => 'a@b.c', 'password' => 'x'])
+        $this->from(route('admin.login'))->post(route('admin.login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
+
+    public function test_more_than_ten_attempts_from_one_address_return_429(): void
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->post(route('admin.login.store'), ['email' => "user{$i}@example.com", 'password' => 'x']);
+        }
+
+        $this->post(route('admin.login.store'), ['email' => 'another@example.com', 'password' => 'x'])
             ->assertStatus(429);
     }
 

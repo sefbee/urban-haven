@@ -52,7 +52,17 @@
                 ['label' => $resultsTitle],
             ]" />
             <h1 class="uh-h1 mt-3">{{ $resultsTitle }}</h1>
-            <p class="mt-2 text-sm text-[var(--color-muted)]">{{ __('Every home here is owned and published by Urban Haven Properties Ltd.') }}</p>
+            <p class="mt-2 text-sm text-[var(--color-muted)]">{{ __('Every property here is published directly by Urban Haven.') }}</p>
+            @if($searchErrors && $searchErrors->any())
+                <x-ui.alert tone="warn" class="mt-4">
+                    <p class="font-medium">{{ __('Some filters were not valid and have been ignored:') }}</p>
+                    <ul class="mt-1 list-disc pl-4">
+                        @foreach($searchErrors->all() as $message)
+                            <li>{{ $message }}</li>
+                        @endforeach
+                    </ul>
+                </x-ui.alert>
+            @endif
         </div>
     </div>
 
@@ -69,16 +79,18 @@
                       @submit="submitting = true; $event.target.querySelectorAll('input, select, textarea').forEach((field) => { if (field.value === '' && field.type !== 'checkbox' && field.type !== 'radio' && field.type !== 'hidden') field.disabled = true })">
 
                     <div class="flex flex-wrap items-center gap-2">
-                        <div class="inline-flex rounded-lg bg-sand p-1" role="tablist" aria-label="{{ __('Buy or rent') }}">
-                            <a href="{{ route('properties.index', ['listing_type' => 'sale'] + $kept) }}"
-                               @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'sale', 'text-ink/70 hover:text-ink' => $listing !== 'sale'])>
-                                {{ __('Buy') }}
-                            </a>
-                            <a href="{{ route('properties.index', ['listing_type' => 'rent'] + $kept) }}"
-                               @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'rent', 'text-ink/70 hover:text-ink' => $listing !== 'rent'])>
-                                {{ __('Rent') }}
-                            </a>
-                        </div>
+                        @if(count($purposes) > 1)
+                            <div class="inline-flex rounded-lg bg-sand p-1" aria-label="{{ __('Buy or rent') }}">
+                                <a href="{{ route('properties.index', ['listing_type' => 'sale'] + $kept) }}" @if($listing === 'sale') aria-current="page" @endif
+                                   @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'sale', 'text-ink/70 hover:text-ink' => $listing !== 'sale'])>
+                                    {{ __('Buy') }}
+                                </a>
+                                <a href="{{ route('properties.index', ['listing_type' => 'rent'] + $kept) }}" @if($listing === 'rent') aria-current="page" @endif
+                                   @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'rent', 'text-ink/70 hover:text-ink' => $listing !== 'rent'])>
+                                    {{ __('Rent') }}
+                                </a>
+                            </div>
+                        @endif
                         @if($listing !== '')
                             <input type="hidden" name="listing_type" value="{{ $listing }}">
                         @endif
@@ -268,9 +280,9 @@
                                  data-zoom="12"
                                  data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
                                  data-attribution="{{ e(config('urbanhaven.maps.attribution')) }}"
-                                 data-properties='@json($mapMarkers)'></div>
+                                 data-src="{{ $mapDataUrl }}"></div>
                             <p class="border-t border-line px-4 py-3 text-xs text-[var(--color-muted)]">
-                                {{ __('Pin locations are approximate. Exact addresses are shared by our sales desk.') }}
+                                {{ __('The map shows the same results as the list. Pins may be approximate; exact addresses are shared by our sales team.') }}
                             </p>
                         </div>
                     </div>

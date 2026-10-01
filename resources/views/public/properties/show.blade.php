@@ -1,30 +1,25 @@
 @extends('layouts.public')
 
 @php
-    $media = $property->media;
+    $media = $property->galleryImages();
+    $floorPlans = $property->floorPlans();
+    $brochures = $property->brochures();
     $amenities = $property->amenities();
     $units = $property->units;
+    $isPlot = $property->fieldProfile() === \App\Models\PropertyType::PROFILE_PLOT;
     $area = $property->area_value ? \App\Support\AreaConverter::format($property->area_value, $property->area_unit) : null;
-    $compactPrice = \App\Support\MoneyFormatter::compactBdt($property->price);
-    $exactPrice = \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
+    $onRequest = $property->isPriceOnRequest();
+    $compactPrice = $onRequest ? null : \App\Support\MoneyFormatter::compactBdt($property->price);
+    $exactPrice = $onRequest ? __('Price on request') : \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
     $headlinePrice = $property->listing_type !== 'rent' && $compactPrice ? 'BDT '.$compactPrice : $exactPrice;
-    $decimals = (int) config('urbanhaven.maps.approximate_decimals', 2);
-    $hasMap = filled($property->lat) && filled($property->lng);
-    $mapLat = $hasMap ? round((float) $property->lat, $property->map_approximation ? $decimals : 6) : null;
-    $mapLng = $hasMap ? round((float) $property->lng, $property->map_approximation ? $decimals : 6) : null;
-    $visitTab = $errors->hasAny(['preferred_at', 'notes']);
+    $visitTab = $errors->has('preferred_at');
     $videoEmbed = \App\Support\VideoEmbed::embedUrl($property->video_url);
-    $contactPhone = \App\Models\Setting::get('phone');
-    $contactEmail = \App\Models\Setting::get('email');
-    $saved = in_array($property->id, array_map('intval', session('shortlist', [])), true);
     $shareUrl = route('properties.show', $property->slug);
-    $whatsapp = $property->whatsappEnquiryUrl();
     $purpose = $property->listing_type === 'rent' ? __('For rent') : __('For sale');
-    $completion = match ($property->availability) {
-        'available' => __('Ready'),
-        'reserved' => __('Reserved'),
-        default => \Illuminate\Support\Str::headline((string) $property->availability),
-    };
+    $availabilityLabel = __(\App\Models\Property::AVAILABILITY_LABELS[$property->availability] ?? ucfirst((string) $property->availability));
+    $updatedAt = $property->updated_at?->timezone(config('urbanhaven.display_timezone'));
+    $mapTiles = config('urbanhaven.maps.tile_url');
+    $mapAttribution = config('urbanhaven.maps.attribution');
 @endphp
 
 @section('content')
@@ -33,14 +28,25 @@
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $property->listing_type === 'rent' ? __('Rent') : __('Buy'), 'url' => route('properties.index', ['listing_type' => $property->listing_type])],
-                ['label' => $property->locationArea?->name, 'url' => $property->locationArea ? route('properties.index', ['location_area_id' => $property->locationArea->id]) : null],
+                ['label' => $property->locationArea?->name, 'url' => $property->locationArea?->hasLandingPage() ? route('locations.show', $property->locationArea->slug) : ($property->locationArea ? route('properties.index', ['location_area_id' => $property->locationArea->id]) : null)],
                 ['label' => $property->title],
             ]" />
         </div>
     </div>
 
-    <article class="pb-28 lg:pb-0">
+    <article class="pb-28 lg:pb-0" x-data x-init="$store.saved.viewed({{ $property->id }})">
         <div class="uh-container py-6 lg:py-8">
+            @if($isUnavailable)
+                <x-ui.alert tone="warn" class="mb-6">
+                    <p class="font-semibold">{{ __('This property is :status.', ['status' => strtolower($availabilityLabel)]) }}</p>
+                    <p class="mt-1">{{ __('It is no longer available, but we can suggest similar homes. See the alternatives below or ask our team.') }}</p>
+                </x-ui.alert>
+            @elseif($property->availability === 'reserved')
+                <x-ui.alert tone="info" class="mb-6">
+                    {{ __('This property is currently reserved. You can still enquire in case the reservation does not go ahead.') }}
+                </x-ui.alert>
+            @endif
+
             <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
@@ -54,45 +60,38 @@
                         @endif
                     </div>
                     <h1 class="uh-h1 mt-3">{{ $property->title }}</h1>
-                    <p class="mt-2 flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                        <x-icon name="pin" class="size-4 shrink-0 text-[var(--color-gold-ink)]" />
-                        {{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif
-                    </p>
+                    @if($publicAddress)
+                        <p class="mt-2 flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                            <x-icon name="pin" class="size-4 shrink-0 text-[var(--color-gold-ink)]" />
+                            {{ $publicAddress }}@if($property->locationArea?->city && $publicAddress === $property->locationArea?->name), {{ $property->locationArea->city }}@endif
+                        </p>
+                    @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
                     <p class="font-display text-3xl tracking-tight text-forest sm:text-4xl">{{ $headlinePrice }}</p>
                     @if($headlinePrice !== $exactPrice)
                         <p class="text-sm text-[var(--color-muted)] uh-numeric">{{ $exactPrice }}</p>
                     @endif
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <button type="button" class="uh-btn-outline uh-btn-sm" x-data="uhShare({{ \Illuminate\Support\Js::from($shareUrl) }}, {{ \Illuminate\Support\Js::from($property->title) }})" @click="share()">
                             <x-icon name="share" class="size-4" />
-                            <span x-text="copied ? '{{ __('Link copied') }}' : '{{ __('Share') }}'">{{ __('Share') }}</span>
+                            <span x-text="copied ? @js(__('Link copied')) : @js(__('Share'))">{{ __('Share') }}</span>
                         </button>
-                        @if($saved)
-                            <form method="POST" action="{{ route('shortlist.remove', $property->id) }}" x-data="uhForm" @submit="submit">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="uh-btn-outline uh-btn-sm" :disabled="submitting" aria-label="{{ __('Saved') }}">
-                                    <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="!submitting" />
-                                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                                    {{ __('Favorite') }}
-                                </button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('shortlist.add') }}" x-data="uhForm" @submit="submit">
-                                @csrf
-                                <input type="hidden" name="property_id" value="{{ $property->id }}">
-                                <button type="submit" class="uh-btn-outline uh-btn-sm" :disabled="submitting">
-                                    <x-icon name="heart" class="size-4" x-show="!submitting" />
-                                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                                    {{ __('Favorite') }}
-                                </button>
-                            </form>
-                        @endif
+                        <x-save-button :property="$property" variant="button" />
+                        <x-save-button :property="$property" list="compare" variant="button" />
                     </div>
                 </div>
             </header>
+
+            <ul class="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-4 text-xs text-[var(--color-muted)]" aria-label="{{ __('Listing facts') }}">
+                @if($property->reference)
+                    <li class="flex items-center gap-1.5"><x-icon name="tag" class="size-3.5" />{{ __('Reference') }} <strong class="text-ink uh-numeric">{{ $property->reference }}</strong></li>
+                @endif
+                <li class="flex items-center gap-1.5"><x-icon name="shield" class="size-3.5" />{{ __('Listed directly by Urban Haven') }}</li>
+                @if($updatedAt)
+                    <li class="flex items-center gap-1.5"><x-icon name="clock" class="size-3.5" />{{ __('Details updated :date', ['date' => $updatedAt->format('j M Y')]) }}</li>
+                @endif
+            </ul>
         </div>
 
         @if($media->isNotEmpty())
@@ -166,7 +165,7 @@
             </section>
         @endif
 
-        <div class="sticky top-[5.75rem] z-20 border-b border-line bg-paper lg:top-[6.25rem]">
+        <div class="sticky top-16 z-20 border-b border-line bg-paper lg:top-[4.25rem]">
             <div class="uh-container">
                 <nav class="-mx-1 flex gap-1 overflow-x-auto" aria-label="{{ __('Property details') }}">
                     <a href="#overview" class="uh-tab shrink-0">{{ __('Overview') }}</a>
@@ -176,10 +175,10 @@
                     @if($amenities->isNotEmpty())
                         <a href="#amenities" class="uh-tab shrink-0">{{ __('Amenities') }}</a>
                     @endif
-                    @if($property->listing_type !== 'rent' && filled($property->price))
-                        <a href="#emi" class="uh-tab shrink-0">{{ __('EMI Calculator') }}</a>
+                    @if($floorPlans->isNotEmpty())
+                        <a href="#floor-plans" class="uh-tab shrink-0">{{ __('Floor plans') }}</a>
                     @endif
-                    @if($hasMap)
+                    @if($coordinates)
                         <a href="#location" class="uh-tab shrink-0">{{ __('Location') }}</a>
                     @endif
                     <a href="#contact" class="uh-tab shrink-0">{{ __('Contact') }}</a>
@@ -191,12 +190,35 @@
             <div class="min-w-0 space-y-10">
                 <section id="overview" class="scroll-mt-32" aria-labelledby="overview-heading">
                     <h2 id="overview-heading" class="uh-h2">{{ __('Overview') }}</h2>
-                    <div class="uh-specs mt-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-                        <x-ui.spec :label="__('Property Type')" icon="building">{{ $property->propertyType?->label ?? '—' }}</x-ui.spec>
+                    <div class="uh-specs mt-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                        <x-ui.spec :label="__('Property type')" icon="building">{{ $property->propertyType?->label ?? '—' }}</x-ui.spec>
                         <x-ui.spec :label="__('Size')" icon="area">{{ $area ?: '—' }}</x-ui.spec>
-                        <x-ui.spec :label="__('Price')" icon="tag">{{ $headlinePrice }}</x-ui.spec>
-                        <x-ui.spec :label="__('Purpose')" icon="key">{{ $purpose }}</x-ui.spec>
-                        <x-ui.spec :label="__('Completion')" icon="check-circle">{{ $completion }}</x-ui.spec>
+                        <x-ui.spec :label="__('Price')" icon="tag">{{ $exactPrice }}</x-ui.spec>
+                        <x-ui.spec :label="__('Availability')" icon="check-circle">{{ $availabilityLabel }}</x-ui.spec>
+                        @unless($isPlot)
+                            @if($property->bedrooms !== null)
+                                <x-ui.spec :label="__('Bedrooms')" icon="bed">{{ $property->bedrooms }}</x-ui.spec>
+                            @endif
+                            @if($property->bathrooms !== null)
+                                <x-ui.spec :label="__('Bathrooms')" icon="bath">{{ $property->bathrooms }}</x-ui.spec>
+                            @endif
+                            @if($property->balconies !== null)
+                                <x-ui.spec :label="__('Balconies')" icon="home">{{ $property->balconies }}</x-ui.spec>
+                            @endif
+                            @if($property->floor_number !== null)
+                                <x-ui.spec :label="__('Floor')" icon="floor">{{ $property->floor_number }}</x-ui.spec>
+                            @endif
+                            <x-ui.spec :label="__('Furnishing')" icon="home">{{ $property->is_furnished ? __('Furnished') : __('Unfurnished') }}</x-ui.spec>
+                        @endunless
+                        @if($property->parking_spaces !== null)
+                            <x-ui.spec :label="__('Parking')" icon="key">{{ $property->parking_spaces }}</x-ui.spec>
+                        @endif
+                        @if($property->facing)
+                            <x-ui.spec :label="__('Facing')" icon="compass">{{ __(config('urbanhaven.facings.'.$property->facing, ucfirst($property->facing))) }}</x-ui.spec>
+                        @endif
+                        @if($property->road_width_ft)
+                            <x-ui.spec :label="__('Road width')" icon="map">{{ $property->road_width_ft }} ft</x-ui.spec>
+                        @endif
                     </div>
                 </section>
 
@@ -227,7 +249,7 @@
 
                 @if($units->isNotEmpty())
                     <section aria-labelledby="units-heading">
-                        <h2 id="units-heading" class="uh-h2">{{ __('Available units') }}</h2>
+                        <h2 id="units-heading" class="uh-h2">{{ __('Units') }}</h2>
                         <div class="uh-panel-flush mt-4 overflow-hidden">
                             <div class="uh-table-scroll">
                                 <table class="uh-table">
@@ -254,39 +276,74 @@
                     </section>
                 @endif
 
+                @if($floorPlans->isNotEmpty())
+                    <section id="floor-plans" class="scroll-mt-32" aria-labelledby="plans-heading">
+                        <h2 id="plans-heading" class="uh-h2">{{ __('Floor plans') }}</h2>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                            @foreach($floorPlans as $plan)
+                                <a href="{{ $plan->url() }}" target="_blank" rel="noopener" class="uh-card block overflow-hidden">
+                                    <img src="{{ $plan->url(768) }}" alt="{{ $plan->alt(app()->getLocale()) }}" loading="lazy" decoding="async"
+                                         class="aspect-4/3 w-full bg-white object-contain p-2">
+                                    <span class="block border-t border-line px-4 py-2 text-xs font-semibold">{{ $plan->alt(app()->getLocale()) ?: __('Floor plan') }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
+                @if($brochures->isNotEmpty())
+                    <section aria-labelledby="brochure-heading">
+                        <h2 id="brochure-heading" class="uh-h2">{{ __('Brochure') }}</h2>
+                        <ul class="mt-4 space-y-2">
+                            @foreach($brochures as $brochure)
+                                <li>
+                                    <a class="uh-btn-outline uh-btn-sm" href="{{ $brochure->url() }}" data-track="brochure_download" data-track-property-id="{{ $property->id }}">
+                                        <x-icon name="download" class="size-4" />
+                                        {{ $brochure->alt(app()->getLocale()) ?: __('Download brochure (PDF)') }}
+                                        @if($brochure->size_bytes)
+                                            <span class="text-[var(--color-muted)]">{{ number_format($brochure->size_bytes / 1048576, 1) }} MB</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endif
+
                 @if($videoEmbed)
                     <section aria-labelledby="video-heading">
                         <h2 id="video-heading" class="uh-h2">{{ __('Video') }}</h2>
                         <div class="mt-4 aspect-video overflow-hidden rounded-xl bg-black">
                             <iframe src="{{ $videoEmbed }}" title="{{ __('Video of :title', ['title' => $property->title]) }}"
                                     class="size-full" loading="lazy"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen
                                     referrerpolicy="strict-origin-when-cross-origin"></iframe>
                         </div>
                     </section>
                 @endif
 
-                @if($property->listing_type !== 'rent' && filled($property->price))
+                @if($property->listing_type !== 'rent' && ! $onRequest && filled($property->price) && ! $isUnavailable)
                     <div id="emi" class="scroll-mt-32">
                         @include('public.partials.emi-calculator', ['price' => $property->price, 'headingId' => 'emi-heading'])
                     </div>
                 @endif
 
-                @if($hasMap)
+                @if($coordinates)
                     <section id="location" class="scroll-mt-32" aria-labelledby="map-heading">
                         <h2 id="map-heading" class="uh-h2">{{ __('Location') }}</h2>
                         <div class="uh-panel-flush mt-4 overflow-hidden">
-                            <iframe class="h-72 w-full border-0 sm:h-96"
-                                    title="{{ __('Map of :title', ['title' => $property->title]) }}"
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    src="https://maps.google.com/maps?q={{ rawurlencode($mapLat.','.$mapLng) }}&z={{ $property->map_approximation ? 14 : 16 }}&output=embed"></iframe>
+                            <div class="h-72 w-full sm:h-96" role="region" aria-label="{{ __('Map of :title', ['title' => $property->title]) }}"
+                                 data-uh-map data-lat="{{ $coordinates['lat'] }}" data-lng="{{ $coordinates['lng'] }}"
+                                 data-zoom="{{ $coordinates['approximate'] ? 14 : 16 }}"
+                                 data-pin="{{ $coordinates['approximate'] ? 'false' : 'true' }}"
+                                 data-approximate="{{ $coordinates['approximate'] ? 'true' : 'false' }}"
+                                 data-tiles="{{ $mapTiles }}" data-attribution="{{ $mapAttribution }}"></div>
                             <p class="border-t border-line px-4 py-3 text-xs text-[var(--color-muted)]">
-                                @if($property->map_approximation)
-                                    {{ __('This map shows the approximate neighbourhood. The exact address is shared when you book a viewing.') }}
+                                @if($coordinates['approximate'])
+                                    {{ __('The map shows the approximate neighbourhood. The exact address is shared when you book a visit.') }}
                                 @else
-                                    {{ __('Map shows the location of this home.') }}
+                                    {{ __('The map shows the location of this property.') }}
                                 @endif
                             </p>
                         </div>
@@ -307,89 +364,64 @@
                 @endif
             </div>
 
-            <aside id="contact" class="scroll-mt-32 lg:sticky lg:top-[10.5rem]" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }">
+            <aside id="contact" class="scroll-mt-32 lg:sticky lg:top-[8rem]" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }"
+                   @uh:open-visit.window="tab = 'visit'; $el.scrollIntoView({ behavior: 'smooth' })">
                 <div class="uh-panel" id="enquire">
                     <div class="flex items-center gap-3">
                         <span class="flex size-12 items-center justify-center rounded-full bg-forest text-sm font-bold text-cream">UH</span>
                         <div>
-                            <p class="font-semibold">{{ __('Contact Urban Haven Agent') }}</p>
-                            <p class="text-xs text-[var(--color-muted)]">Urban Haven Properties Ltd. · {{ __('Dhaka') }}</p>
+                            <p class="font-semibold">{{ $property->assignedContact?->name ?? __('Urban Haven sales team') }}</p>
+                            <p class="text-xs text-[var(--color-muted)]">{{ \App\Models\Setting::get('company_name', 'Urban Haven') }}</p>
                         </div>
                     </div>
 
                     <div class="mt-5 grid grid-cols-2 gap-2">
-                        @if(filled($whatsapp))
-                            <a class="uh-btn-whatsapp uh-btn-sm" href="{{ $whatsapp }}" rel="noopener">
-                                <x-icon name="whatsapp" class="size-4" />
-                                {{ __('WhatsApp Us') }}
-                            </a>
-                        @endif
-                        @if(filled($contactPhone))
-                            <a class="uh-btn-primary uh-btn-sm" href="tel:{{ preg_replace('/[^\d+]/', '', $contactPhone) }}">
+                        @if($callHref)
+                            <a class="uh-btn-primary uh-btn-sm" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="sidebar">
                                 <x-icon name="phone" class="size-4" />
-                                {{ __('Call Now') }}
+                                {{ __('Call') }}
+                            </a>
+                        @endif
+                        @if(filled($whatsapp))
+                            <a class="uh-btn-whatsapp uh-btn-sm" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="sidebar">
+                                <x-icon name="whatsapp" class="size-4" />
+                                {{ __('WhatsApp') }}
                             </a>
                         @endif
                     </div>
 
-                    <button type="button" class="uh-btn-primary uh-btn-block mt-5" @click="tab = 'visit'">
-                        <x-icon name="calendar" class="size-4" />
-                        {{ __('Schedule a Viewing') }}
-                    </button>
+                    @if($isUnavailable)
+                        <p class="mt-5 text-sm text-[var(--color-muted)]">{{ __('Tell us what you are looking for and we will suggest similar properties.') }}</p>
+                        <div class="mt-4">
+                            @include('public.partials.lead-form', [
+                                'propertyId' => $property->id,
+                                'leadType' => 'property_inquiry',
+                                'prefix' => 'similar',
+                                'submitLabel' => __('Ask about similar properties'),
+                                'messagePlaceholder' => __('Budget, preferred area, size…'),
+                            ])
+                        </div>
+                    @else
+                        <div class="mt-5 grid grid-cols-2 gap-1 rounded-lg bg-sand p-1" role="tablist" aria-label="{{ __('Contact options') }}">
+                            <button type="button" role="tab" id="tab-enquire" aria-controls="panel-enquire" @click="tab = 'enquire'" :aria-selected="(tab === 'enquire').toString()"
+                                    class="min-h-10 rounded-md px-3 text-[0.8125rem] font-semibold transition"
+                                    :class="tab === 'enquire' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)] hover:text-ink'">
+                                {{ __('Enquire') }}
+                            </button>
+                            <button type="button" role="tab" id="tab-visit" aria-controls="panel-visit" @click="tab = 'visit'" :aria-selected="(tab === 'visit').toString()"
+                                    class="min-h-10 rounded-md px-3 text-[0.8125rem] font-semibold transition"
+                                    :class="tab === 'visit' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)] hover:text-ink'">
+                                {{ __('Book a visit') }}
+                            </button>
+                        </div>
 
-                    <div class="mt-5 grid grid-cols-2 gap-1 rounded-lg bg-sand p-1" role="tablist" aria-label="{{ __('Contact options') }}">
-                        <button type="button" role="tab" @click="tab = 'enquire'" :aria-selected="(tab === 'enquire').toString()"
-                                class="min-h-9 rounded-md px-3 text-[0.8125rem] font-semibold transition"
-                                :class="tab === 'enquire' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)] hover:text-ink'">
-                            {{ __('Inquire Now') }}
-                        </button>
-                        <button type="button" role="tab" @click="tab = 'visit'" :aria-selected="(tab === 'visit').toString()"
-                                class="min-h-9 rounded-md px-3 text-[0.8125rem] font-semibold transition"
-                                :class="tab === 'visit' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)] hover:text-ink'">
-                            {{ __('Schedule a Viewing') }}
-                        </button>
-                    </div>
-
-                    <form method="POST" action="{{ route('inquiries.store') }}" class="mt-5 space-y-4"
-                          x-show="tab === 'enquire'" x-data="uhForm" @submit="submit">
-                        @csrf
-                        <input type="hidden" name="property_id" value="{{ $property->id }}">
-                        <x-ui.input name="name" id="enq-name" :label="__('Your name')" autocomplete="name" required />
-                        <x-ui.input name="phone" id="enq-phone" :label="__('Mobile number')" type="tel" dir="ltr"
-                                    inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX"
-                                    :hint="__('A Bangladeshi mobile number, e.g. 01712345678')" required />
-                        <x-ui.input name="email" id="enq-email" :label="__('Email')" type="email" dir="ltr"
-                                    autocomplete="email" optional />
-                        <x-ui.select name="preferred_contact" id="enq-contact" :label="__('Best way to reach you')">
-                            <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
-                            <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
-                            <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
-                        </x-ui.select>
-                        <x-ui.textarea name="message" id="enq-message" :label="__('Anything we should know?')" rows="3" optional
-                                       :placeholder="__('Preferred floor, timeline, budget…')" />
-                        <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
-                            <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            <span x-text="submitting ? '{{ __('Sending…') }}' : '{{ __('Inquire Now') }}'">{{ __('Inquire Now') }}</span>
-                        </button>
-                        <p class="uh-hint">{{ __('We only use your number to answer this enquiry.') }}</p>
-                    </form>
-
-                    <form method="POST" action="{{ route('visits.store') }}" class="mt-5 space-y-4"
-                          x-show="tab === 'visit'" x-cloak x-data="uhForm" @submit="submit">
-                        @csrf
-                        <input type="hidden" name="property_id" value="{{ $property->id }}">
-                        <x-ui.input name="name" id="visit-name" :label="__('Your name')" autocomplete="name" required />
-                        <x-ui.input name="phone" id="visit-phone" :label="__('Mobile number')" type="tel" dir="ltr"
-                                    inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" required />
-                        <x-ui.input name="preferred_at" id="visit-at" type="datetime-local"
-                                    :label="__('Preferred date and time')" optional />
-                        <x-ui.textarea name="notes" id="visit-notes" :label="__('Notes for the visit')" rows="2" optional />
-                        <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
-                            <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            <span x-text="submitting ? '{{ __('Sending…') }}' : '{{ __('Schedule a Viewing') }}'">{{ __('Schedule a Viewing') }}</span>
-                        </button>
-                        <p class="uh-hint">{{ __('We confirm the slot by phone before you travel.') }}</p>
-                    </form>
+                        <div class="mt-5" id="panel-enquire" role="tabpanel" aria-labelledby="tab-enquire" x-show="tab === 'enquire'">
+                            @include('public.partials.lead-form', ['propertyId' => $property->id, 'leadType' => 'property_inquiry', 'prefix' => 'enq'])
+                        </div>
+                        <div class="mt-5" id="panel-visit" role="tabpanel" aria-labelledby="tab-visit" x-show="tab === 'visit'" x-cloak>
+                            @include('public.partials.lead-form', ['propertyId' => $property->id, 'formType' => 'visit', 'prefix' => 'visit'])
+                        </div>
+                    @endif
                 </div>
             </aside>
         </div>
@@ -398,7 +430,7 @@
             <section class="border-t border-line bg-paper">
                 <div class="uh-container uh-section-tight" x-data="{}">
                     <div class="flex items-end justify-between gap-4">
-                        <h2 class="uh-h2">{{ __('Similar homes') }}</h2>
+                        <h2 class="uh-h2">{{ $isUnavailable ? __('Available alternatives') : __('Similar properties') }}</h2>
                         <div class="flex gap-2">
                             <button type="button" class="uh-icon-btn size-11 border border-line-strong bg-paper"
                                     @click="$refs.similar.scrollBy({ left: -320, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })"
@@ -424,19 +456,26 @@
         @endif
 
         <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-ink/95 p-3 backdrop-blur-sm lg:hidden">
-            @if(filled($contactPhone))
-                <a class="uh-btn-ondark flex-1" href="tel:{{ preg_replace('/[^\d+]/', '', $contactPhone) }}">
+            @if($callHref)
+                <a class="uh-btn-ondark flex-1" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
                     <x-icon name="phone" class="size-4" />
                     {{ __('Call') }}
                 </a>
             @endif
             @if(filled($whatsapp))
-                <a class="uh-btn-whatsapp flex-1" href="{{ $whatsapp }}" rel="noopener">
+                <a class="uh-btn-whatsapp flex-1" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
                     <x-icon name="whatsapp" class="size-4" />
-                    {{ __('WhatsApp Us') }}
+                    {{ __('WhatsApp') }}
                 </a>
             @endif
-            <a class="uh-btn-ondark flex-1" href="#enquire">{{ __('Inquire Now') }}</a>
+            @if($isUnavailable)
+                <a class="uh-btn-ondark flex-1" href="#contact">{{ __('Similar homes') }}</a>
+            @else
+                <button type="button" class="uh-btn-ondark flex-1" x-data @click="$dispatch('uh:open-visit')">
+                    <x-icon name="calendar" class="size-4" />
+                    {{ __('Visit') }}
+                </button>
+            @endif
         </div>
     </article>
 @endsection

@@ -25,6 +25,7 @@
           class="space-y-6 lg:col-span-2" x-data="uhForm" @submit="submit">
         @csrf
         @if($model) @method('PUT') @endif
+        <fieldset class="space-y-6" @disabled($model && ! ($canEdit ?? true))>
 
         <section class="uh-panel">
             <h2 class="uh-h4">Project details</h2>
@@ -97,40 +98,14 @@
             </button>
             <a class="uh-btn-ghost" href="{{ route('admin.projects.index') }}">Cancel</a>
         </div>
+        </fieldset>
     </form>
 
     @if($model)
         <div class="space-y-6">
-            <section class="uh-panel">
-                <h2 class="uh-h4">Publication</h2>
-                <p class="mt-2"><x-ui.status :status="$model->editorialStatus()" /></p>
-                <p class="mt-3 text-xs leading-relaxed text-[var(--color-muted)]">
-                    Only published projects appear on the public site.
-                </p>
-                <div class="mt-4 space-y-2">
-                    <form method="POST" action="{{ route('admin.projects.submit', $model) }}">
-                        @csrf
-                        <button type="submit" class="uh-btn-outline uh-btn-sm uh-btn-block">Submit for review</button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.projects.approve', $model) }}">
-                        @csrf
-                        <button type="submit" class="uh-btn-outline uh-btn-sm uh-btn-block">Approve</button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.projects.publish', $model) }}">
-                        @csrf
-                        <button type="submit" class="uh-btn-primary uh-btn-sm uh-btn-block">Publish</button>
-                    </form>
-                </div>
+            @include('admin.partials.publication-panel', ['model' => $model, 'routePrefix' => 'admin.projects', 'noun' => 'project', 'status' => $model->editorialStatus(), 'checklist' => $checklist])
 
-                <form method="POST" action="{{ route('admin.projects.unpublish', $model) }}"
-                      class="mt-4 space-y-2 border-t border-line pt-4"
-                      x-data="uhConfirm('Unpublish this project? It will disappear from the public site immediately.')">
-                    @csrf
-                    <x-ui.input name="unpublish_reason" label="Reason for unpublishing" required
-                                hint="Recorded in the audit log." />
-                    <button type="submit" class="uh-btn-danger uh-btn-sm uh-btn-block" @click="confirm($event)">Unpublish</button>
-                </form>
-            </section>
+            @include('admin.partials.media-manager', ['owner' => $model, 'ownerType' => 'project', 'collections' => ['gallery' => 'Photographs', 'brochure' => 'Brochures'], 'canEdit' => $canEdit])
 
             <section class="uh-panel">
                 <h2 class="uh-h4">Listings in this project</h2>

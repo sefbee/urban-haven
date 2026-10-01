@@ -8,18 +8,19 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div class="max-w-2xl">
                 <h2 class="uh-h2">{{ __('Latest Properties') }}</h2>
-                <p class="uh-lede mt-3">{{ __('Recently added homes from Urban Haven inventory.') }}</p>
+                <p class="uh-lede mt-3">{{ __('Recently added properties from Urban Haven.') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 @if($showTabs)
-                    <div class="flex flex-wrap gap-2" role="tablist" aria-label="{{ __('Listing type') }}">
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="{{ __('Listing type') }}">
                         <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'sale').toString()"
                                 :class="tab === 'sale' ? 'uh-home-tab-active' : ''" @click="tab = 'sale'">{{ __('For sale') }}</button>
                         <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'rent').toString()"
                                 :class="tab === 'rent' ? 'uh-home-tab-active' : ''" @click="tab = 'rent'">{{ __('For rent') }}</button>
                     </div>
                 @endif
-                <a class="uh-link-quiet inline-flex items-center gap-1.5 text-sm" href="{{ route('properties.index') }}">
+                <a class="uh-link-quiet inline-flex items-center gap-1.5 text-sm" href="{{ route('properties.index') }}"
+                   :href="@js(route('properties.index')) + '?listing_type=' + tab">
                     {{ __('View All Properties') }}
                     <x-icon name="arrow-right" class="size-4" />
                 </a>

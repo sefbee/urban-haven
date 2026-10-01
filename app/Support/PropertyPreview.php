@@ -55,7 +55,7 @@ final class PropertyPreview
         $images = [];
 
         if ($property->relationLoaded('media')) {
-            $images = $property->media->take(12)->map(fn (Media $image): array => [
+            $images = $property->galleryImages()->take(12)->map(fn (Media $image): array => [
                 'url' => $image->url(1280),
                 'alt' => $image->alt(app()->getLocale()),
             ])->values()->all();
@@ -75,8 +75,6 @@ final class PropertyPreview
                 ? Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags((string) $property->description)) ?? ''), 220)
                 : null,
             'whatsapp' => $property->whatsappEnquiryUrl(),
-            'saved' => in_array($property->id, array_map('intval', session('shortlist', [])), true),
-            'removeUrl' => route('shortlist.remove', $property->id),
             'updated' => $property->last_updated_at
                 ? __('Updated :time', ['time' => $property->last_updated_at->diffForHumans()])
                 : null,

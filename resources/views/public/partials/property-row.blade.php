@@ -1,12 +1,12 @@
 @php
     $image = $property->featuredImage();
-    $photoCount = $property->relationLoaded('media') ? $property->media->count() : 0;
-    $saved = in_array($property->id, array_map('intval', session('shortlist', [])), true);
+    $photoCount = $property->relationLoaded('media') ? $property->galleryImages()->count() : 0;
     $area = $property->area_value
         ? \App\Support\AreaConverter::format($property->area_value, $property->area_unit)
         : null;
-    $compact = \App\Support\MoneyFormatter::compactBdt($property->price);
-    $exact = \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
+    $onRequest = $property->isPriceOnRequest();
+    $compact = $onRequest ? null : \App\Support\MoneyFormatter::compactBdt($property->price);
+    $exact = $onRequest ? __('Price on request') : \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
     $headline = $property->listing_type !== 'rent' && $compact ? 'BDT '.$compact : $exact;
     $whatsapp = $property->whatsappEnquiryUrl();
     $preview = \App\Support\PropertyPreview::for($property);
@@ -24,10 +24,11 @@
             <span class="rounded-md bg-ink/80 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-cream">#{{ $property->reference ?: $property->id }}</span>
         </span>
         @if($property->availability !== 'available')
-            <span class="pointer-events-none absolute bottom-3 right-3 z-10">
+            <span class="pointer-events-none absolute bottom-3 left-3 z-10">
                 <x-ui.status :status="$property->availability" />
             </span>
         @endif
+        <x-save-button :property="$property" class="absolute bottom-3 right-3 z-20 bg-white/95 shadow" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
@@ -78,55 +79,15 @@
             <p class="mt-2 text-xs text-[var(--color-muted)]">{{ __('Updated :time', ['time' => $property->last_updated_at->diffForHumans()]) }}</p>
         @endif
 
-        <p class="mt-4 text-xs font-semibold text-ink">{{ __('Contact Urban Haven Agent') }}</p>
-        <div class="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-4">
-            @if(filled(\App\Models\Setting::get('phone')))
-                <a class="uh-icon-action" href="tel:{{ preg_replace('/[^\d+]/', '', (string) \App\Models\Setting::get('phone')) }}"
-                   aria-label="{{ __('Call Phone') }}">
-                    <x-icon name="phone" class="size-4" />
-                </a>
-            @endif
-            <a class="uh-icon-action" href="{{ route('properties.show', $property->slug) }}#contact" aria-label="{{ __('Email/Inquiry') }}">
-                <x-icon name="mail" class="size-4" />
-            </a>
-            <button type="button" class="uh-icon-action"
-                    x-data="uhShare({{ \Illuminate\Support\Js::from(route('properties.show', $property->slug)) }}, {{ \Illuminate\Support\Js::from($property->title) }})"
-                    @click="share()" aria-label="{{ __('Share') }}">
-                <x-icon name="share" class="size-4" />
-            </button>
-            <a class="uh-btn-outline uh-btn-sm" href="{{ route('properties.show', $property->slug) }}">{{ __('View details') }}</a>
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.show', $property->slug) }}#contact">{{ __('Inquire Now') }}</a>
-            @if($whatsapp)
-                <a class="uh-btn-whatsapp uh-btn-sm" href="{{ $whatsapp }}" rel="noopener">
-                    <x-icon name="whatsapp" class="size-4" />
-                    {{ __('WhatsApp Us') }}
-                </a>
-            @endif
-            <button type="button" class="uh-btn-outline uh-btn-sm" @click="$dispatch('open-preview', payload)">
-                <x-icon name="expand" class="size-4" />
-                {{ __('Quick view') }}
-            </button>
-            @if($saved)
-                <form method="POST" action="{{ route('shortlist.remove', $property->id) }}" x-data="uhForm" @submit="submit">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="uh-icon-btn size-9 text-forest" :disabled="submitting"
-                            aria-label="{{ __('Remove :title from shortlist', ['title' => $property->title]) }}">
-                        <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="!submitting" />
-                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                    </button>
-                </form>
-            @else
-                <form method="POST" action="{{ route('shortlist.add') }}" x-data="uhForm" @submit="submit">
-                    @csrf
-                    <input type="hidden" name="property_id" value="{{ $property->id }}">
-                    <button type="submit" class="uh-icon-btn size-9" :disabled="submitting"
-                            aria-label="{{ __('Save :title to shortlist', ['title' => $property->title]) }}">
-                        <x-icon name="heart" class="size-4" x-show="!submitting" />
-                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                    </button>
-                </form>
-            @endif
+        <div class="mt-auto">
+            @include('public.partials.card-actions', [
+                'url' => route('properties.show', $property->slug),
+                'title' => $property->title,
+                'whatsapp' => $property->isUnavailable() ? null : $whatsapp,
+                'trackPropertyId' => $property->id,
+                'trackLocation' => 'list',
+                'showQuickView' => true,
+            ])
         </div>
     </div>
 </article>

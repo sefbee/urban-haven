@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\PublicationState;
+use App\Models\Setting;
 use Database\Seeders\RolesPermissionsSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
@@ -32,7 +33,7 @@ class PropertyDiscoveryTest extends TestCase
             'price_basis' => 'total_sale',
             'area_unit' => 'sqft',
         ]);
-        $live->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $live->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $draft = Property::query()->create([
             'title' => 'Hidden draft',
@@ -125,65 +126,56 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Legal Services');
     }
 
-    public function test_header_exposes_contact_blog_and_account_entry(): void
+    public function test_header_exposes_primary_navigation_without_customer_accounts(): void
     {
         $page = CmsPage::query()->create([
-            'slug' => 'blog',
-            'title' => 'Blog',
-            'body' => '<p>Dhaka buying notes from the desk.</p>',
+            'slug' => 'about',
+            'title' => 'About Urban Haven',
+            'body' => '<p>We sell and rent our own properties in Dhaka.</p>',
             'status' => 'published',
         ]);
-        $page->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $page->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Home Loan')
+            ->assertSee('Buy')
+            ->assertSee('Rent')
+            ->assertSee('Projects')
+            ->assertSee('Articles')
             ->assertSee('About Us')
-            ->assertSee('Blog')
-            ->assertSee('Valuation Tool')
-            ->assertSee('Sign In / Sign Up')
-            ->assertSee('Contact Urban Haven')
-            ->assertDontSee('Post Property')
-            ->assertDontSee('Login / Register');
+            ->assertSee('Contact')
+            ->assertDontSee('Sign In / Sign Up')
+            ->assertDontSee('Post Property');
 
-        $this->get(route('cms.show', 'blog'))
+        $this->get(route('cms.show', 'about'))
             ->assertOk()
-            ->assertSee('Blog')
-            ->assertSee('Dhaka buying notes from the desk.');
+            ->assertSee('About Urban Haven')
+            ->assertSee('We sell and rent our own properties in Dhaka.');
     }
 
     public function test_home_hero_offers_sale_rent_search_and_trust_strip(): void
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Find a place that feels like home.')
-            ->assertSee('Explore verified properties and carefully selected projects from Urban Haven.')
             ->assertSee('Buy')
             ->assertSee('Rent')
             ->assertSee('Location')
             ->assertSee('Property type')
             ->assertSee('Bedrooms')
             ->assertSee('Price range')
-            ->assertSee('Explore Properties')
-            ->assertSee('Explore Projects')
-            ->assertSee('Verified Properties')
-            ->assertSee('Carefully Selected Listings')
-            ->assertSee('Prime Locations')
-            ->assertSee('Dedicated Support')
+            ->assertSee('Search Properties')
+            ->assertSee('Listed directly by Urban Haven')
+            ->assertSee('Book a site visit online')
             ->assertSee('Why Urban Haven?')
-            ->assertSee('Find a Property')
-            ->assertSee('Contact Urban Haven')
-            ->assertSee('Properties for Sale')
-            ->assertSee('All Projects')
             ->assertDontSee('10,000+')
-            ->assertDontSee('Post Property')
-            ->assertDontSee('Calculate Now')
-            ->assertDontSee('Your Perfect Property Awaits');
+            ->assertDontSee('Post Property');
     }
 
     public function test_home_arranges_projects_featured_latest_types_and_locations(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
+        Setting::set('phone', '+8801711000000', 'contact');
+        Setting::set('whatsapp', '+8801711000000', 'contact');
         $gulshan = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
         $apartment = PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'is_active' => true]);
         PropertyType::query()->create(['key' => 'land', 'label' => 'Unused Land Type', 'is_active' => true]);
@@ -220,13 +212,13 @@ class PropertyDiscoveryTest extends TestCase
             'developer_name' => 'Urban Haven Properties Ltd.',
             'is_featured' => true,
         ]);
-        $project->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $project->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $this->get('/')
             ->assertOk()
             ->assertSeeInOrder([
-                'Find a place that feels like home.',
-                'Verified Properties',
+                'Search Properties',
+                'Listed directly by Urban Haven',
                 'Featured Projects',
                 'Haven Residences Gulshan',
                 'View Project',
@@ -239,13 +231,17 @@ class PropertyDiscoveryTest extends TestCase
                 'Explore by Property Type',
                 'Explore Properties by Location',
                 'Why Urban Haven?',
-                'Looking for the right property?',
-                'Find a Property',
+                'Not sure where to start?',
                 'Explore Urban Haven',
                 'Available Projects',
             ])
-            ->assertSee('Under Construction')
             ->assertSee('Apartment')
+            ->assertSee('View details')
+            ->assertSee('aria-label="Call"', false)
+            ->assertSee('aria-label="WhatsApp"', false)
+            ->assertSee('aria-label="Share"', false)
+            ->assertSee('tel:+8801711000000', false)
+            ->assertSee('wa.me/8801711000000', false)
             ->assertDontSee('<span class="mt-5 block text-lg font-semibold tracking-tight">Unused Land Type</span>', false)
             ->assertDontSee('Completed Projects')
             ->assertDontSee('Post Property');
@@ -284,7 +280,7 @@ class PropertyDiscoveryTest extends TestCase
             'location_area_id' => $area->id,
             'developer_name' => 'Urban Haven Properties Ltd.',
         ]);
-        $ongoing->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $ongoing->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $completed = Project::query()->create([
             'name' => 'Completed Haven House',
@@ -293,7 +289,7 @@ class PropertyDiscoveryTest extends TestCase
             'location_area_id' => $area->id,
             'developer_name' => 'Urban Haven Properties Ltd.',
         ]);
-        $completed->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $completed->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         $this->get(route('projects.index', ['development_stage' => 'available']))
             ->assertOk()
@@ -392,15 +388,11 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSee('href="#overview"', false)
             ->assertSee('href="#description"', false)
-            ->assertSee('href="#emi"', false)
+            ->assertSee('id="emi"', false)
             ->assertSee('href="#location"', false)
             ->assertSee('href="#contact"', false)
-            ->assertSee('EMI Calculator')
-            ->assertSee('Location')
-            ->assertSee('Contact')
-            ->assertSee('Contact Urban Haven Agent')
-            ->assertSee('Inquire Now')
-            ->assertSee('Schedule a Viewing');
+            ->assertSee('Enquire')
+            ->assertSee('Book a visit');
     }
 
     public function test_listing_page_names_the_place_and_offers_a_quick_view(): void
@@ -408,6 +400,9 @@ class PropertyDiscoveryTest extends TestCase
         $this->seed(RolesPermissionsSeeder::class);
         config(['urbanhaven.whatsapp.number' => '8801711000000']);
         $property = $this->publishProperty('Gulshan home', ['price' => 7_600_000, 'reference' => 'UH-76']);
+
+        Setting::set('phone', '+8801711000000', 'contact');
+        Setting::set('whatsapp', '+8801711000000', 'contact');
 
         $this->get(route('properties.index', [
             'listing_type' => 'sale',
@@ -417,11 +412,12 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Homes for sale in Gulshan')
             ->assertSee('Quick view')
             ->assertSee('View details')
-            ->assertSee('Inquire Now')
-            ->assertSee('WhatsApp Us')
-            ->assertSee('Contact Urban Haven Agent')
+            ->assertSee('aria-label="Call"', false)
+            ->assertSee('aria-label="WhatsApp"', false)
+            ->assertSee('aria-label="Share"', false)
             ->assertSee('BDT 76 lakh')
             ->assertSee('wa.me/8801711000000', false)
+            ->assertSee('tel:+8801711000000', false)
             ->assertSee('UH-76');
     }
 
@@ -502,7 +498,7 @@ class PropertyDiscoveryTest extends TestCase
             ...$attributes,
         ]);
 
-        $property->publicationState()->update(['status' => PublicationState::PUBLISHED]);
+        $property->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
         return $property;
     }

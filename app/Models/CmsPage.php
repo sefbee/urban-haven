@@ -12,16 +12,32 @@ class CmsPage extends Model
 {
     use HasSlug, Publishable;
 
+    public const TEMPLATES = ['default', 'contact', 'campaign'];
+
     protected $fillable = [
         'slug',
+        'template',
         'title',
         'body',
+        'pending_changes',
         'meta_title',
         'meta_description',
         'status',
         'created_by',
         'updated_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'pending_changes' => 'array',
+        ];
+    }
+
+    public function hasPendingChanges(): bool
+    {
+        return ! empty($this->pending_changes);
+    }
 
     protected static function booted(): void
     {
@@ -34,7 +50,9 @@ class CmsPage extends Model
     {
         return SlugOptions::create()
             ->generateSlugsFrom('title')
-            ->saveSlugsTo('slug');
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate()
+            ->preventOverwrite();
     }
 
     public function creator(): BelongsTo

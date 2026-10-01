@@ -16,6 +16,7 @@ class RolesPermissionsSeeder extends Seeder
             'property.update' => 'Update properties',
             'property.delete' => 'Delete properties',
             'property.publish' => 'Publish properties',
+            'property.reference' => 'Edit property references',
             'project.view' => 'View projects',
             'project.create' => 'Create projects',
             'project.update' => 'Update projects',
@@ -27,7 +28,8 @@ class RolesPermissionsSeeder extends Seeder
             'unit.delete' => 'Delete units',
             'media.create' => 'Upload media',
             'media.delete' => 'Delete media',
-            'lead.view' => 'View leads',
+            'lead.view' => 'View assigned leads',
+            'lead.view_all' => 'View every lead',
             'lead.update' => 'Update leads',
             'lead.assign' => 'Assign leads',
             'lead.export' => 'Export leads',
@@ -40,15 +42,21 @@ class RolesPermissionsSeeder extends Seeder
             'settings.update' => 'Update settings',
             'reference.manage' => 'Manage reference data',
             'cms.view' => 'View CMS',
-            'cms.create' => 'Create CMS pages',
-            'cms.update' => 'Update CMS pages',
-            'cms.delete' => 'Delete CMS pages',
+            'cms.create' => 'Create CMS content',
+            'cms.update' => 'Update CMS content',
+            'cms.delete' => 'Delete CMS content',
+            'cms.publish' => 'Publish CMS content',
+            'audit.view' => 'View the audit log',
+            'redirect.manage' => 'Manage redirects',
+            'report.view' => 'View KPI reports',
         ];
 
         $permissionIds = [];
         foreach ($permissions as $key => $label) {
             $permissionIds[$key] = Permission::query()->updateOrCreate(['key' => $key], ['label' => $label])->id;
         }
+
+        Permission::query()->whereNotIn('key', array_keys($permissions))->delete();
 
         $roles = [
             Role::OWNER_ADMIN => [
@@ -58,11 +66,11 @@ class RolesPermissionsSeeder extends Seeder
             Role::CONTENT_EDITOR => [
                 'label' => 'Content editor',
                 'permissions' => [
-                    'property.view', 'property.create', 'property.update', 'property.delete', 'property.publish',
-                    'project.view', 'project.create', 'project.update', 'project.delete', 'project.publish',
+                    'property.view', 'property.create', 'property.update',
+                    'project.view', 'project.create', 'project.update',
                     'unit.view', 'unit.create', 'unit.update', 'unit.delete',
                     'media.create', 'media.delete',
-                    'cms.view', 'cms.create', 'cms.update', 'cms.delete',
+                    'cms.view', 'cms.create', 'cms.update',
                     'reference.manage',
                 ],
             ],
