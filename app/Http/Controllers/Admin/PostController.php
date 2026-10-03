@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\PostCategory;
 use App\Services\Cms\CmsService;
 use App\Support\SeoMeta;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -98,11 +99,18 @@ class PostController extends Controller
         return redirect()->route('admin.posts.index')->with('status', 'Article deleted.');
     }
 
-    public function storeCategory(Request $request): RedirectResponse
+    public function storeCategory(Request $request): RedirectResponse|JsonResponse
     {
         $this->authorize('create', Post::class);
         $validated = $request->validate(['name' => ['required', 'string', 'max:80', 'unique:post_categories,name']]);
-        PostCategory::query()->create($validated);
+        $category = PostCategory::query()->create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id' => $category->id,
+                'label' => $category->name,
+            ], 201);
+        }
 
         return back()->with('status', 'Category added.');
     }

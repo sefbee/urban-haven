@@ -3,12 +3,14 @@
 
 @section('content')
     <x-ui.page-header compact title="Notifications"
-                      description="Every alert raised for your desk, newest first." />
+                      description="Every alert raised for your desk, newest first.">
+        <x-slot:eyebrow>Desk</x-slot:eyebrow>
+    </x-ui.page-header>
 
     @if($notifications->isNotEmpty())
-        <div class="uh-panel-flush mt-6 divide-y divide-[var(--color-line)]">
+        <div class="uh-panel-flush divide-y divide-[var(--color-line)]">
             @foreach($notifications as $notification)
-                <div @class(['flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-3.5', 'bg-sand/40' => ! $notification->read_at])>
+                <div @class(['flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-3.5', 'uh-admin-unread' => ! $notification->read_at])>
                     <div class="min-w-0 flex-1">
                         <p class="text-sm leading-snug">{{ $notification->data['message'] ?? 'Update' }}</p>
                         <p class="mt-1 text-xs text-[var(--color-muted)]">

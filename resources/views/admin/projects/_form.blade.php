@@ -5,7 +5,7 @@
 
 <x-ui.page-header compact :title="$model->name ?? 'New project'"
                   :description="$model ? 'Changes are saved as a draft until you publish.' : 'A project groups several listings in one development.'">
-    <x-slot:eyebrow>{{ $model ? 'Edit project' : 'New project' }}</x-slot:eyebrow>
+    <x-slot:eyebrow>Inventory · {{ $model ? 'Edit project' : 'New project' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.projects.index') }}">
             <x-icon name="chevron-left" class="size-4" />
@@ -20,12 +20,17 @@
     </x-slot:actions>
 </x-ui.page-header>
 
-<div class="mt-6 grid gap-6 lg:grid-cols-3">
+@if(auth()->user()?->can('reference.manage') || auth()->user()?->can('settings.update'))
+    @include('admin.catalogue._related')
+@endif
+
+<div @class(['uh-admin-compose', 'is-split' => (bool) $model])>
     <form method="POST" action="{{ $model ? route('admin.projects.update', $model) : route('admin.projects.store') }}"
-          class="space-y-6 lg:col-span-2" x-data="uhForm" @submit="submit">
+          class="uh-admin-compose-main" enctype="multipart/form-data" x-data="uhForm" @submit="submit">
         @csrf
         @if($model) @method('PUT') @endif
-        <fieldset class="space-y-6" @disabled($model && ! ($canEdit ?? true))>
+        <fieldset class="grid gap-4" @disabled($model && ! ($canEdit ?? true))>
+        <div class="uh-admin-stack">
 
         <section class="uh-panel">
             <h2 class="uh-h4">Project details</h2>
@@ -34,6 +39,10 @@
                 <x-ui.textarea name="description" label="Description" rows="6" :value="$model->description ?? ''" />
             </div>
         </section>
+
+        @if(! $model)
+            @include('admin.partials.photograph-field')
+        @endif
 
         <section class="uh-panel">
             <h2 class="uh-h4">Location and stage</h2>
@@ -44,7 +53,7 @@
                     @endforeach
                 </x-ui.select>
                 <x-ui.input name="city" label="City" :value="$model->city ?? 'Dhaka'" required />
-                <x-ui.select name="location_area_id" label="Area" optional>
+                <x-ui.select name="location_area_id" label="Area" optional quick-add="area">
                     <option value="">Not set</option>
                     @foreach($areas as $area)
                         <option value="{{ $area->id }}" @selected(old('location_area_id', $model->location_area_id ?? '') == $area->id)>{{ $area->name }} — {{ $area->city }}</option>
@@ -75,23 +84,31 @@
                 </div>
             </div>
 
-            @if($amenities->isNotEmpty())
-                <fieldset class="mt-5 border-t border-line pt-5">
+            <fieldset class="mt-5 border-t border-line pt-5">
+                <div class="flex items-center justify-between gap-3">
                     <legend class="uh-legend">Facilities in the development</legend>
-                    <div class="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach($amenities as $amenity)
-                            <label class="uh-check">
-                                <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
-                                       @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
-                                <span>{{ $amenity->label }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </fieldset>
-            @endif
+                    @can('reference.manage')
+                        <button type="button" class="uh-admin-quick-add" aria-label="Add an amenity"
+                                @click.prevent="$dispatch('uh-quick-add', { kind: 'amenity', target: 'amenity-list' })">
+                            <x-icon name="plus" class="size-4" />
+                        </button>
+                    @endcan
+                </div>
+                <div id="amenity-list" class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach($amenities as $amenity)
+                        <label class="uh-check">
+                            <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
+                                   @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
+                            <span>{{ $amenity->label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
         </section>
 
-        <div class="flex flex-wrap items-center gap-3">
+        </div>
+
+        <div class="uh-admin-dock">
             <button type="submit" class="uh-btn-primary" :disabled="submitting">
                 <span class="uh-spinner" x-show="submitting" x-cloak></span>
                 <span x-text="submitting ? 'Saving…' : '{{ $model ? 'Save changes' : 'Create project' }}'">{{ $model ? 'Save changes' : 'Create project' }}</span>
@@ -102,10 +119,8 @@
     </form>
 
     @if($model)
-        <div class="space-y-6">
+        <div class="uh-admin-compose-side">
             @include('admin.partials.publication-panel', ['model' => $model, 'routePrefix' => 'admin.projects', 'noun' => 'project', 'status' => $model->editorialStatus(), 'checklist' => $checklist])
-
-            @include('admin.partials.media-manager', ['owner' => $model, 'ownerType' => 'project', 'collections' => ['gallery' => 'Photographs', 'brochure' => 'Brochures'], 'canEdit' => $canEdit])
 
             <section class="uh-panel">
                 <h2 class="uh-h4">Listings in this project</h2>
@@ -115,3 +130,7 @@
         </div>
     @endif
 </div>
+
+@if($model)
+    @include('admin.partials.media-manager', ['owner' => $model, 'ownerType' => 'project', 'collections' => ['gallery' => 'Photographs', 'brochure' => 'Brochures'], 'canEdit' => $canEdit])
+@endif

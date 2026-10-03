@@ -17,13 +17,13 @@
         </div>
     @endif
 
-    <div class="border-b border-line bg-paper">
-        <div @class(['py-8 md:py-10', 'uh-container' => $hasForm, 'uh-container-narrow' => ! $hasForm])>
+    <div class="uh-page-head">
+        <div @class(['uh-container' => $hasForm, 'uh-container-narrow' => ! $hasForm])>
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $page->title],
             ]" />
-            <h1 class="uh-h1 mt-3">{{ $page->title }}</h1>
+            <h1 class="uh-home-title">{{ $page->title }}</h1>
         </div>
     </div>
 

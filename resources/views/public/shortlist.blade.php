@@ -1,16 +1,14 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-8 md:py-10">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Shortlist')],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Your shortlist') }}</h1>
-            <p class="uh-lede mt-3 max-w-2xl">{{ __('Properties you save are kept in this browser on this device. No account is needed.') }}</p>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'title' => __('Your shortlist'),
+        'lede' => __('Properties you save are kept in this browser on this device. No account is needed.'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('Shortlist')],
+        ],
+    ])
 
     <div class="uh-container uh-section-tight" x-data="uhSavedList('shortlist', @js(route('saved.cards')))">
         <p class="sr-only" aria-live="polite" x-text="$store.saved.notice"></p>

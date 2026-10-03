@@ -11,19 +11,9 @@
 
 @section('content')
     <article class="pb-28 lg:pb-0">
-        {{-- Project hero --}}
-        <header class="relative isolate overflow-hidden bg-ink text-cream">
-            @if($cover)
-                <img src="{{ $cover->url(1920) }}"
-                     srcset="{{ $cover->url(1280) }} 1280w, {{ $cover->url(1920) }} 1920w"
-                     sizes="100vw" alt="{{ $cover->alt(app()->getLocale()) }}"
-                     fetchpriority="high" decoding="async"
-                     class="absolute inset-0 -z-10 size-full object-cover opacity-45">
-                <div class="absolute inset-0 -z-10 bg-linear-to-t from-ink via-ink/70 to-ink/30"></div>
-            @endif
-
-            <div class="uh-container py-14 md:py-20">
-                <x-ui.breadcrumbs on-dark :items="[
+        <header class="uh-page-head">
+            <div class="uh-container">
+                <x-ui.breadcrumbs :items="[
                     ['label' => __('Home'), 'url' => route('home')],
                     ['label' => __('Projects'), 'url' => route('projects.index')],
                     ['label' => $project->name],
@@ -39,28 +29,27 @@
                     @endif
                 </div>
 
-                <h1 class="uh-display mt-4 max-w-3xl text-cream">{{ $project->name }}</h1>
+                <h1 class="uh-home-title mt-4 max-w-3xl">{{ $project->name }}</h1>
 
-                <p class="mt-4 flex items-center gap-2 text-sm text-cream/70">
-                    <x-icon name="pin" class="size-4 shrink-0 text-gold-soft" />
+                <p class="mt-3 text-sm text-[var(--color-muted)]">
                     {{ $project->locationArea?->name }}@if($project->city), {{ $project->city }}@endif
                 </p>
 
                 <dl class="mt-8 grid max-w-3xl gap-x-8 gap-y-5 sm:grid-cols-3">
                     @if(filled($project->developer_name))
                         <div>
-                            <dt class="uh-eyebrow-light">{{ __('Developer') }}</dt>
+                            <dt class="uh-home-kicker">{{ __('Developer') }}</dt>
                             <dd class="mt-1.5 font-medium">{{ $project->developer_name }}</dd>
                         </div>
                     @endif
                     @if($project->completion_date)
                         <div>
-                            <dt class="uh-eyebrow-light">{{ __('Completion') }}</dt>
+                            <dt class="uh-home-kicker">{{ __('Completion') }}</dt>
                             <dd class="mt-1.5 font-medium">{{ \App\Support\DisplayTimezone::format($project->completion_date, 'F Y') }}</dd>
                         </div>
                     @endif
                     <div>
-                        <dt class="uh-eyebrow-light">{{ __('Availability') }}</dt>
+                        <dt class="uh-home-kicker">{{ __('Availability') }}</dt>
                         <dd class="uh-numeric mt-1.5 font-medium">
                             @if($availability['total'] > 0)
                                 {{ __(':available available · :reserved reserved · :sold sold', $availability) }}
@@ -71,12 +60,21 @@
                     </div>
                 </dl>
 
-                <div class="mt-9 flex flex-wrap gap-3">
+                <div class="mt-8 flex flex-wrap gap-3">
                     @if($available->isNotEmpty())
-                        <a class="uh-btn-gold" href="#homes">{{ __('See available homes') }}</a>
+                        <a class="uh-btn-primary" href="#homes">{{ __('See available homes') }}</a>
                     @endif
-                    <a class="uh-btn-ondark" href="#enquire">{{ __('Inquire Now') }}</a>
+                    <a class="uh-btn-outline" href="#enquire">{{ __('Inquire Now') }}</a>
                 </div>
+
+                @if($cover)
+                    <div class="uh-home-tile-photo mt-8 max-h-[22rem] w-full">
+                        <img src="{{ $cover->url(1920) }}"
+                             srcset="{{ $cover->url(1280) }} 1280w, {{ $cover->url(1920) }} 1920w"
+                             sizes="100vw" alt="{{ $cover->alt(app()->getLocale()) }}"
+                             fetchpriority="high" decoding="async">
+                    </div>
+                @endif
             </div>
         </header>
 
@@ -216,7 +214,7 @@
 
                         @if($whatsapp)
                             <div class="mt-5 border-t border-line pt-5">
-                                <a class="uh-btn-gold uh-btn-block" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                                <a class="uh-btn-whatsapp uh-btn-block" href="{{ $whatsapp }}" rel="noopener" target="_blank"
                                    data-track="whatsapp_click" data-track-project_id="{{ $project->id }}" data-track-location="project_aside">
                                     <x-icon name="whatsapp" class="size-4" />
                                     {{ __('WhatsApp Us') }}
@@ -252,16 +250,16 @@
         </section>
 
         {{-- Mobile conversion bar --}}
-        <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-ink/95 p-3 backdrop-blur-sm lg:hidden">
+        <div class="uh-dock fixed inset-x-0 bottom-0 z-40 flex gap-2 p-3 lg:hidden">
             @if($whatsapp)
-                <a class="uh-btn-gold flex-1" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                <a class="uh-btn-whatsapp flex-1" href="{{ $whatsapp }}" rel="noopener" target="_blank"
                    data-track="whatsapp_click" data-track-project_id="{{ $project->id }}" data-track-location="project_mobile_bar">
                     <x-icon name="whatsapp" class="size-4" />
                     {{ __('WhatsApp Us') }}
                 </a>
             @endif
-            <a class="uh-btn-ondark flex-1" href="#enquire">{{ __('Inquire Now') }}</a>
-            <a class="uh-btn-ondark flex-1" href="#enquire" @click="$dispatch('uh:open-visit')">{{ __('Book a visit') }}</a>
+            <a class="uh-btn-outline flex-1" href="#enquire">{{ __('Inquire Now') }}</a>
+            <a class="uh-btn-primary flex-1" href="#enquire" @click="$dispatch('uh:open-visit')">{{ __('Book a visit') }}</a>
         </div>
     </article>
 @endsection

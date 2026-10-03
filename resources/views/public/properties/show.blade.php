@@ -23,8 +23,8 @@
 @endphp
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-4">
+    <div class="uh-page-head">
+        <div class="uh-container">
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $property->listing_type === 'rent' ? __('Rent') : __('Buy'), 'url' => route('properties.index', ['listing_type' => $property->listing_type])],
@@ -59,7 +59,7 @@
                             </x-ui.badge>
                         @endif
                     </div>
-                    <h1 class="uh-h1 mt-3">{{ $property->title }}</h1>
+                    <h1 class="uh-home-title mt-3">{{ $property->title }}</h1>
                     @if($publicAddress)
                         <p class="mt-2 flex items-center gap-2 text-sm text-[var(--color-muted)]">
                             <x-icon name="pin" class="size-4 shrink-0 text-[var(--color-gold-ink)]" />
@@ -68,7 +68,7 @@
                     @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
-                    <p class="font-display text-3xl tracking-tight text-forest sm:text-4xl">{{ $headlinePrice }}</p>
+                    <p class="text-3xl font-semibold tracking-tight sm:text-4xl">{{ $headlinePrice }}</p>
                     @if($headlinePrice !== $exactPrice)
                         <p class="text-sm text-[var(--color-muted)] uh-numeric">{{ $exactPrice }}</p>
                     @endif
@@ -95,11 +95,11 @@
         </div>
 
         @if($media->isNotEmpty())
-            <section class="bg-sand/60" x-data="uhGallery({{ $media->count() }})">
+            <section x-data="uhGallery({{ $media->count() }})">
                 <div class="uh-container py-4 sm:py-6">
                     <div class="grid gap-2 sm:grid-cols-4 sm:grid-rows-2 sm:h-[28rem]">
                         <button type="button"
-                                class="uh-media relative overflow-hidden rounded-xl bg-ink sm:col-span-3 sm:row-span-2"
+                                class="uh-media relative overflow-hidden rounded-[1.15rem] bg-[#e8e8ed] sm:col-span-3 sm:row-span-2"
                                 @click="open(0)"
                                 aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
                             <img src="{{ $media->first()->url(1280) }}"
@@ -111,13 +111,13 @@
                         </button>
                         @foreach($media->slice(1, 2)->values() as $index => $image)
                             <button type="button"
-                                    class="uh-media relative hidden overflow-hidden rounded-xl bg-ink sm:block"
+                                    class="uh-media relative hidden overflow-hidden rounded-[1.15rem] bg-[#e8e8ed] sm:block"
                                     @click="open({{ $index + 1 }})"
                                     aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
                                 <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}"
                                      class="size-full object-cover" loading="lazy" decoding="async">
                                 @if($index === 1 && $media->count() > 3)
-                                    <span class="absolute inset-0 flex items-center justify-center bg-ink/55 text-sm font-bold text-cream">
+                                    <span class="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-semibold text-white">
                                         + {{ __('More Photos') }}
                                     </span>
                                 @endif
@@ -125,13 +125,13 @@
                         @endforeach
                         @if($media->count() === 1)
                             <button type="button"
-                                    class="hidden items-center justify-center rounded-xl bg-ink text-sm font-bold text-cream sm:flex sm:row-span-2"
+                                    class="hidden items-center justify-center rounded-[1.15rem] bg-[#e8e8ed] text-sm font-semibold text-[#1d1d1f] sm:flex sm:row-span-2"
                                     @click="open(0)">
                                 + {{ __('More Photos') }}
                             </button>
                         @elseif($media->count() === 2)
                             <button type="button"
-                                    class="hidden items-center justify-center rounded-xl bg-ink text-sm font-bold text-cream sm:flex"
+                                    class="hidden items-center justify-center rounded-[1.15rem] bg-[#e8e8ed] text-sm font-semibold text-[#1d1d1f] sm:flex"
                                     @click="open(0)">
                                 + {{ __('More Photos') }}
                             </button>
@@ -165,7 +165,7 @@
             </section>
         @endif
 
-        <div class="sticky top-16 z-20 border-b border-line bg-paper lg:top-[4.25rem]">
+        <div class="uh-sticky-bar z-20">
             <div class="uh-container">
                 <nav class="-mx-1 flex gap-1 overflow-x-auto" aria-label="{{ __('Property details') }}">
                     <a href="#overview" class="uh-tab shrink-0">{{ __('Overview') }}</a>
@@ -364,7 +364,7 @@
                 @endif
             </div>
 
-            <aside id="contact" class="scroll-mt-32 lg:sticky lg:top-[8rem]" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }"
+            <aside id="contact" class="scroll-mt-32 lg:sticky lg:top-28" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }"
                    @uh:open-visit.window="tab = 'visit'; $el.scrollIntoView({ behavior: 'smooth' })">
                 <div class="uh-panel" id="enquire">
                     <div class="flex items-center gap-3">
@@ -455,9 +455,9 @@
             </section>
         @endif
 
-        <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-white/10 bg-ink/95 p-3 backdrop-blur-sm lg:hidden">
+        <div class="uh-dock fixed inset-x-0 bottom-0 z-40 flex gap-2 p-3 lg:hidden">
             @if($callHref)
-                <a class="uh-btn-ondark flex-1" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
+                <a class="uh-btn-outline flex-1" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
                     <x-icon name="phone" class="size-4" />
                     {{ __('Call') }}
                 </a>
@@ -469,9 +469,9 @@
                 </a>
             @endif
             @if($isUnavailable)
-                <a class="uh-btn-ondark flex-1" href="#contact">{{ __('Similar homes') }}</a>
+                <a class="uh-btn-outline flex-1" href="#contact">{{ __('Similar homes') }}</a>
             @else
-                <button type="button" class="uh-btn-ondark flex-1" x-data @click="$dispatch('uh:open-visit')">
+                <button type="button" class="uh-btn-primary flex-1" x-data @click="$dispatch('uh:open-visit')">
                     <x-icon name="calendar" class="size-4" />
                     {{ __('Visit') }}
                 </button>

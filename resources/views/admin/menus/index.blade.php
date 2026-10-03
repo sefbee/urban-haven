@@ -2,9 +2,18 @@
 @section('title', 'Menus')
 
 @section('content')
-    <x-ui.page-header compact title="Menus" description="Links in the public header and footer. When a menu has no visible links the site uses its built-in navigation." />
+    <x-ui.page-header compact title="Menus" description="Links in the public header and footer. When a menu has no visible links the site uses its built-in navigation.">
+        <x-slot:eyebrow>Website</x-slot:eyebrow>
+    </x-ui.page-header>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <x-ui.admin-related label="Also on the site">
+        <a href="{{ route('admin.cms.index') }}">Pages</a>
+        @can('redirect.manage')
+            <a href="{{ route('admin.redirects.index') }}">Redirects</a>
+        @endcan
+    </x-ui.admin-related>
+
+    <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
             @foreach($locations as $location => $label)
                 <section class="uh-panel" aria-labelledby="menu-{{ $location }}">

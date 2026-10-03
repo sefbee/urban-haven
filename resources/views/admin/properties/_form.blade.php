@@ -9,8 +9,8 @@
 @endphp
 
 <x-ui.page-header compact :title="$exists ? $property->title : 'New property'"
-                  :description="$exists ? 'Reference '.($property->reference ?? '—').'. Version '.$property->version.'.' : 'Save a draft first, then add photographs, floor plans and units.'">
-    <x-slot:eyebrow>{{ $exists ? 'Edit property' : 'New property' }}</x-slot:eyebrow>
+                  :description="$exists ? 'Reference '.($property->reference ?? '—').'. Version '.$property->version.'.' : 'Add the listing details. A photograph can go with this draft.'">
+    <x-slot:eyebrow>Inventory · {{ $exists ? 'Edit property' : 'New property' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.index') }}">
             <x-icon name="chevron-left" class="size-4" />
@@ -25,15 +25,19 @@
     </x-slot:actions>
 </x-ui.page-header>
 
+@if(auth()->user()?->can('reference.manage') || auth()->user()?->can('settings.update'))
+    @include('admin.catalogue._related')
+@endif
+
 @if($exists && ! $canEdit)
     <x-ui.alert tone="info" class="mt-6">
         This listing is live. Only a publisher can change its content; you can still update availability below.
     </x-ui.alert>
 @endif
 
-<div class="mt-6 grid gap-6 lg:grid-cols-3">
+<div @class(['uh-admin-compose', 'is-split' => $exists])>
     <form method="POST" action="{{ $exists ? route('admin.properties.update', $property) : route('admin.properties.store') }}"
-          class="space-y-6 lg:col-span-2" x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
+          class="uh-admin-compose-main" enctype="multipart/form-data" x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
           @submit="submit">
         @csrf
         @if($exists)
@@ -41,31 +45,38 @@
             <input type="hidden" name="version" value="{{ old('version', $property->version) }}">
         @endif
 
-        <fieldset class="space-y-6" @disabled(! $canEdit)>
+        <fieldset class="grid gap-4" @disabled(! $canEdit)>
+            <div class="uh-admin-stack">
             <section class="uh-panel">
                 <h2 class="uh-h4">Listing basics</h2>
                 <div class="mt-4 space-y-4">
-                    <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
-                                hint="What a buyer sees first. Be specific: beds, type and area." />
-                    @if($canEditReference)
-                        <x-ui.input name="reference" label="Reference" :value="$property->reference" optional maxlength="30"
-                                    hint="Letters, numbers and dashes. Leave blank to generate one automatically." />
-                    @endif
-                    <x-ui.textarea name="description" label="Description" rows="7" :value="$property->description"
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
+                                    hint="What a buyer sees first. Be specific: beds, type and area." />
+                        @if($canEditReference)
+                            <x-ui.input name="reference" label="Reference" :value="$property->reference" optional maxlength="30"
+                                        hint="Letters, numbers and dashes. Leave blank to generate one automatically." />
+                        @endif
+                    </div>
+                    <x-ui.textarea name="description" label="Description" rows="5" :value="$property->description"
                                    hint="Plain text. Line breaks are preserved on the public page." />
                 </div>
             </section>
 
+            @if(! $exists && $canEdit)
+                @include('admin.partials.photograph-field')
+            @endif
+
             <section class="uh-panel">
                 <h2 class="uh-h4">Classification</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <x-ui.select name="property_type_id" label="Property type" required x-model="typeId">
+                    <x-ui.select name="property_type_id" label="Property type" required x-model="typeId" quick-add="type">
                         <option value="">Choose a type</option>
                         @foreach($types as $type)
                             <option value="{{ $type->id }}" @selected(old('property_type_id', $property->property_type_id) == $type->id)>{{ $type->label }}</option>
                         @endforeach
                     </x-ui.select>
-                    <x-ui.select name="location_area_id" label="Area" required>
+                    <x-ui.select name="location_area_id" label="Area" required quick-add="area">
                         <option value="">Choose an area</option>
                         @foreach($areas as $area)
                             <option value="{{ $area->id }}" @selected(old('location_area_id', $property->location_area_id) == $area->id)>{{ $area->name }} — {{ $area->city }}</option>
@@ -88,7 +99,7 @@
                             @endforeach
                         </x-ui.select>
                     @endif
-                    <x-ui.select name="project_id" label="Part of a project" optional>
+                    <x-ui.select name="project_id" label="Part of a project" optional quick-add="project">
                         <option value="">Standalone listing</option>
                         @foreach($projects as $project)
                             <option value="{{ $project->id }}" @selected(old('project_id', $property->project_id) == $project->id)>{{ $project->name }}</option>
@@ -153,20 +164,26 @@
                     </div>
                 </div>
 
-                @if($amenities->isNotEmpty())
-                    <fieldset class="mt-5 border-t border-line pt-5">
+                <fieldset class="mt-5 border-t border-line pt-5">
+                    <div class="flex items-center justify-between gap-3">
                         <legend class="uh-legend">Amenities</legend>
-                        <div class="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-                            @foreach($amenities as $amenity)
-                                <label class="uh-check">
-                                    <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
-                                           @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
-                                    <span>{{ $amenity->label }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </fieldset>
-                @endif
+                        @can('reference.manage')
+                            <button type="button" class="uh-admin-quick-add" aria-label="Add an amenity"
+                                    @click.prevent="$dispatch('uh-quick-add', { kind: 'amenity', target: 'amenity-list' })">
+                                <x-icon name="plus" class="size-4" />
+                            </button>
+                        @endcan
+                    </div>
+                    <div id="amenity-list" class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach($amenities as $amenity)
+                            <label class="uh-check">
+                                <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
+                                       @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
+                                <span>{{ $amenity->label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
             </section>
 
             <section class="uh-panel">
@@ -216,8 +233,9 @@
                 </div>
             </section>
 
+            </div>
             @if($canEdit)
-                <div class="flex flex-wrap items-center gap-3">
+                <div class="uh-admin-dock">
                     <button type="submit" class="uh-btn-primary" :disabled="submitting">
                         <span class="uh-spinner" x-show="submitting" x-cloak></span>
                         <span>{{ $exists ? 'Save changes' : 'Save draft' }}</span>
@@ -229,7 +247,7 @@
     </form>
 
     @if($exists)
-        <div class="space-y-6">
+        <div class="uh-admin-compose-side">
             @include('admin.partials.publication-panel', ['model' => $property, 'routePrefix' => 'admin.properties', 'noun' => 'listing', 'status' => $status, 'checklist' => $checklist])
 
             @can('updateAvailability', $property)
@@ -256,8 +274,6 @@
                     </form>
                 </section>
             @endcan
-
-            @include('admin.partials.media-manager', ['owner' => $property, 'ownerType' => 'property', 'canEdit' => $canEdit])
 
             <section class="uh-panel">
                 <div class="flex items-center justify-between gap-3">
@@ -324,3 +340,7 @@
         </div>
     @endif
 </div>
+
+@if($exists)
+    @include('admin.partials.media-manager', ['owner' => $property, 'ownerType' => 'property', 'canEdit' => $canEdit])
+@endif

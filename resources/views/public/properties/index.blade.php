@@ -45,26 +45,26 @@
 @endphp
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container pt-6 pb-4">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => $resultsTitle],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ $resultsTitle }}</h1>
-            <p class="mt-2 text-sm text-[var(--color-muted)]">{{ __('Every property here is published directly by Urban Haven.') }}</p>
-            @if($searchErrors && $searchErrors->any())
-                <x-ui.alert tone="warn" class="mt-4">
-                    <p class="font-medium">{{ __('Some filters were not valid and have been ignored:') }}</p>
-                    <ul class="mt-1 list-disc pl-4">
-                        @foreach($searchErrors->all() as $message)
-                            <li>{{ $message }}</li>
-                        @endforeach
-                    </ul>
-                </x-ui.alert>
-            @endif
+    @include('public.partials.page-head', [
+        'title' => $resultsTitle,
+        'lede' => __('Every property here is published directly by Urban Haven.'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => $resultsTitle],
+        ],
+    ])
+    @if($searchErrors && $searchErrors->any())
+        <div class="uh-container">
+            <x-ui.alert tone="warn" class="mt-4">
+                <p class="font-medium">{{ __('Some filters were not valid and have been ignored:') }}</p>
+                <ul class="mt-1 list-disc pl-4">
+                    @foreach($searchErrors->all() as $message)
+                        <li>{{ $message }}</li>
+                    @endforeach
+                </ul>
+            </x-ui.alert>
         </div>
-    </div>
+    @endif
 
     <div x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
          @open-preview="openPreview($event.detail)"
@@ -72,7 +72,7 @@
          @keydown.left.window="preview && previousSlide()"
          @keydown.right.window="preview && nextSlide()">
 
-        <div class="sticky top-16 z-30 border-b border-line bg-paper lg:top-[4.25rem]">
+        <div class="uh-sticky-bar">
             <div class="uh-container py-3">
                 <form id="property-filters" method="GET" action="{{ route('properties.index') }}"
                       class="flex flex-col gap-3"
@@ -80,13 +80,13 @@
 
                     <div class="flex flex-wrap items-center gap-2">
                         @if(count($purposes) > 1)
-                            <div class="inline-flex rounded-lg bg-sand p-1" aria-label="{{ __('Buy or rent') }}">
+                            <div class="flex gap-5" aria-label="{{ __('Buy or rent') }}">
                                 <a href="{{ route('properties.index', ['listing_type' => 'sale'] + $kept) }}" @if($listing === 'sale') aria-current="page" @endif
-                                   @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'sale', 'text-ink/70 hover:text-ink' => $listing !== 'sale'])>
+                                   @class(['uh-home-tab', 'uh-home-tab-active' => $listing === 'sale'])>
                                     {{ __('Buy') }}
                                 </a>
                                 <a href="{{ route('properties.index', ['listing_type' => 'rent'] + $kept) }}" @if($listing === 'rent') aria-current="page" @endif
-                                   @class(['inline-flex min-h-9 items-center rounded-md px-3 text-sm font-semibold transition', 'bg-forest text-cream shadow-sm' => $listing === 'rent', 'text-ink/70 hover:text-ink' => $listing !== 'rent'])>
+                                   @class(['uh-home-tab', 'uh-home-tab-active' => $listing === 'rent'])>
                                     {{ __('Rent') }}
                                 </a>
                             </div>
@@ -194,18 +194,16 @@
                 </p>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <div class="inline-flex rounded-lg bg-sand p-1" role="group" aria-label="{{ __('Result layout') }}">
-                        <button type="button" class="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold"
-                                :class="layout === 'list' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)]'"
+                    <div class="flex gap-4" role="group" aria-label="{{ __('Result layout') }}">
+                        <button type="button" class="uh-home-tab"
+                                :class="layout === 'list' ? 'uh-home-tab-active' : ''"
                                 :aria-pressed="(layout === 'list').toString()" @click="setLayout('list')">
-                            <x-icon name="list" class="size-4" />
-                            <span class="hidden sm:inline">{{ __('List') }}</span>
+                            {{ __('List') }}
                         </button>
-                        <button type="button" class="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold"
-                                :class="layout === 'grid' ? 'bg-paper text-ink shadow-sm' : 'text-[var(--color-muted)]'"
+                        <button type="button" class="uh-home-tab"
+                                :class="layout === 'grid' ? 'uh-home-tab-active' : ''"
                                 :aria-pressed="(layout === 'grid').toString()" @click="setLayout('grid')">
-                            <x-icon name="grid" class="size-4" />
-                            <span class="hidden sm:inline">{{ __('Cards') }}</span>
+                            {{ __('Cards') }}
                         </button>
                     </div>
 

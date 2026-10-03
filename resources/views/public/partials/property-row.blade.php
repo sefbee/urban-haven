@@ -13,25 +13,23 @@
 @endphp
 
 <article x-data="{ payload: {{ \Illuminate\Support\Js::from($preview) }} }"
-         class="uh-card flex flex-col"
-         :class="layout === 'list' ? 'sm:flex-row' : ''">
-    <div class="uh-media group relative block w-full shrink-0"
-         :class="layout === 'list' ? 'aspect-16/9 sm:aspect-auto sm:min-h-48 sm:w-72 lg:w-80' : 'aspect-16/9'">
+         class="flex flex-col gap-5 sm:flex-row sm:items-start">
+    <div class="uh-home-tile-photo relative w-full shrink-0 sm:w-72 lg:w-80">
         @include('public.partials.property-carousel', ['sizes' => '(min-width: 1024px) 320px, 100vw'])
 
         <span class="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2">
-            <span class="uh-badge uh-badge-dark">{{ $property->listing_type === 'rent' ? __('For rent') : __('For sale') }}</span>
-            <span class="rounded-md bg-ink/80 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-cream">#{{ $property->reference ?: $property->id }}</span>
+            <span class="uh-badge">{{ $property->listing_type === 'rent' ? __('For rent') : __('For sale') }}</span>
+            <span class="rounded-full bg-white/90 px-2 py-1 text-[0.6875rem] font-medium tracking-wide text-[#1d1d1f]">#{{ $property->reference ?: $property->id }}</span>
         </span>
         @if($property->availability !== 'available')
             <span class="pointer-events-none absolute bottom-3 left-3 z-10">
                 <x-ui.status :status="$property->availability" />
             </span>
         @endif
-        <x-save-button :property="$property" class="absolute bottom-3 right-3 z-20 bg-white/95 shadow" />
+        <x-save-button :property="$property" class="absolute bottom-3 right-3 z-20 rounded-full bg-white shadow-sm" />
     </div>
 
-    <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+    <div class="flex min-w-0 flex-1 flex-col">
         <div class="flex items-start justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2">
                 @if($property->propertyType)
@@ -46,18 +44,17 @@
             @endif
         </div>
 
-        <p class="uh-price mt-3 text-forest">{{ $headline }}</p>
+        <p class="mt-3 text-lg font-semibold tracking-tight">{{ $headline }}</p>
         @if($headline !== $exact)
             <p class="mt-0.5 text-xs text-[var(--color-muted)] uh-numeric">{{ $exact }}</p>
         @endif
 
-        <h2 class="uh-h3 mt-2">
-            <a class="line-clamp-2 transition hover:text-forest" href="{{ route('properties.show', $property->slug) }}">{{ $property->title }}</a>
+        <h2 class="mt-2 text-lg font-semibold tracking-tight">
+            <a class="uh-home-link line-clamp-2" href="{{ route('properties.show', $property->slug) }}">{{ $property->title }}</a>
         </h2>
 
-        <p class="mt-1.5 flex items-center gap-1.5 text-sm text-[var(--color-muted)]">
-            <x-icon name="pin" class="size-3.5 shrink-0 text-[var(--color-gold-ink)]" />
-            <span class="truncate">{{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif</span>
+        <p class="mt-1.5 truncate text-sm text-[var(--color-muted)]">
+            {{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif
         </p>
 
         <ul class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-[var(--color-muted)]">

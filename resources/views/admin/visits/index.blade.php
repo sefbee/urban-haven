@@ -1,20 +1,32 @@
 @extends('layouts.admin')
 @section('title', 'Site visits')
 
+@php
+    $activeUpcoming = ($filters['view'] ?? null) === 'upcoming';
+    $activeAll = blank($filters['view'] ?? null) && blank($filters['status'] ?? null);
+@endphp
+
 @section('content')
     <x-ui.page-header compact title="Site visits"
-                      description="Viewing requests from the public site. Confirm the slot by phone before the visitor travels." />
+                      description="Viewing requests from the public site. Confirm the slot by phone before the visitor travels.">
+        <x-slot:eyebrow>Sales</x-slot:eyebrow>
+    </x-ui.page-header>
 
-    <nav class="mt-5 flex flex-wrap gap-2" aria-label="Visit views">
-        <a href="{{ route('admin.visits.index', ['view' => 'upcoming']) }}" @class(['uh-btn-sm', 'uh-btn-primary' => ($filters['view'] ?? null) === 'upcoming', 'uh-btn-outline' => ($filters['view'] ?? null) !== 'upcoming'])>Upcoming</a>
-        <a href="{{ route('admin.visits.index') }}" @class(['uh-btn-sm', 'uh-btn-primary' => blank($filters['view'] ?? null) && blank($filters['status'] ?? null), 'uh-btn-outline' => filled($filters['view'] ?? null) || filled($filters['status'] ?? null)])>All</a>
+    <x-ui.admin-related label="Next to this">
+        <a href="{{ route('admin.leads.index') }}">Leads</a>
+        <a href="{{ route('admin.follow-ups.index') }}">Follow-ups</a>
+    </x-ui.admin-related>
+
+    <x-ui.admin-tabs label="Visit views">
+        <a href="{{ route('admin.visits.index', ['view' => 'upcoming']) }}" @class(['is-active' => $activeUpcoming]) @if($activeUpcoming) aria-current="page" @endif>Upcoming</a>
+        <a href="{{ route('admin.visits.index') }}" @class(['is-active' => $activeAll]) @if($activeAll) aria-current="page" @endif>All</a>
         @foreach(\App\Models\SiteVisitRequest::STATUS_LABELS as $value => $label)
-            <a href="{{ route('admin.visits.index', ['status' => $value]) }}" @class(['uh-btn-sm', 'uh-btn-primary' => ($filters['status'] ?? null) === $value, 'uh-btn-outline' => ($filters['status'] ?? null) !== $value])>{{ $label }}</a>
+            <a href="{{ route('admin.visits.index', ['status' => $value]) }}" @class(['is-active' => ($filters['status'] ?? null) === $value]) @if(($filters['status'] ?? null) === $value) aria-current="page" @endif>{{ $label }}</a>
         @endforeach
-    </nav>
+    </x-ui.admin-tabs>
 
     @if($visits->isNotEmpty())
-        <div class="uh-panel-flush mt-6 overflow-hidden">
+        <div class="uh-panel-flush overflow-hidden">
             <div class="uh-table-scroll">
                 <table class="uh-table">
                     <caption class="sr-only">Requested site visits</caption>
@@ -88,7 +100,7 @@
             <div class="mt-6">{{ $visits->links() }}</div>
         @endif
     @else
-        <x-ui.empty class="mt-6" icon="calendar" title="No visit requests yet"
+        <x-ui.empty icon="calendar" title="No visit requests yet"
                     description="When someone books a viewing from a property page, the request lands here." />
     @endif
 @endsection

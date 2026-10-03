@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\Auth\MfaController;
@@ -8,12 +9,14 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\LeadController as AdminLeadController;
 use App\Http\Controllers\Admin\LeadExportController;
+use App\Http\Controllers\Admin\LocationAreaController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Admin\PropertyController as AdminPropertyController;
+use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PublicationController;
 use App\Http\Controllers\Admin\RedirectController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -92,14 +95,30 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::post('settings/test-email', [SettingsController::class, 'testEmail'])->middleware('throttle:5,1')->name('settings.test-email');
-        Route::post('settings/areas', [SettingsController::class, 'storeArea'])->name('settings.areas.store');
-        Route::put('settings/areas/{area}', [SettingsController::class, 'updateArea'])->name('settings.areas.update');
-        Route::post('settings/areas/{area}/deactivate', [SettingsController::class, 'deactivateArea'])->name('settings.areas.deactivate');
-        Route::post('settings/types', [SettingsController::class, 'storeType'])->name('settings.types.store');
-        Route::put('settings/types/{type}', [SettingsController::class, 'updateType'])->name('settings.types.update');
-        Route::post('settings/types/{type}/deactivate', [SettingsController::class, 'deactivateType'])->name('settings.types.deactivate');
-        Route::post('settings/amenities', [SettingsController::class, 'storeAmenity'])->name('settings.amenities.store');
-        Route::post('settings/amenities/{amenity}/deactivate', [SettingsController::class, 'deactivateAmenity'])->name('settings.amenities.deactivate');
+        Route::get('listing-display', [SettingsController::class, 'listings'])->name('listing-display');
+
+        Route::get('areas', [LocationAreaController::class, 'index'])->name('areas.index');
+        Route::post('areas', [LocationAreaController::class, 'store'])->name('areas.store');
+        Route::put('areas/{area}', [LocationAreaController::class, 'update'])->name('areas.update');
+        Route::post('areas/{area}/deactivate', [LocationAreaController::class, 'deactivate'])->name('areas.deactivate');
+
+        Route::get('property-types', [PropertyTypeController::class, 'index'])->name('property-types.index');
+        Route::post('property-types', [PropertyTypeController::class, 'store'])->name('property-types.store');
+        Route::put('property-types/{type}', [PropertyTypeController::class, 'update'])->name('property-types.update');
+        Route::post('property-types/{type}/deactivate', [PropertyTypeController::class, 'deactivate'])->name('property-types.deactivate');
+
+        Route::get('amenities', [AmenityController::class, 'index'])->name('amenities.index');
+        Route::post('amenities', [AmenityController::class, 'store'])->name('amenities.store');
+        Route::post('amenities/{amenity}/deactivate', [AmenityController::class, 'deactivate'])->name('amenities.deactivate');
+
+        Route::post('settings/areas', [LocationAreaController::class, 'store'])->name('settings.areas.store');
+        Route::put('settings/areas/{area}', [LocationAreaController::class, 'update'])->name('settings.areas.update');
+        Route::post('settings/areas/{area}/deactivate', [LocationAreaController::class, 'deactivate'])->name('settings.areas.deactivate');
+        Route::post('settings/types', [PropertyTypeController::class, 'store'])->name('settings.types.store');
+        Route::put('settings/types/{type}', [PropertyTypeController::class, 'update'])->name('settings.types.update');
+        Route::post('settings/types/{type}/deactivate', [PropertyTypeController::class, 'deactivate'])->name('settings.types.deactivate');
+        Route::post('settings/amenities', [AmenityController::class, 'store'])->name('settings.amenities.store');
+        Route::post('settings/amenities/{amenity}/deactivate', [AmenityController::class, 'deactivate'])->name('settings.amenities.deactivate');
 
         Route::get('review', [PublicationController::class, 'reviewQueue'])->name('review.index');
 

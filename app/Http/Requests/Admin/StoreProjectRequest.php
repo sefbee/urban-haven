@@ -31,6 +31,8 @@ class StoreProjectRequest extends FormRequest
             'amenity_ids' => ['nullable', 'array'],
             'trust_label' => ['nullable', 'string', 'max:255'],
             'is_featured' => ['sometimes', 'boolean'],
+            'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
+            'photograph_alt' => ['nullable', 'string', 'max:200'],
         ];
     }
 }

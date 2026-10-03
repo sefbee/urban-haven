@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Contracts\InventoryService;
+use App\Contracts\MediaService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePropertyRequest;
 use App\Http\Requests\Admin\UpdatePropertyRequest;
@@ -71,10 +72,14 @@ class PropertyController extends Controller
         ])));
     }
 
-    public function store(StorePropertyRequest $request, InventoryService $inventory): RedirectResponse
+    public function store(StorePropertyRequest $request, InventoryService $inventory, MediaService $media): RedirectResponse
     {
-        $property = $inventory->createProperty($request->safe()->except(self::SEO_FIELDS), $request->user());
+        $property = $inventory->createProperty($request->safe()->except([...self::SEO_FIELDS, 'photograph', 'photograph_alt']), $request->user());
         $this->syncSeo($property, $request->validated());
+
+        if ($request->hasFile('photograph')) {
+            $media->store($property, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
+        }
 
         return redirect()->route('admin.properties.edit', $property)->with('status', 'Property saved as a draft with reference '.$property->reference.'.');
     }
@@ -93,7 +98,7 @@ class PropertyController extends Controller
 
     public function update(UpdatePropertyRequest $request, Property $property, InventoryService $inventory): RedirectResponse
     {
-        $inventory->updateProperty($property, $request->safe()->except(self::SEO_FIELDS), $request->user());
+        $inventory->updateProperty($property, $request->safe()->except([...self::SEO_FIELDS, 'photograph', 'photograph_alt']), $request->user());
         $this->syncSeo($property, $request->validated());
 
         return redirect()->route('admin.properties.edit', $property->fresh())->with('status', 'Property updated.');

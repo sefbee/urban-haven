@@ -2,13 +2,10 @@
 @section('title', 'Pages')
 
 @section('content')
-    <x-ui.page-header compact title="Content"
+    <x-ui.page-header compact title="Pages"
                       description="Standalone pages and the editable blocks used across the public site.">
+        <x-slot:eyebrow>Website</x-slot:eyebrow>
         <x-slot:actions>
-            <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.faqs.index') }}">FAQs</a>
-            @if($canPublish)
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.menus.index') }}">Menus</a>
-            @endif
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New page
@@ -16,11 +13,22 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <section class="mt-7" aria-labelledby="pages-heading">
-        <h2 id="pages-heading" class="uh-h3">Pages</h2>
+    <x-ui.admin-related label="Also on the site">
+        <a href="{{ route('admin.posts.index') }}">Articles</a>
+        <a href="{{ route('admin.faqs.index') }}">FAQs</a>
+        @if($canPublish)
+            <a href="{{ route('admin.menus.index') }}">Menus</a>
+        @endif
+        @can('redirect.manage')
+            <a href="{{ route('admin.redirects.index') }}">Redirects</a>
+        @endcan
+    </x-ui.admin-related>
+
+    <section aria-labelledby="pages-heading">
+        <h2 id="pages-heading" class="sr-only">Pages</h2>
 
         @if($pages->isNotEmpty())
-            <div class="uh-panel-flush mt-4 overflow-hidden">
+            <div class="uh-panel-flush overflow-hidden">
                 <div class="uh-table-scroll">
                     <table class="uh-table">
                         <caption class="sr-only">Content pages</caption>
@@ -34,16 +42,16 @@
                         </thead>
                         <tbody>
                             @foreach($pages as $page)
-                                <tr>
+                                <tr class="uh-admin-clickrow">
                                     <td class="min-w-56 max-w-72">
-                                        <a class="uh-link-quiet font-medium" href="{{ route('admin.cms.edit', $page) }}">{{ $page->title }}</a>
+                                        <a class="uh-admin-row-main uh-link-quiet font-medium" href="{{ route('admin.cms.edit', $page) }}">{{ $page->title }}</a>
                                     </td>
                                     <td class="text-xs text-[var(--color-muted)]" dir="ltr">/{{ $page->slug }}</td>
                                     <td>
                                         <x-ui.status :status="$page->editorialStatus()" />
                                         @if($page->hasPendingChanges())<x-ui.badge tone="warn" class="ml-1">Unpublished changes</x-ui.badge>@endif
                                     </td>
-                                    <td class="whitespace-nowrap text-right">
+                                    <td class="uh-admin-row-actions">
                                         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.cms.edit', $page) }}">Edit</a>
                                     </td>
                                 </tr>
@@ -53,7 +61,7 @@
                 </div>
             </div>
         @else
-            <x-ui.empty class="mt-4" icon="document" title="No pages yet"
+            <x-ui.empty icon="document" title="No pages yet"
                         description="Create pages like “About us” or “Privacy policy” to publish alongside your listings.">
                 <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">New page</a>
             </x-ui.empty>

@@ -82,16 +82,6 @@ class User extends Authenticatable
 
     public function requiresMfa(): bool
     {
-        if (! config('urbanhaven.mfa.enforce', true)) {
-            return false;
-        }
-
-        foreach ((array) config('urbanhaven.mfa.required_roles', [Role::OWNER_ADMIN]) as $role) {
-            if ($this->hasRole($role)) {
-                return true;
-            }
-        }
-
         return false;
     }
 

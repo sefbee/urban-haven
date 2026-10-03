@@ -10,17 +10,17 @@
     @endif
 
     <article>
-        <header class="border-b border-line bg-paper">
-            <div class="uh-container-narrow py-8 md:py-10">
+        <header class="uh-page-head">
+            <div class="uh-container-narrow">
                 <x-ui.breadcrumbs :items="[
                     ['label' => __('Home'), 'url' => route('home')],
                     ['label' => __('Articles'), 'url' => route('articles.index')],
                     ['label' => $post->title],
                 ]" />
                 @if($post->category)
-                    <p class="uh-eyebrow mt-4">{{ $post->category->name }}</p>
+                    <p class="uh-home-kicker mt-4">{{ $post->category->name }}</p>
                 @endif
-                <h1 class="uh-h1 mt-2">{{ $post->title }}</h1>
+                <h1 class="uh-home-title mt-2">{{ $post->title }}</h1>
                 <p class="mt-3 text-sm text-[var(--color-muted)]">
                     {{ $post->author_label ?: \App\Models\Setting::get('company_name', 'Urban Haven') }}
                     @if($post->publicationState?->published_at)

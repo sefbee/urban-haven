@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Contracts\AuditLogger;
 use App\Http\Controllers\Controller;
-use App\Models\Amenity;
-use App\Models\LocationArea;
-use App\Models\PropertyType;
 use App\Models\Setting;
 use App\Support\HealthStatus;
 use App\Support\PhoneNumber;
@@ -14,9 +11,9 @@ use App\Support\SettingsSchema;
 use App\Support\TaggedCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
@@ -27,21 +24,32 @@ class SettingsController extends Controller
         abort_unless($this->userCanManage(), 403);
 
         return view('admin.settings.index', [
-            'definitions' => collect(SettingsSchema::definitions())->groupBy('group', preserveKeys: true),
+            'definitions' => $this->definitionsForGroups(['branding', 'contact', 'leads']),
             'values' => Setting::allValues(),
-            'areas' => LocationArea::query()->orderBy('name')->get(),
-            'types' => PropertyType::query()->orderBy('label')->get(),
-            'amenities' => Amenity::query()->orderBy('label')->get(),
             'mailConfigured' => HealthStatus::mailConfigured(),
-            'profiles' => PropertyType::PROFILES,
-            'categories' => PropertyType::CATEGORIES,
+        ]);
+    }
+
+    public function listings(): View
+    {
+        abort_unless($this->userCanManage(), 403);
+
+        return view('admin.settings.listings', [
+            'definitions' => $this->definitionsForGroups(['listings']),
+            'values' => Setting::allValues(),
         ]);
     }
 
     public function update(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
         abort_unless($this->userCanManage(), 403);
-        $definitions = SettingsSchema::definitions();
+        $requestedGroups = array_values(array_filter((array) $request->input('groups', [])));
+        $definitions = $requestedGroups === []
+            ? SettingsSchema::definitions()
+            : array_filter(
+                SettingsSchema::definitions(),
+                fn (array $definition): bool => in_array($definition['group'], $requestedGroups, true)
+            );
         $input = (array) $request->input('settings', []);
 
         foreach ($definitions as $key => $definition) {
@@ -55,11 +63,13 @@ class SettingsController extends Controller
         }
 
         $rules = collect($definitions)->mapWithKeys(fn (array $definition, string $key): array => ['settings.'.$key => $definition['rules']])->all();
-        $rules['settings.social_links.*'] = ['url:https', 'max:255'];
+        if (isset($definitions['social_links'])) {
+            $rules['settings.social_links.*'] = ['url:https', 'max:255'];
+        }
 
         $validated = validator(['settings' => $input], $rules, [], collect($definitions)->mapWithKeys(fn (array $definition, string $key): array => ['settings.'.$key => strtolower($definition['label'])])->all())
-            ->after(function ($validator) use ($input): void {
-                if (! $input['enable_sale'] && ! $input['enable_rent']) {
+            ->after(function ($validator) use ($input, $definitions): void {
+                if (isset($definitions['enable_sale'], $definitions['enable_rent']) && ! ($input['enable_sale'] ?? false) && ! ($input['enable_rent'] ?? false)) {
                     $validator->errors()->add('settings.enable_sale', 'Keep at least one of sale or rent switched on.');
                 }
             })
@@ -111,107 +121,19 @@ class SettingsController extends Controller
         return back()->with('status', 'Test email sent to '.$request->user()->email.'.');
     }
 
-    public function storeArea(Request $request): RedirectResponse
+    /**
+     * @param  list<string>  $groups
+     * @return Collection<string, Collection<string, array<string, mixed>>>
+     */
+    private function definitionsForGroups(array $groups): Collection
     {
-        abort_unless($this->userCanManageReference(), 403);
-        $validated = $request->validate(['name' => ['required', 'string', 'max:120'], 'city' => ['required', 'string', 'max:120']]);
-        LocationArea::query()->create($validated + ['is_active' => true]);
-        TaggedCache::flush(['search', 'homepage']);
-
-        return back()->with('status', 'Area added.');
-    }
-
-    public function updateArea(Request $request, LocationArea $area): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $bounds = config('urbanhaven.maps.bounds');
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
-            'city' => ['required', 'string', 'max:120'],
-            'intro' => ['nullable', 'string', 'max:2000'],
-            'meta_description' => ['nullable', 'string', 'max:160'],
-            'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:'.$bounds['south'].','.$bounds['north']],
-            'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:'.$bounds['west'].','.$bounds['east']],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-        $area->update([...$validated, 'is_active' => $request->boolean('is_active', $area->is_active)]);
-        TaggedCache::flush(['search', 'homepage']);
-
-        return back()->with('status', $area->name.' updated.');
-    }
-
-    public function deactivateArea(LocationArea $area): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $area->update(['is_active' => false]);
-
-        return back()->with('status', 'Area deactivated.');
-    }
-
-    public function storeType(Request $request): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $validated = $request->validate([
-            'key' => ['required', 'string', 'max:50', 'regex:/^[a-z0-9_-]+$/', 'unique:property_types,key'],
-            'label' => ['required', 'string', 'max:80'],
-            'category' => ['required', Rule::in(PropertyType::CATEGORIES)],
-            'field_profile' => ['required', Rule::in(PropertyType::PROFILES)],
-        ]);
-        PropertyType::query()->create($validated + ['is_active' => true]);
-        TaggedCache::flush(['search', 'homepage']);
-
-        return back()->with('status', 'Type added.');
-    }
-
-    public function updateType(Request $request, PropertyType $type): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:80'],
-            'category' => ['required', Rule::in(PropertyType::CATEGORIES)],
-            'field_profile' => ['required', Rule::in(PropertyType::PROFILES)],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-        $type->update([...$validated, 'is_active' => $request->boolean('is_active', $type->is_active)]);
-        TaggedCache::flush(['search', 'homepage']);
-
-        return back()->with('status', $type->label.' updated.');
-    }
-
-    public function deactivateType(PropertyType $type): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $type->update(['is_active' => false]);
-
-        return back()->with('status', 'Type deactivated.');
-    }
-
-    public function storeAmenity(Request $request): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $validated = $request->validate(['key' => ['required', 'string', 'max:50', 'regex:/^[a-z0-9_-]+$/', 'unique:amenities,key'], 'label' => ['required', 'string', 'max:80']]);
-        Amenity::query()->create($validated + ['is_active' => true]);
-
-        return back()->with('status', 'Amenity added.');
-    }
-
-    public function deactivateAmenity(Amenity $amenity): RedirectResponse
-    {
-        abort_unless($this->userCanManageReference(), 403);
-        $amenity->update(['is_active' => false]);
-
-        return back()->with('status', 'Amenity deactivated.');
+        return collect(SettingsSchema::definitions())
+            ->filter(fn (array $definition): bool => in_array($definition['group'], $groups, true))
+            ->groupBy('group', preserveKeys: true);
     }
 
     private function userCanManage(): bool
     {
         return (bool) request()->user()?->isOwnerAdmin();
-    }
-
-    private function userCanManageReference(): bool
-    {
-        $user = request()->user();
-
-        return (bool) ($user?->isOwnerAdmin() || $user?->hasPermission('reference.manage'));
     }
 }

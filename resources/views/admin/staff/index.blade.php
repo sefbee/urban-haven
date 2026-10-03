@@ -4,6 +4,7 @@
 @section('content')
     <x-ui.page-header compact title="Staff"
                       description="Accounts that can sign in to this desk, and the role each one holds.">
+        <x-slot:eyebrow>Company</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.staff.create') }}">
                 <x-icon name="plus" class="size-4" />
@@ -12,7 +13,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <div class="uh-panel-flush mt-6 overflow-hidden">
+    <div class="uh-panel-flush overflow-hidden">
         <div class="uh-table-scroll">
             <table class="uh-table">
                 <caption class="sr-only">Staff accounts</caption>
@@ -27,8 +28,10 @@
                 </thead>
                 <tbody>
                     @foreach($staff as $member)
-                        <tr>
-                            <td class="font-medium">{{ $member->name }}</td>
+                        <tr class="uh-admin-clickrow">
+                            <td class="font-medium">
+                                <a class="uh-admin-row-main uh-link-quiet font-medium" href="{{ route('admin.staff.edit', $member) }}">{{ $member->name }}</a>
+                            </td>
                             <td class="text-xs" dir="ltr">{{ $member->email }}</td>
                             <td>{{ $member->roles->pluck('label')->join(', ') ?: '—' }}</td>
                             <td>
@@ -38,7 +41,7 @@
                                     <x-ui.badge tone="outline">Deactivated</x-ui.badge>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap text-right">
+                            <td class="uh-admin-row-actions">
                                 <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.staff.edit', $member) }}">Edit</a>
                             </td>
                         </tr>

@@ -1,16 +1,14 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-8 md:py-10">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Compare')],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Compare properties') }}</h1>
-            <p class="uh-lede mt-3 max-w-2xl">{{ __('Add up to :count properties with the compare button to see them side by side.', ['count' => $compareLimit]) }}</p>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'title' => __('Compare properties'),
+        'lede' => __('Add up to :count properties with the compare button to see them side by side.', ['count' => $compareLimit]),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('Compare')],
+        ],
+    ])
 
     <div class="uh-container uh-section-tight" x-data="uhSavedList('compare', @js(route('saved.cards')), 'compare')">
         <p class="sr-only" aria-live="polite" x-text="$store.saved.notice"></p>

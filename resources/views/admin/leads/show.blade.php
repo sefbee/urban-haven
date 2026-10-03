@@ -22,7 +22,7 @@
 
 @section('content')
     <x-ui.page-header compact :title="$lead->name">
-        <x-slot:eyebrow>{{ $lead->typeLabel() }} · #{{ $lead->id }}</x-slot:eyebrow>
+        <x-slot:eyebrow>Sales · {{ $lead->typeLabel() }} · #{{ $lead->id }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.index') }}">
                 <x-icon name="chevron-left" class="size-4" />
@@ -31,7 +31,18 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <div class="mt-4 flex flex-wrap items-center gap-2">
+    <x-ui.admin-related label="Connected to">
+        <a href="{{ route('admin.follow-ups.index') }}">Follow-ups</a>
+        <a href="{{ route('admin.visits.index') }}">Site visits</a>
+        @if($lead->property)
+            <a href="{{ route('admin.properties.edit', $lead->property) }}">Listing</a>
+        @endif
+        @if($lead->project)
+            <a href="{{ route('admin.projects.edit', $lead->project) }}">Project</a>
+        @endif
+    </x-ui.admin-related>
+
+    <div class="flex flex-wrap items-center gap-2">
         <x-ui.status :status="$lead->status" />
         <x-ui.status :status="$lead->priority" />
         @if($lead->is_repeat_contact)
@@ -184,7 +195,7 @@
                 @if($lead->notes->isNotEmpty())
                     <ul class="mt-5 space-y-3 border-t border-line pt-5">
                         @foreach($lead->notes->sortByDesc('created_at') as $note)
-                            <li class="rounded-lg bg-sand px-4 py-3">
+                            <li class="uh-admin-note rounded-lg px-4 py-3">
                                 <p class="whitespace-pre-line text-sm leading-relaxed">{{ $note->body }}</p>
                                 <p class="mt-1.5 text-xs text-[var(--color-muted)]">
                                     {{ $note->user?->name ?? 'Staff' }} · {{ \App\Support\DisplayTimezone::format($note->created_at) }}

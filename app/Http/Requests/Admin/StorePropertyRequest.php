@@ -91,6 +91,8 @@ class StorePropertyRequest extends FormRequest
             'meta_title' => ['nullable', 'string', 'max:70'],
             'meta_description' => ['nullable', 'string', 'max:160'],
             'noindex' => ['sometimes', 'boolean'],
+            'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
+            'photograph_alt' => ['nullable', 'string', 'max:200'],
         ];
     }
 

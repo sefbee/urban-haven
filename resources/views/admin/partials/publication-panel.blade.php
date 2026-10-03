@@ -3,7 +3,7 @@
     <p class="mt-2 flex items-center gap-2 text-sm"><x-ui.status :status="$status" /></p>
 
     @if($checklist !== [])
-        <div class="mt-4 rounded-lg bg-sand/60 p-3 text-xs">
+        <div class="uh-admin-callout mt-4 rounded-lg p-3 text-xs">
             <p class="font-semibold">Before publishing, add:</p>
             <ul class="mt-1.5 list-disc space-y-0.5 pl-4">
                 @foreach($checklist as $item)

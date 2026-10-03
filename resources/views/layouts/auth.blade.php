@@ -9,20 +9,21 @@
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="flex min-h-screen flex-col bg-ink text-cream antialiased">
+    <body class="uh-auth flex min-h-screen flex-col antialiased">
         <div class="flex flex-1 items-center justify-center px-4 py-10">
             <div class="w-full max-w-md">
                 <div class="text-center">
-                    <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-gold-soft">Urban Haven</p>
-                    <p class="mt-1 text-xs text-cream/50">Properties Ltd. · Staff access</p>
+                    <span class="uh-auth-mark" aria-hidden="true">UH</span>
+                    <p class="mt-4 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-[var(--color-gold-ink)]">Urban Haven</p>
+                    <p class="mt-1 text-xs text-[var(--color-muted)]">Properties Ltd. · Operations</p>
                 </div>
 
-                <div class="mt-6 rounded-2xl bg-paper p-7 text-ink shadow-xl sm:p-8">
+                <div class="uh-auth-card">
                     @yield('card')
                 </div>
 
-                <p class="mt-6 text-center text-xs text-cream/50">
-                    <a class="transition hover:text-cream" href="{{ url('/') }}">Return to the public site</a>
+                <p class="mt-6 text-center text-xs text-[var(--color-muted)]">
+                    <a class="transition hover:text-ink" href="{{ url('/') }}">Return to the public site</a>
                 </p>
             </div>
         </div>

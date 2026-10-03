@@ -4,6 +4,7 @@ namespace Tests\Feature\Media;
 
 use App\Contracts\MediaService;
 use App\Models\Media;
+use App\Models\Property;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -51,6 +52,49 @@ class MediaUploadTest extends TestCase
             ])->assertStatus(422);
 
         $this->assertDatabaseCount('media', 0);
+    }
+
+    public function test_new_property_form_shows_photograph_field(): void
+    {
+        $user = User::factory()->create();
+        $this->assignRole($user, Role::OWNER_ADMIN);
+
+        $this->actingAs($user)
+            ->get(route('admin.properties.create'))
+            ->assertOk()
+            ->assertSee('Photographs')
+            ->assertSee('Upload photographs')
+            ->assertSee('name="photograph"', false);
+    }
+
+    public function test_creating_a_property_can_attach_a_photograph(): void
+    {
+        Storage::fake('public');
+        $property = $this->makeProperty();
+        $user = User::factory()->create();
+        $this->assignRole($user, Role::OWNER_ADMIN);
+
+        $this->actingAs($user)
+            ->post(route('admin.properties.store'), [
+                'title' => 'Garden apartment',
+                'property_type_id' => $property->property_type_id,
+                'location_area_id' => $property->location_area_id,
+                'listing_type' => 'sale',
+                'availability' => 'available',
+                'price_mode' => 'fixed',
+                'price' => 8500000,
+                'price_basis' => 'total_sale',
+                'area_value' => 1200,
+                'area_unit' => 'sqft',
+                'photograph' => UploadedFile::fake()->image('front.jpg', 800, 600),
+                'photograph_alt' => 'Front elevation',
+            ])
+            ->assertRedirect();
+
+        $created = Property::query()->where('title', 'Garden apartment')->first();
+        $this->assertNotNull($created);
+        $this->assertSame(1, $created->media()->count());
+        $this->assertSame('front.jpg', $created->media()->first()->original_filename);
     }
 
     public function test_reorder_updates_sort_order(): void

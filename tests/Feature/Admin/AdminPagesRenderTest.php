@@ -52,6 +52,10 @@ class AdminPagesRenderTest extends TestCase
             route('admin.redirects.index'),
             route('admin.audit.index'),
             route('admin.settings.index'),
+            route('admin.listing-display'),
+            route('admin.areas.index'),
+            route('admin.property-types.index'),
+            route('admin.amenities.index'),
             route('admin.staff.index'),
             route('admin.notifications.index'),
         ];
@@ -69,11 +73,17 @@ class AdminPagesRenderTest extends TestCase
         $this->actingAs($editor)->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('Properties')
+            ->assertSee('Areas')
             ->assertDontSee('Audit log')
             ->assertDontSee('Review queue')
+            ->assertDontSee('Listing display')
             ->assertDontSee(route('admin.settings.index'), false);
 
-        foreach (['admin.settings.index', 'admin.audit.index', 'admin.redirects.index', 'admin.menus.index', 'admin.review.index', 'admin.staff.index'] as $name) {
+        $this->actingAs($editor)->get(route('admin.areas.index'))->assertOk();
+        $this->actingAs($editor)->get(route('admin.property-types.index'))->assertOk();
+        $this->actingAs($editor)->get(route('admin.amenities.index'))->assertOk();
+
+        foreach (['admin.settings.index', 'admin.listing-display', 'admin.audit.index', 'admin.redirects.index', 'admin.menus.index', 'admin.review.index', 'admin.staff.index'] as $name) {
             $this->actingAs($editor)->get(route($name))->assertForbidden();
         }
     }

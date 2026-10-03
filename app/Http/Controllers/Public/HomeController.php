@@ -48,7 +48,20 @@ class HomeController extends Controller
         $featuredIds = $featured->flatten()->pluck('id');
         $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query->whereNotIn('id', $featuredIds->all() ?: [0]));
 
-        $heroImageSource = $featured->flatten()->concat($latest->flatten())->first(fn (Property $property) => $property->featuredImage() !== null);
+        $listings = $featured->flatten()->concat($latest->flatten());
+        $heroImageSource = $listings->first(fn (Property $property) => $property->featuredImage() !== null);
+        $typeCards = $this->withCoverImages(
+            $types->where('properties_count', '>', 0)->values(),
+            'property_type_id',
+            $listings,
+            $purposes,
+        );
+        $listedAreas = $this->withCoverImages(
+            $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take(12)->values(),
+            'location_area_id',
+            $listings,
+            $purposes,
+        );
 
         return view('public.home', [
             'purposes' => $purposes,
@@ -60,8 +73,8 @@ class HomeController extends Controller
             'latestSale' => $latest->get('sale', collect()),
             'latestRent' => $latest->get('rent', collect()),
             'types' => $types,
-            'typeCards' => $types->where('properties_count', '>', 0)->values(),
-            'areas' => $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take(12)->values(),
+            'typeCards' => $typeCards,
+            'areas' => $listedAreas,
             'heroAreas' => $areas,
             'cities' => $areas->where('properties_count', '>', 0)->pluck('city')->filter()->unique()->values(),
             'hasAvailableProjects' => Project::query()->published()->whereIn('development_stage', ['ongoing', 'upcoming'])->exists(),
@@ -93,6 +106,43 @@ class HomeController extends Controller
             $models = Property::query()->with($this->listingRelations)->whereKey($ids)->get()->sortBy(fn (Property $property) => array_search($property->id, $ids, true))->values();
 
             return [$purpose => $models];
+        });
+    }
+
+    /**
+     * Attach one public listing photograph per type or area, reusing homepage listings first.
+     *
+     * @param  Collection<int, PropertyType|LocationArea>  $items
+     * @param  Collection<int, Property>  $listings
+     * @param  list<string>  $purposes
+     * @return Collection<int, PropertyType|LocationArea>
+     */
+    private function withCoverImages(Collection $items, string $foreignKey, Collection $listings, array $purposes): Collection
+    {
+        $covers = $listings
+            ->filter(fn (Property $property): bool => $property->featuredImage() !== null)
+            ->unique($foreignKey)
+            ->keyBy($foreignKey);
+
+        $missing = $items->pluck('id')->diff($covers->keys());
+
+        if ($missing->isNotEmpty()) {
+            $covers = $covers->union(
+                $this->liveListings(Property::query(), $purposes)
+                    ->with('media')
+                    ->whereIn($foreignKey, $missing->all())
+                    ->whereHas('media', fn (Builder $query) => $query->where('collection', 'gallery')->where('is_public', true))
+                    ->orderByDesc('id')
+                    ->get()
+                    ->unique($foreignKey)
+                    ->keyBy($foreignKey)
+            );
+        }
+
+        return $items->map(function (PropertyType|LocationArea $item) use ($covers): PropertyType|LocationArea {
+            $item->setRelation('coverSource', $covers->get($item->id));
+
+            return $item;
         });
     }
 

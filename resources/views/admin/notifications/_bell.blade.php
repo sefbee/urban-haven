@@ -2,20 +2,20 @@
 @php($unreadCount = auth()->user()->unreadNotifications()->count())
 
 <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
-    <button type="button" class="uh-icon-btn relative" @click="open = ! open"
+    <button type="button" class="uh-admin-icon-btn relative" @click="open = ! open"
             :aria-expanded="open.toString()" aria-controls="notification-menu">
         <x-icon name="bell" class="size-5" />
         @if($unreadCount)
-            <span class="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-[var(--color-gold-ink)] px-1 text-[0.625rem] font-bold leading-4 text-white">
+            <span class="uh-admin-notify-count">
                 {{ $unreadCount > 9 ? '9+' : $unreadCount }}
             </span>
         @endif
         <span class="sr-only">{{ $unreadCount ? $unreadCount.' unread notifications' : 'Notifications' }}</span>
     </button>
 
-    <div id="notification-menu" x-show="open" x-cloak @click.outside="open = false"
-         class="absolute right-0 z-30 mt-2 w-80 overflow-hidden rounded-xl border border-line bg-paper shadow-lg">
-        <p class="border-b border-line bg-sand px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">
+    <div id="notification-menu" x-show="open" x-cloak x-transition.opacity.duration.120ms @click.outside="open = false"
+         class="uh-admin-popover w-80">
+        <p class="uh-admin-user-menu-id text-[0.6875rem] font-medium tracking-wide text-[var(--color-muted)]">
             Unread
         </p>
 
@@ -32,7 +32,7 @@
             <p class="px-4 py-6 text-center text-sm text-[var(--color-muted)]">Nothing unread right now.</p>
         @endforelse
 
-        <a href="{{ route('admin.notifications.index') }}" class="block bg-sand px-4 py-2.5 text-xs font-semibold text-forest hover:underline">
+        <a href="{{ route('admin.notifications.index') }}" class="uh-admin-popover-foot">
             View all notifications
         </a>
     </div>

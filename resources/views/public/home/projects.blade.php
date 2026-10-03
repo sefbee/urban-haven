@@ -1,19 +1,16 @@
-<section class="uh-section border-t border-line bg-paper">
+<section class="uh-home-section">
     <div class="uh-container">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-            <div class="max-w-2xl">
-                <h2 class="uh-h2">{{ __('Featured Projects') }}</h2>
-                <p class="uh-lede mt-3">{{ __('Developments by Urban Haven, with their current stage and listed units.') }}</p>
+        <div class="flex flex-wrap items-end justify-between gap-6">
+            <div>
+                <h2 class="uh-home-title">{{ __('Featured Projects') }}</h2>
+                <p class="uh-home-lede">{{ __('Developments by Urban Haven, with their current stage and listed units.') }}</p>
             </div>
-            <a class="uh-link-quiet inline-flex items-center gap-1.5 text-sm" href="{{ route('projects.index') }}">
-                {{ __('All projects') }}
-                <x-icon name="arrow-right" class="size-4" />
-            </a>
+            <a class="uh-home-link text-sm" href="{{ route('projects.index') }}">{{ __('All projects') }}</a>
         </div>
 
-        <div class="uh-home-scroll mt-8">
+        <div class="mt-8 space-y-10">
             @foreach($projects as $project)
-                @include('public.partials.project-card', ['project' => $project])
+                @include('public.partials.home-project', ['project' => $project])
             @endforeach
         </div>
     </div>

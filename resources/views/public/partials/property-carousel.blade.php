@@ -34,18 +34,18 @@
 
     @if($photoTotal > 1)
         <button type="button"
-                class="absolute left-2 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-cream shadow-sm transition hover:bg-ink"
+                class="absolute left-2 top-1/2 z-10 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#1d1d1f] shadow-sm"
                 @click.stop.prevent="slide = (slide - 1 + count) % count"
                 aria-label="{{ __('Previous photo') }}">
             <x-icon name="chevron-left" class="size-5" />
         </button>
         <button type="button"
-                class="absolute right-2 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-cream shadow-sm transition hover:bg-ink"
+                class="absolute right-2 top-1/2 z-10 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#1d1d1f] shadow-sm"
                 @click.stop.prevent="slide = (slide + 1) % count"
                 aria-label="{{ __('Next photo') }}">
             <x-icon name="chevron-right" class="size-5" />
         </button>
-        <span class="pointer-events-none absolute bottom-3 left-3 z-10 rounded-md bg-ink/80 px-2 py-1 text-xs font-semibold text-cream">
+        <span class="pointer-events-none absolute bottom-3 left-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-[#1d1d1f]">
             <span class="uh-numeric" x-text="(slide + 1) + '/' + count">1/{{ $photoTotal }}</span>
         </span>
     @endif

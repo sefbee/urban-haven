@@ -65,7 +65,7 @@ Do a test restore into a scratch database before launch and then once a quarter.
 - [ ] `robots.txt` allows crawling and `/sitemap.xml` lists the published pages. Submit the sitemap in Google Search Console.
 - [ ] Analytics IDs are set and load only after cookie consent.
 - [ ] Old-site URLs are imported under Redirects (CSV) and spot-checked.
-- [ ] The owner and every staff account have enrolled in two-factor authentication.
+- [ ] Each staff account can sign in, and unused accounts have been deactivated.
 - [ ] A backup has run and a test restore has succeeded.
 
 ## UAT script

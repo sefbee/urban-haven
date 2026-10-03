@@ -42,7 +42,7 @@ return [
     ],
 
     'mfa' => [
-        'enforce' => (bool) env('MFA_ENFORCED', true),
+        'enforce' => (bool) env('MFA_ENFORCED', false),
         'required_roles' => ['owner_admin'],
         'issuer' => env('MFA_ISSUER', env('APP_NAME', 'Urban Haven')),
     ],

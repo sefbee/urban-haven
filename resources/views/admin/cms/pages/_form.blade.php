@@ -7,7 +7,7 @@
 
 <x-ui.page-header compact :title="$model->title ?? 'New page'"
                   :description="$model ? ($canPublish ? 'Saved changes go live when the page is published.' : 'Changes to a live page wait for a publisher before they appear.') : 'Give the page a title and body. The URL is generated from the title unless you set one.'">
-    <x-slot:eyebrow>{{ $model ? 'Edit page' : 'New page' }}</x-slot:eyebrow>
+    <x-slot:eyebrow>Website · {{ $model ? 'Edit page' : 'New page' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.cms.index') }}">
             <x-icon name="chevron-left" class="size-4" />
@@ -29,12 +29,13 @@
     <x-ui.alert tone="warn" class="mt-6">This page has saved changes that are not live yet. {{ $canPublish ? 'Publish to apply them.' : 'A publisher needs to publish them.' }}</x-ui.alert>
 @endif
 
-<div class="mt-6 grid gap-6 lg:grid-cols-3">
+<div @class(['uh-admin-compose', 'is-split' => (bool) $model])>
     <form method="POST" action="{{ $model ? route('admin.cms.update', $model) : route('admin.cms.store') }}"
-          class="space-y-6 lg:col-span-2" x-data="uhForm" @submit="submit">
+          class="uh-admin-compose-main" x-data="uhForm" @submit="submit">
         @csrf
         @if($model) @method('PUT') @endif
 
+        <div class="uh-admin-stack">
         <section class="uh-panel">
             <h2 class="uh-h4">Page content</h2>
             <div class="mt-4 space-y-4">
@@ -61,7 +62,8 @@
             </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-3">
+        </div>
+        <div class="uh-admin-dock">
             <button type="submit" class="uh-btn-primary" :disabled="submitting">
                 <span class="uh-spinner" x-show="submitting" x-cloak></span>
                 <span>{{ $model ? 'Save changes' : 'Create page' }}</span>
@@ -71,7 +73,7 @@
     </form>
 
     @if($model)
-        <div class="space-y-6">
+        <div class="uh-admin-compose-side">
             <section class="uh-panel">
                 <h2 class="uh-h4">Publication</h2>
                 <p class="mt-2"><x-ui.status :status="$model->editorialStatus()" /></p>

@@ -126,7 +126,10 @@ class PublicationTest extends TestCase
         $owner = $this->staff(Role::OWNER_ADMIN);
         $property = $this->makePublishableProperty(['title' => 'Editable home']);
 
-        $this->actingAs($owner)->get(route('admin.properties.create'))->assertOk()->assertSee('Save draft');
+        $this->actingAs($owner)->get(route('admin.properties.create'))
+            ->assertOk()
+            ->assertSee('Save draft')
+            ->assertSee('Photographs');
         $this->actingAs($owner)->get(route('admin.properties.edit', $property))
             ->assertOk()
             ->assertSee('Editable home')

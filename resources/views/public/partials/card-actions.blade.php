@@ -7,8 +7,8 @@
     $trackPropertyId = $trackPropertyId ?? null;
     $trackProjectId = $trackProjectId ?? null;
     $detailsLabel = $detailsLabel ?? __('View details');
-    $detailsClass = $detailsClass ?? 'text-sm font-semibold text-ink transition hover:text-forest';
-    $dividerClass = $dividerClass ?? 'border-line';
+    $detailsClass = $detailsClass ?? 'uh-home-link text-sm';
+    $dividerClass = $dividerClass ?? 'border-black/8';
     $iconClass = $iconClass ?? 'uh-icon-action';
     $showQuickView = $showQuickView ?? false;
 @endphp

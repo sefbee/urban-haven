@@ -3,41 +3,64 @@
 
 @php
     $hasFilters = collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty();
+    $advancedOpen = collect($filters)->only(['priority', 'type', 'source', 'utm_campaign', 'assigned_to', 'from', 'to'])->filter(fn ($value) => filled($value))->isNotEmpty();
     $canExport = auth()->user()->can('export', \App\Models\Lead::class);
     $seesAll = auth()->user()->canSeeAllLeads();
+    $view = $filters['view'] ?? '';
 @endphp
 
 @section('content')
     <x-ui.page-header compact title="Leads"
-                      :description="$seesAll ? 'Every enquiry captured from the public site. Open leads with the most urgent follow-up come first.' : 'Leads assigned to you. Open leads with the most urgent follow-up come first.'" />
+                      :description="$seesAll ? 'Every enquiry captured from the public site. Open leads with the most urgent follow-up come first.' : 'Leads assigned to you. Open leads with the most urgent follow-up come first.'">
+        <x-slot:eyebrow>Sales</x-slot:eyebrow>
+        @if($canExport)
+            <x-slot:actions>
+                <a class="uh-btn-outline uh-btn-sm" href="#lead-export">
+                    <x-icon name="download" class="size-4" />
+                    Export CSV
+                </a>
+            </x-slot:actions>
+        @endif
+    </x-ui.page-header>
 
-    <nav class="mt-5 flex flex-wrap gap-2" aria-label="Lead views">
+    <x-ui.admin-related label="Next to this">
+        <a href="{{ route('admin.follow-ups.index') }}">Follow-ups</a>
+        <a href="{{ route('admin.visits.index') }}">Site visits</a>
+    </x-ui.admin-related>
+
+    <x-ui.admin-tabs label="Lead views">
         @foreach(['' => 'All', 'open' => 'Open', 'unread' => 'Unread', 'overdue' => 'Overdue'] as $value => $label)
             <a href="{{ route('admin.leads.index', array_filter(['view' => $value ?: null])) }}"
-               @class(['uh-btn-sm', 'uh-btn-primary' => ($filters['view'] ?? '') === $value, 'uh-btn-outline' => ($filters['view'] ?? '') !== $value])
-               @if(($filters['view'] ?? '') === $value) aria-current="page" @endif>
+               @class(['is-active' => $view === $value])
+               @if($view === $value) aria-current="page" @endif>
                 {{ $label }}
                 @if($value === 'overdue' && $overdueCount > 0)
-                    <span class="uh-badge uh-badge-danger ml-1">{{ $overdueCount }}</span>
+                    <span class="uh-badge uh-badge-danger">{{ $overdueCount }}</span>
                 @endif
             </a>
         @endforeach
-    </nav>
+    </x-ui.admin-tabs>
 
-    <div @class(['mt-5 grid gap-4', 'lg:grid-cols-3' => $canExport])>
-        <form method="GET" @class(['uh-panel', 'lg:col-span-2' => $canExport])>
-            <h2 class="uh-h4">Filter</h2>
-            @if(filled($filters['view'] ?? null))
-                <input type="hidden" name="view" value="{{ $filters['view'] }}">
+    <form method="GET" class="uh-admin-toolbar">
+        @if(filled($view))
+            <input type="hidden" name="view" value="{{ $view }}">
+        @endif
+        <x-ui.input name="q" label="Name, phone or email" :value="$filters['q'] ?? ''" type="search" />
+        <x-ui.select name="status" label="Stage">
+            <option value="">Any stage</option>
+            @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
+                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+            @endforeach
+        </x-ui.select>
+        <div class="uh-admin-toolbar-actions">
+            <button type="submit" class="uh-btn-primary uh-btn-sm">Apply filter</button>
+            @if($hasFilters)
+                <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.index') }}">Clear</a>
             @endif
-            <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                <x-ui.input name="q" label="Name, phone or email" :value="$filters['q'] ?? ''" type="search" />
-                <x-ui.select name="status" label="Stage">
-                    <option value="">Any stage</option>
-                    @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
-                        <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
-                    @endforeach
-                </x-ui.select>
+        </div>
+        <details class="uh-admin-more basis-full" @if($advancedOpen) open @endif>
+            <summary>More filters</summary>
+            <div class="uh-admin-toolbar" style="padding: 0; margin: 0; border: 0; box-shadow: none;">
                 <x-ui.select name="priority" label="Priority">
                     <option value="">Any priority</option>
                     @foreach(\App\Models\Lead::PRIORITIES as $priority)
@@ -64,43 +87,39 @@
                 <x-ui.input name="from" label="Received from" type="date" :value="$filters['from'] ?? ''" />
                 <x-ui.input name="to" label="Received to" type="date" :value="$filters['to'] ?? ''" />
             </div>
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-                <button type="submit" class="uh-btn-primary uh-btn-sm">Apply filter</button>
-                @if($hasFilters)
-                    <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.index') }}">Clear</a>
-                @endif
-            </div>
-        </form>
+        </details>
+    </form>
 
-        @if($canExport)
-            <form method="GET" action="{{ route('admin.leads.export') }}" class="uh-panel">
-                <h2 class="uh-h4">Export</h2>
-                <p class="mt-1 text-xs text-[var(--color-muted)]">CSV of leads received between two dates. Every export is recorded in the audit log.</p>
-                <div class="mt-4 space-y-3">
-                    <x-ui.input name="from" label="From" type="date" id="export-from" />
-                    <x-ui.input name="to" label="To" type="date" id="export-to" />
-                    <x-ui.select name="status" label="Stage" id="export-status">
-                        <option value="">Any stage</option>
-                        @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </x-ui.select>
+    @if($canExport)
+        <details id="lead-export" class="uh-admin-toolbar mb-4">
+            <summary class="cursor-pointer text-sm font-semibold">Export CSV</summary>
+            <p class="mt-1 text-xs text-[var(--color-muted)]">Leads received between two dates. Every export is recorded in the audit log.</p>
+            <form method="GET" action="{{ route('admin.leads.export') }}" class="mt-3 flex flex-wrap items-end gap-3">
+                <x-ui.input name="from" label="Export from" type="date" id="export-from" />
+                <x-ui.input name="to" label="Export to" type="date" id="export-to" />
+                <x-ui.select name="status" label="Stage" id="export-status">
+                    <option value="">Any stage</option>
+                    @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </x-ui.select>
+                <div class="uh-admin-toolbar-actions">
+                    <button type="submit" class="uh-btn-outline uh-btn-sm">
+                        <x-icon name="download" class="size-4" />
+                        Download
+                    </button>
                 </div>
-                <button type="submit" class="uh-btn-outline uh-btn-sm uh-btn-block mt-4">
-                    <x-icon name="download" class="size-4" />
-                    Export CSV
-                </button>
             </form>
-        @endif
-    </div>
+        </details>
+    @endif
 
     @if($leads->isNotEmpty())
-        <p class="mt-7 text-sm text-[var(--color-muted)]">
+        <p class="uh-admin-count">
             <span class="uh-numeric font-semibold text-ink">{{ $leads->total() }}</span>
             {{ $leads->total() === 1 ? 'lead' : 'leads' }}{{ $hasFilters ? ' matching your filter' : '' }}
         </p>
 
-        <div class="uh-panel-flush mt-3 overflow-hidden">
+        <div class="uh-panel-flush overflow-hidden">
             <div class="uh-table-scroll">
                 <table class="uh-table">
                     <caption class="sr-only">Captured leads</caption>
@@ -114,14 +133,15 @@
                             <th scope="col">Source</th>
                             @if($seesAll)<th scope="col">Assigned</th>@endif
                             <th scope="col">Received</th>
+                            <th scope="col"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($leads as $lead)
-                            <tr>
+                            <tr class="uh-admin-clickrow">
                                 <td>
-                                    <a @class(['uh-link-quiet', 'font-semibold' => $lead->is_unread, 'font-medium' => ! $lead->is_unread]) href="{{ route('admin.leads.show', $lead) }}">{{ $lead->name }}</a>
-                                    @if($lead->is_unread)<span class="sr-only">(unread)</span><span class="ml-1 inline-block size-2 rounded-full bg-forest" aria-hidden="true"></span>@endif
+                                    <a @class(['uh-admin-row-main', 'uh-link-quiet', 'font-semibold' => $lead->is_unread, 'font-medium' => ! $lead->is_unread]) href="{{ route('admin.leads.show', $lead) }}">{{ $lead->name }}</a>
+                                    @if($lead->is_unread)<span class="sr-only">(unread)</span><span class="uh-admin-unread-dot ml-1 inline-block size-1.5 rounded-full" aria-hidden="true"></span>@endif
                                     <span class="mt-0.5 block text-xs text-[var(--color-muted)]" dir="ltr">{{ $lead->phone }}</span>
                                     @if($lead->is_repeat_contact)<x-ui.badge tone="warn" class="mt-1">Repeat</x-ui.badge>@endif
                                 </td>
@@ -140,6 +160,9 @@
                                 <td class="whitespace-nowrap text-xs text-[var(--color-muted)]">
                                     {{ \App\Support\DisplayTimezone::format($lead->created_at) }}
                                 </td>
+                                <td class="uh-admin-row-actions">
+                                    <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.show', $lead) }}">Open</a>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -151,7 +174,7 @@
             <div class="mt-6">{{ $leads->links() }}</div>
         @endif
     @else
-        <x-ui.empty class="mt-7" icon="inbox"
+        <x-ui.empty icon="inbox"
                     :title="$hasFilters ? 'No leads match this filter' : 'No leads yet'"
                     :description="$hasFilters ? 'Try a wider date range or clear some filters.' : 'Enquiries and visit requests submitted on the public site appear here immediately.'">
             @if($hasFilters)

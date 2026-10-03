@@ -1,23 +1,18 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="bg-ink text-cream">
-        <div class="uh-container py-12 md:py-16">
-            <x-ui.breadcrumbs on-dark :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Projects')],
-            ]" />
-            <p class="uh-eyebrow-light mt-4">{{ __('Developments') }}</p>
-            <h1 class="uh-display mt-3 text-cream">{{ __('Urban Haven projects') }}</h1>
-            <p class="uh-lede mt-4 max-w-2xl text-cream/70">
-                {{ __('A project is a whole development — a building or community we have built, with several homes inside it. Open one to see the homes still available.') }}
-            </p>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'title' => __('Urban Haven projects'),
+        'lede' => __('A project is a whole development — a building or community we have built, with several homes inside it. Open one to see the homes still available.'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('Projects')],
+        ],
+    ])
 
     <div class="uh-container uh-section-tight">
         @if($projects->isNotEmpty())
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
                 @foreach($projects as $project)
                     @include('public.partials.project-card', ['project' => $project])
                 @endforeach

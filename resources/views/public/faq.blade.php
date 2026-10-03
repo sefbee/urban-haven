@@ -1,15 +1,14 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container-narrow py-8 md:py-10">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('FAQ')],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Frequently asked questions') }}</h1>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'wide' => false,
+        'title' => __('Frequently asked questions'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('FAQ')],
+        ],
+    ])
 
     <div class="uh-container-narrow uh-section-tight">
         @forelse($groups as $group => $faqs)

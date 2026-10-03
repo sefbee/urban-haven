@@ -119,14 +119,16 @@ class OperationsTest extends TestCase
         $this->actingAs($editor)->put(route('admin.settings.update'), ['settings' => ['company_name' => 'Hijacked']])->assertForbidden();
     }
 
-    public function test_owner_without_mfa_is_sent_to_setup_when_enforced(): void
+    public function test_staff_reach_the_dashboard_without_two_factor_authentication(): void
     {
         config(['urbanhaven.mfa.enforce' => true]);
         $owner = $this->staff(Role::OWNER_ADMIN);
         $sales = $this->staff(Role::SALES_USER);
 
-        $this->actingAs($owner)->get(route('admin.dashboard'))->assertRedirect(route('admin.mfa.setup'));
+        $this->actingAs($owner)->get(route('admin.dashboard'))->assertOk()->assertSee('Dashboard');
         $this->actingAs($sales)->get(route('admin.dashboard'))->assertOk();
+        $this->actingAs($owner)->get(route('admin.mfa.setup'))->assertRedirect(route('admin.dashboard'));
+        $this->actingAs($owner)->get(route('admin.mfa.challenge'))->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_redirect_csv_import_reports_bad_rows(): void

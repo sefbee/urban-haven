@@ -2,21 +2,21 @@
 @section('title', 'Audit log')
 
 @section('content')
-    <x-ui.page-header compact title="Audit log" description="Sign-ins, publishing, lead changes, exports and settings changes. Entries cannot be edited." />
+    <x-ui.page-header compact title="Audit log" description="Sign-ins, publishing, lead changes, exports and settings changes. Entries cannot be edited.">
+        <x-slot:eyebrow>Company</x-slot:eyebrow>
+    </x-ui.page-header>
 
-    <form method="GET" class="uh-panel mt-6">
-        <div class="grid gap-4 sm:grid-cols-4">
-            <x-ui.select name="actor_id" label="Person">
-                <option value="">Anyone</option>
-                @foreach($actors as $actor)
-                    <option value="{{ $actor->id }}" @selected(($filters['actor_id'] ?? '') == $actor->id)>{{ $actor->name }}</option>
-                @endforeach
-            </x-ui.select>
-            <x-ui.input name="action" label="Action starts with" :value="$filters['action'] ?? ''" placeholder="lead." />
-            <x-ui.input name="from" label="From" type="date" :value="$filters['from'] ?? ''" />
-            <x-ui.input name="to" label="To" type="date" :value="$filters['to'] ?? ''" />
-        </div>
-        <div class="mt-4 flex gap-3">
+    <form method="GET" class="uh-admin-toolbar">
+        <x-ui.select name="actor_id" label="Person">
+            <option value="">Anyone</option>
+            @foreach($actors as $actor)
+                <option value="{{ $actor->id }}" @selected(($filters['actor_id'] ?? '') == $actor->id)>{{ $actor->name }}</option>
+            @endforeach
+        </x-ui.select>
+        <x-ui.input name="action" label="Action starts with" :value="$filters['action'] ?? ''" placeholder="lead." />
+        <x-ui.input name="from" label="From" type="date" :value="$filters['from'] ?? ''" />
+        <x-ui.input name="to" label="To" type="date" :value="$filters['to'] ?? ''" />
+        <div class="uh-admin-toolbar-actions">
             <button type="submit" class="uh-btn-primary uh-btn-sm">Filter</button>
             @if(collect($filters)->filter()->isNotEmpty())
                 <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.audit.index') }}">Clear</a>
@@ -50,7 +50,7 @@
                                     @if($log->old_values || $log->new_values)
                                         <details>
                                             <summary class="cursor-pointer text-[var(--color-muted)]">Details</summary>
-                                            <pre class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-sand p-2 text-[0.6875rem]">{{ json_encode(['before' => $log->old_values, 'after' => $log->new_values], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                                            <pre class="uh-admin-code mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md p-2 text-[0.6875rem]">{{ json_encode(['before' => $log->old_values, 'after' => $log->new_values], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
                                         </details>
                                     @else
                                         —

@@ -1,18 +1,14 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-8 md:py-10">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Tools')],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Tools') }}</h1>
-            <p class="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
-                {{ __('Estimate a home loan EMI or ask our desk for a valuation on a Dhaka property.') }}
-            </p>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'title' => __('Tools'),
+        'lede' => __('Estimate a home loan EMI or ask our desk for a valuation on a Dhaka property.'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('Tools')],
+        ],
+    ])
 
     <div class="uh-container grid gap-10 py-10 lg:grid-cols-2 lg:items-start">
             <div id="valuation" class="scroll-mt-24">
@@ -45,7 +41,7 @@
                     {{ __('Every home on this site is Urban Haven inventory. Call, WhatsApp, or send a brief and the same desk will follow up.') }}
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
-                    <a class="uh-btn-gold" href="{{ route('cms.show', 'contact') }}">
+                    <a class="uh-btn-primary" href="{{ route('cms.show', 'contact') }}">
                         {{ __('Contact us') }}
                     </a>
                     @if($whatsappHref)

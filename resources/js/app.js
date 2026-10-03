@@ -1,7 +1,14 @@
 import Alpine from 'alpinejs';
 import { track, bootAnalytics, bindTrackedClicks } from './analytics';
+import { applySelectOption, bootAdminSelects } from './admin-selects';
 import { registerSavedStore } from './saved';
 import { bootMaps, refreshMaps } from './maps';
+
+const syncAdminSheets = (name) => {
+    document.querySelectorAll('.uh-admin-sheet').forEach((sheet) => {
+        sheet.classList.toggle('is-open', Boolean(name) && sheet.dataset.drawer === name);
+    });
+};
 
 const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -171,6 +178,106 @@ Alpine.data('uhRail', () => ({
  */
 Alpine.data('uhHomeTabs', (initial = 'sale') => ({
     tab: initial,
+    init() {
+        this.$watch('tab', () => {
+            this.$nextTick(() => {
+                this.$el.querySelectorAll('[data-uh-featured]').forEach((stage) => {
+                    stage.dispatchEvent(new CustomEvent('uh-featured-sync'));
+                });
+            });
+        });
+    },
+}));
+
+/**
+ * Featured listing slider: one active card in the center, with faded neighbors peeking.
+ */
+Alpine.data('uhFeaturedSlider', (count = 1) => ({
+    index: 0,
+    count,
+    locking: false,
+    init() {
+        this.$nextTick(() => this.sync(true));
+    },
+    sync(instant = true) {
+        if (this.$el.offsetParent === null) {
+            return;
+        }
+
+        this.reveal(instant);
+    },
+    go(i) {
+        if (this.count < 1) {
+            return;
+        }
+
+        this.index = (i + this.count) % this.count;
+        this.reveal();
+    },
+    next() {
+        this.go(this.index + 1);
+    },
+    previous() {
+        this.go(this.index - 1);
+    },
+    slideAt(index, clone = false) {
+        return [...(this.$refs.scroller?.children ?? [])].find((slide) => {
+            return Number(slide.dataset.index) === index && Boolean(slide.dataset.clone) === clone;
+        });
+    },
+    reveal(instant = false) {
+        const root = this.$refs.scroller;
+        const slide = this.slideAt(this.index);
+
+        if (! root || ! slide) {
+            return;
+        }
+
+        this.locking = true;
+        root.scrollLeft = Math.max(0, slide.offsetLeft - (root.clientWidth - slide.offsetWidth) / 2);
+        clearTimeout(this.unlockTimer);
+        this.unlockTimer = setTimeout(() => {
+            this.locking = false;
+        }, 60);
+    },
+    onScroll() {
+        const root = this.$refs.scroller;
+        if (! root || this.locking) {
+            return;
+        }
+
+        const center = root.scrollLeft + root.clientWidth / 2;
+        let nearest = null;
+        let distance = Infinity;
+
+        [...root.children].forEach((slide) => {
+            const mid = slide.offsetLeft + slide.offsetWidth / 2;
+            const gap = Math.abs(mid - center);
+            if (gap < distance) {
+                distance = gap;
+                nearest = slide;
+            }
+        });
+
+        if (! nearest) {
+            return;
+        }
+
+        this.index = Number(nearest.dataset.index);
+
+        if (nearest.dataset.clone) {
+            this.reveal(true);
+        }
+    },
+    onKey(event) {
+        if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            this.next();
+        } else if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            this.previous();
+        }
+    },
 }));
 
 /**
@@ -178,37 +285,43 @@ Alpine.data('uhHomeTabs', (initial = 'sale') => ({
  */
 Alpine.data('uhHeroSearch', (initial = 'sale') => ({
     purpose: initial,
-    min: 0,
-    max: 480_000_000,
+    min: '',
+    max: '',
     submitting: false,
     saleCeiling: 480_000_000,
     rentCeiling: 500_000,
-    init() {
-        this.max = this.ceiling;
-    },
     get ceiling() {
         return this.purpose === 'rent' ? this.rentCeiling : this.saleCeiling;
     },
     get step() {
         return this.purpose === 'rent' ? 1000 : 100_000;
     },
-    get fillStyle() {
-        const span = this.ceiling || 1;
-        const start = (Math.max(0, Math.min(this.min, this.ceiling)) / span) * 100;
-        const end = (Math.max(0, Math.min(this.max, this.ceiling)) / span) * 100;
-
-        return `left:${start}%;width:${Math.max(0, end - start)}%;`;
+    get hasMin() {
+        return this.min !== '' && Number(this.min) > 0;
+    },
+    get hasMax() {
+        return this.max !== '' && Number(this.max) > 0 && Number(this.max) < this.ceiling;
     },
     setPurpose(next) {
         this.purpose = next;
-        this.min = 0;
-        this.max = this.ceiling;
+        this.min = '';
+        this.max = '';
     },
     clampMin() {
-        this.min = Math.max(0, Math.min(Number(this.min) || 0, this.max));
+        if (this.min === '') {
+            return;
+        }
+
+        const next = Math.max(0, Math.min(Number(this.min) || 0, this.ceiling));
+        this.min = this.max !== '' ? Math.min(next, Number(this.max)) : next;
     },
     clampMax() {
-        this.max = Math.max(this.min, Math.min(Number(this.max) || 0, this.ceiling));
+        if (this.max === '') {
+            return;
+        }
+
+        const floor = this.min !== '' ? Number(this.min) : 0;
+        this.max = Math.max(floor, Math.min(Number(this.max) || 0, this.ceiling));
     },
     submit() {
         this.$nextTick(() => {
@@ -494,8 +607,196 @@ Alpine.data('uhConsent', (current = null) => ({
 }));
 
 /**
+ * Collapsible staff-desk sidebar. Group state and the desktop collapse preference
+ * stay in localStorage so the layout does not reset on every page.
+ */
+Alpine.data('uhAdminShell', (activeGroups = []) => ({
+    mobile: false,
+    collapsed: window.localStorage.getItem('uh-admin-collapsed') === '1',
+    groups: {},
+    drawer: null,
+    target: null,
+    submitting: false,
+    error: '',
+    errors: {},
+    init() {
+        const stored = window.localStorage.getItem('uh-admin-groups');
+        let saved = {};
+        if (stored) {
+            try {
+                saved = JSON.parse(stored) || {};
+            } catch {
+                saved = {};
+            }
+        }
+        this.groups = saved;
+        activeGroups.forEach((name) => {
+            this.groups[name] = true;
+        });
+    },
+    groupOpen(name) {
+        return this.groups[name] === true;
+    },
+    toggleGroup(name) {
+        this.groups[name] = !this.groupOpen(name);
+        window.localStorage.setItem('uh-admin-groups', JSON.stringify(this.groups));
+    },
+    toggleCollapsed() {
+        this.collapsed = ! this.collapsed;
+        window.localStorage.setItem('uh-admin-collapsed', this.collapsed ? '1' : '0');
+    },
+    openMobile() {
+        this.mobile = true;
+    },
+    closeMobile() {
+        this.mobile = false;
+    },
+    isOpen(name) {
+        return this.drawer === name;
+    },
+    open(detail = {}) {
+        this.drawer = typeof detail === 'string' ? detail : (detail.kind ?? null);
+        this.target = typeof detail === 'string' ? null : (detail.target ?? null);
+        this.submitting = false;
+        this.error = '';
+        this.errors = {};
+        syncAdminSheets(this.drawer);
+        this.$nextTick(() => {
+            requestAnimationFrame(() => bootAdminSelects());
+        });
+    },
+    close() {
+        this.drawer = null;
+        this.target = null;
+        this.submitting = false;
+        this.error = '';
+        this.errors = {};
+        syncAdminSheets(null);
+    },
+    async submit(event) {
+        event.preventDefault();
+        const form = event.target;
+        this.submitting = true;
+        this.error = '';
+        this.errors = {};
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData(form),
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (! response.ok) {
+                this.errors = payload.errors ?? {};
+                this.error = payload.message || 'Could not save. Check the fields and try again.';
+                this.submitting = false;
+
+                return;
+            }
+
+            applySelectOption(this.target, payload);
+            form.reset();
+            this.close();
+        } catch {
+            this.error = 'Could not save. Check the connection and try again.';
+            this.submitting = false;
+        }
+    },
+}));
+
+Alpine.data('uhAdminDrawers', (initial = null) => ({
+    drawer: initial,
+    open(name) {
+        this.drawer = name;
+        document.body.style.overflow = 'hidden';
+        syncAdminSheets(name);
+        this.$nextTick(() => {
+            this.$root.querySelector(`[data-drawer="${name}"] input:not([type="hidden"]), [data-drawer="${name}"] textarea, [data-drawer="${name}"] select`)?.focus();
+        });
+    },
+    close() {
+        this.drawer = null;
+        document.body.style.overflow = '';
+        syncAdminSheets(null);
+    },
+    isOpen(name) {
+        return this.drawer === name;
+    },
+    onEscape(event) {
+        if (event.key === 'Escape' && this.drawer) {
+            this.close();
+        }
+    },
+    init() {
+        this._onEscape = (event) => this.onEscape(event);
+        window.addEventListener('keydown', this._onEscape);
+        if (this.drawer) {
+            document.body.style.overflow = 'hidden';
+        }
+    },
+    destroy() {
+        window.removeEventListener('keydown', this._onEscape);
+        document.body.style.overflow = '';
+    },
+}));
+
+/**
+ * Staff media picker: local preview of the chosen file, then the existing upload form.
+ */
+Alpine.data('uhMediaUpload', () => ({
+    submitting: false,
+    filename: '',
+    filesize: '',
+    preview: '',
+    pick() {
+        this.$refs.file?.click();
+    },
+    chosen(autoSubmit = false) {
+        const file = this.$refs.file?.files?.[0];
+        if (this.preview) {
+            URL.revokeObjectURL(this.preview);
+        }
+        this.filename = file?.name ?? '';
+        this.filesize = file ? this.formatSize(file.size) : '';
+        this.preview = file?.type?.startsWith('image/') ? URL.createObjectURL(file) : '';
+        if (autoSubmit && file && this.$refs.file?.form) {
+            this.submitting = true;
+            this.$refs.file.form.requestSubmit();
+        }
+    },
+    formatSize(bytes) {
+        if (bytes >= 1048576) {
+            return `${(bytes / 1048576).toFixed(1)} MB`;
+        }
+
+        return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    },
+    clear() {
+        if (this.preview) {
+            URL.revokeObjectURL(this.preview);
+        }
+        this.filename = '';
+        this.filesize = '';
+        this.preview = '';
+        this.submitting = false;
+        if (this.$refs.file) {
+            this.$refs.file.value = '';
+        }
+    },
+    submit() {
+        this.submitting = true;
+    },
+}));
+
+/**
  * Confirmation gate for destructive staff actions.
  */
+
 Alpine.data('uhConfirm', (message = 'Are you sure?') => ({
     message,
     confirm(event) {
@@ -511,8 +812,18 @@ registerSavedStore(Alpine);
 window.Alpine = Alpine;
 window.uhTrack = track;
 Alpine.start();
+bootAdminSelects();
+
+document.addEventListener('click', (event) => {
+    const row = event.target.closest?.('.uh-admin-clickrow');
+    if (! row || event.target.closest('a, button, input, label, select, textarea')) {
+        return;
+    }
+    row.querySelector('.uh-admin-row-main')?.click();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
+    bootAdminSelects();
     bootMaps();
     bindTrackedClicks();
 

@@ -1,13 +1,13 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-8 md:py-10">
+    <div class="uh-page-head">
+        <div class="uh-container">
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $area->name],
             ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Property in :area, :city', ['area' => $area->name, 'city' => $area->city]) }}</h1>
+            <h1 class="uh-home-title">{{ __('Property in :area, :city', ['area' => $area->name, 'city' => $area->city]) }}</h1>
             <div class="uh-prose mt-4 max-w-3xl">{!! nl2br(e($area->intro)) !!}</div>
             <div class="mt-6 flex flex-wrap gap-2">
                 @foreach($purposes as $purpose)

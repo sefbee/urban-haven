@@ -15,6 +15,9 @@ export default defineConfig({
                 bunny('Instrument Serif', {
                     weights: [400],
                 }),
+                bunny('Plus Jakarta Sans', {
+                    weights: [400, 500, 600, 700],
+                }),
                 bunny('Noto Sans Bengali', {
                     weights: [400, 500, 600],
                 }),
@@ -22,6 +25,11 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    resolve: {
+        alias: {
+            jquery: 'jquery/dist/jquery.js',
+        },
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

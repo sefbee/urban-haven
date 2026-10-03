@@ -1,15 +1,15 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container py-8 md:py-10">
+    <div class="uh-page-head">
+        <div class="uh-container">
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => __('Articles'), 'url' => $activeCategory ? route('articles.index') : null],
                 $activeCategory ? ['label' => $activeCategory->name] : null,
             ]" />
-            <h1 class="uh-h1 mt-3">{{ $activeCategory?->name ?? __('Guides and articles') }}</h1>
-            <p class="uh-lede mt-3 max-w-2xl">{{ __('Practical notes on buying, renting and investing in property from the Urban Haven team.') }}</p>
+            <h1 class="uh-home-title">{{ $activeCategory?->name ?? __('Guides and articles') }}</h1>
+            <p class="uh-home-lede">{{ __('Practical notes on buying, renting and investing in property from the Urban Haven team.') }}</p>
 
             @if($categories->isNotEmpty())
                 <nav class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('Article categories') }}">

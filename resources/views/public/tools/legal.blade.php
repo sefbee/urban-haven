@@ -1,18 +1,15 @@
 @extends('layouts.public')
 
 @section('content')
-    <div class="border-b border-line bg-paper">
-        <div class="uh-container-narrow py-8 md:py-10">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Legal Services')],
-            ]" />
-            <h1 class="uh-h1 mt-3">{{ __('Legal Services') }}</h1>
-            <p class="mt-2 text-sm text-[var(--color-muted)]">
-                {{ __('Paperwork for Urban Haven sales, lettings and handover — not a public legal marketplace.') }}
-            </p>
-        </div>
-    </div>
+    @include('public.partials.page-head', [
+        'wide' => false,
+        'title' => __('Legal Services'),
+        'lede' => __('Paperwork for Urban Haven sales, lettings and handover — not a public legal marketplace.'),
+        'crumbs' => [
+            ['label' => __('Home'), 'url' => route('home')],
+            ['label' => __('Legal Services')],
+        ],
+    ])
 
     <div class="uh-container-narrow uh-section-tight">
         <div class="uh-prose">
