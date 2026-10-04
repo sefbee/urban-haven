@@ -47,7 +47,6 @@
 @section('content')
     @include('public.partials.page-head', [
         'title' => $resultsTitle,
-        'lede' => __('Every property here is published directly by Urban Haven.'),
         'crumbs' => [
             ['label' => __('Home'), 'url' => route('home')],
             ['label' => $resultsTitle],
@@ -72,71 +71,65 @@
          @keydown.left.window="preview && previousSlide()"
          @keydown.right.window="preview && nextSlide()">
 
-        <div class="uh-sticky-bar">
-            <div class="uh-container py-3">
+        <div class="uh-filter-bar">
+            <div class="uh-container">
                 <form id="property-filters" method="GET" action="{{ route('properties.index') }}"
-                      class="flex flex-col gap-3"
-                      @submit="submitting = true; $event.target.querySelectorAll('input, select, textarea').forEach((field) => { if (field.value === '' && field.type !== 'checkbox' && field.type !== 'radio' && field.type !== 'hidden') field.disabled = true })">
+                      class="uh-filter-grid"
+                      @submit="submitting = true; $event.target.querySelectorAll('input, select, textarea').forEach((field) => { if (field.value === '' && field.type !== 'checkbox' && field.type !== 'hidden') field.disabled = true })">
+                    @if($listing !== '')
+                        <input type="hidden" name="listing_type" value="{{ $listing }}">
+                    @endif
+                    @if(filled($filters['q'] ?? null))
+                        <input type="hidden" name="q" value="{{ $filters['q'] }}">
+                    @endif
+                    <input type="hidden" name="lat" value="{{ $filters['lat'] ?? '' }}">
+                    <input type="hidden" name="lng" value="{{ $filters['lng'] ?? '' }}">
+                    <input type="hidden" name="radius_km" value="{{ $filters['radius_km'] ?? '3' }}">
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        @if(count($purposes) > 1)
-                            <div class="flex gap-5" aria-label="{{ __('Buy or rent') }}">
-                                <a href="{{ route('properties.index', ['listing_type' => 'sale'] + $kept) }}" @if($listing === 'sale') aria-current="page" @endif
-                                   @class(['uh-home-tab', 'uh-home-tab-active' => $listing === 'sale'])>
-                                    {{ __('Buy') }}
-                                </a>
-                                <a href="{{ route('properties.index', ['listing_type' => 'rent'] + $kept) }}" @if($listing === 'rent') aria-current="page" @endif
-                                   @class(['uh-home-tab', 'uh-home-tab-active' => $listing === 'rent'])>
-                                    {{ __('Rent') }}
-                                </a>
-                            </div>
-                        @endif
-                        @if($listing !== '')
-                            <input type="hidden" name="listing_type" value="{{ $listing }}">
-                        @endif
-                        @if(filled($filters['q'] ?? null))
-                            <input type="hidden" name="q" value="{{ $filters['q'] }}">
-                        @endif
-
-                        <div class="min-w-0 flex-1 relative"
-                             x-data="uhLocationTags({{ \Illuminate\Support\Js::from($areaOptions) }}, {{ \Illuminate\Support\Js::from($selectedAreaIds) }})"
-                             @keydown.escape.stop="open = false">
-                            <label class="sr-only" for="location-query">{{ __('Location') }}</label>
-                            <div class="flex min-h-11 flex-wrap items-center gap-1.5 rounded-lg border border-line-strong bg-paper px-2 py-1.5 focus-within:border-forest focus-within:ring-2 focus-within:ring-forest/15">
-                                <template x-for="area in selectedAreas" :key="area.id">
-                                    <span class="uh-chip uh-chip-active min-h-7 px-2.5 text-xs">
-                                        <span x-text="area.name"></span>
-                                        <button type="button" class="uh-chip-remove" @click="remove(area.id)" :aria-label="'{{ __('Remove filter') }} ' + area.name">
-                                            <x-icon name="close" class="size-3" />
-                                        </button>
-                                        <input type="hidden" name="location_area_ids[]" :value="area.id">
-                                    </span>
-                                </template>
-                                <input id="location-query" type="text" x-model="query" @focus="open = true" @input="open = true"
-                                       @keydown.enter.prevent="onEnter()" autocomplete="off"
-                                       class="min-w-32 flex-1 border-0 bg-transparent px-1 py-1 text-sm outline-none"
-                                       placeholder="{{ __('Badda, Bangshal, Chak Bazar…') }}">
-                            </div>
-                            <div x-show="open && suggestions.length" x-cloak @click.outside="open = false"
-                                 class="absolute z-40 mt-1 max-h-64 w-[min(100%,24rem)] overflow-y-auto rounded-xl bg-paper p-1 ring-1 ring-line shadow-[var(--shadow-uh)]">
-                                <template x-for="area in suggestions" :key="area.id">
-                                    <button type="button" class="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm hover:bg-sand" @click="add(area.id)" x-text="area.name"></button>
-                                </template>
-                            </div>
+                    @if(count($purposes) > 1)
+                        <div class="uh-seg uh-filter-wide justify-self-start" aria-label="{{ __('Buy or rent') }}">
+                            <a href="{{ route('properties.index', $kept) }}" @class(['uh-seg-btn', 'is-on' => $listing === ''])>{{ __('All') }}</a>
+                            <a href="{{ route('properties.index', ['listing_type' => 'sale'] + $kept) }}" @if($listing === 'sale') aria-current="page" @endif
+                               class="uh-seg-btn">{{ __('Buy') }}</a>
+                            <a href="{{ route('properties.index', ['listing_type' => 'rent'] + $kept) }}" @if($listing === 'rent') aria-current="page" @endif
+                               class="uh-seg-btn">{{ __('Rent') }}</a>
                         </div>
+                    @endif
 
-                        <button type="button" class="uh-icon-action shrink-0" x-data="uhNearMe()" @click="locate()"
-                                :aria-busy="locating.toString()" :disabled="locating"
-                                aria-label="{{ __('Properties Near Me') }}" title="{{ __('Properties Near Me') }}">
-                            <x-icon name="locate" class="size-4" x-show="!locating" />
-                            <span class="uh-spinner" x-show="locating" x-cloak></span>
-                        </button>
-                        <input type="hidden" name="lat" value="{{ $filters['lat'] ?? '' }}">
-                        <input type="hidden" name="lng" value="{{ $filters['lng'] ?? '' }}">
-                        <input type="hidden" name="radius_km" value="{{ $filters['radius_km'] ?? '3' }}">
+                    <div class="uh-filter-wide relative min-w-0"
+                         x-data="uhLocationTags({{ \Illuminate\Support\Js::from($areaOptions) }}, {{ \Illuminate\Support\Js::from($selectedAreaIds) }})"
+                         @keydown.escape.stop="open = false">
+                        <label class="sr-only" for="location-query">{{ __('Location') }}</label>
+                        <div class="uh-filter-field">
+                            <x-icon name="search" class="size-4 shrink-0 text-[var(--uh-faint)]" />
+                            <template x-for="area in selectedAreas" :key="area.id">
+                                <span class="uh-chip uh-chip-active uh-chip-sm">
+                                    <span x-text="area.name"></span>
+                                    <button type="button" class="uh-chip-remove" @click="remove(area.id)" :aria-label="'{{ __('Remove filter') }} ' + area.name">
+                                        <x-icon name="close" class="size-3" />
+                                    </button>
+                                    <input type="hidden" name="location_area_ids[]" :value="area.id">
+                                </span>
+                            </template>
+                            <input id="location-query" type="text" x-model="query" @focus="open = true" @input="open = true"
+                                   @keydown.enter.prevent="onEnter()" autocomplete="off"
+                                   class="uh-filter-input"
+                                   placeholder="{{ __('Search an area') }}">
+                            <button type="button" class="uh-icon-action shrink-0" x-data="uhNearMe()" @click="locate()"
+                                    :aria-busy="locating.toString()" :disabled="locating"
+                                    aria-label="{{ __('Properties Near Me') }}" title="{{ __('Properties Near Me') }}">
+                                <x-icon name="locate" class="size-4" x-show="!locating" />
+                                <span class="uh-spinner" x-show="locating" x-cloak></span>
+                            </button>
+                        </div>
+                        <div x-show="open && suggestions.length" x-cloak @click.outside="open = false" class="uh-suggest">
+                            <template x-for="area in suggestions" :key="area.id">
+                                <button type="button" @click="add(area.id)" x-text="area.name"></button>
+                            </template>
+                        </div>
                     </div>
 
-                    <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
+                    <div>
                         <label class="sr-only" for="price-range">{{ __('Price Range') }}</label>
                         <select id="price-range" name="price_band" class="uh-select">
                             <option value="">{{ __('Price Range') }}</option>
@@ -144,79 +137,62 @@
                                 <option value="{{ $value }}" @selected($priceBand === $value)>{{ $band['label'] }}</option>
                             @endforeach
                         </select>
-
-                        <x-ui.select name="property_type_id" :label="__('Property Type')" sr-label>
-                            <option value="">{{ __('Property Type') }}</option>
-                            @foreach($types as $type)
-                                <option value="{{ $type->id }}" @selected(($filters['property_type_id'] ?? '') == $type->id)>{{ $type->label }}</option>
-                            @endforeach
-                        </x-ui.select>
-
-                        <x-ui.select name="area_band" :label="__('Area size')" sr-label>
-                            <option value="">{{ __('Area size') }}</option>
-                            @foreach(\App\Support\SearchBands::areas() as $key => $band)
-                                <option value="{{ $key }}" @selected(($filters['area_band'] ?? '') === $key)>{{ $band['label'] }}</option>
-                            @endforeach
-                        </x-ui.select>
-
-                        <button type="button" class="uh-btn-outline" @click="toggleFilters()"
-                                :aria-expanded="filtersOpen.toString()" aria-controls="more-filters">
-                            <x-icon name="filter" class="size-4" />
-                            {{ __('More Filters') }}
-                            @if($hasAdvanced)
-                                <span class="inline-flex size-5 items-center justify-center rounded-full bg-forest text-[0.6875rem] font-bold text-cream">+</span>
-                            @endif
-                        </button>
-
-                        <button type="submit" class="uh-btn-primary" :disabled="submitting">
-                            <x-icon name="search" class="size-4" x-show="!submitting" />
-                            <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            {{ __('Search') }}
-                        </button>
                     </div>
+
+                    <x-ui.select name="property_type_id" :label="__('Property Type')" sr-label>
+                        <option value="">{{ __('Property Type') }}</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type->id }}" @selected(($filters['property_type_id'] ?? '') == $type->id)>{{ $type->label }}</option>
+                        @endforeach
+                    </x-ui.select>
+
+                    <button type="button" class="uh-btn-secondary" @click="toggleFilters()"
+                            :aria-expanded="filtersOpen.toString()" aria-controls="more-filters">
+                        {{ __('Filters') }}
+                        @if($hasAdvanced)
+                            <span class="uh-search-dot" aria-hidden="true"></span>
+                            <span class="sr-only">{{ __('(active)') }}</span>
+                        @endif
+                    </button>
+
+                    <button type="submit" class="uh-btn-primary" :disabled="submitting">
+                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                        {{ __('Search') }}
+                    </button>
                 </form>
             </div>
+            <span class="uh-progress" x-show="submitting" x-cloak aria-hidden="true"></span>
         </div>
         @include('public.partials.filter-drawer')
 
-        <div class="uh-container uh-section-tight">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <p class="text-sm text-[var(--color-muted)]" aria-live="polite">
+        <div class="uh-container">
+            <div class="uh-results-bar">
+                <p class="uh-results-count" aria-live="polite">
                     @if($properties->total())
-                        {{ __('Showing :from–:to of :total', [
-                            'from' => $properties->firstItem(),
-                            'to' => $properties->lastItem(),
-                            'total' => $properties->total(),
-                        ]) }}
+                        {!! __('Showing :from–:to of :total', [
+                            'from' => '<b>'.e($properties->firstItem()).'</b>',
+                            'to' => '<b>'.e($properties->lastItem()).'</b>',
+                            'total' => '<b>'.e($properties->total()).'</b>',
+                        ]) !!}
                     @else
-                        {{ __('No homes match') }}
+                        {{ __('Nothing matches yet') }}
                     @endif
                 </p>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="flex gap-4" role="group" aria-label="{{ __('Result layout') }}">
-                        <button type="button" class="uh-home-tab"
-                                :class="layout === 'list' ? 'uh-home-tab-active' : ''"
-                                :aria-pressed="(layout === 'list').toString()" @click="setLayout('list')">
-                            {{ __('List') }}
-                        </button>
-                        <button type="button" class="uh-home-tab"
-                                :class="layout === 'grid' ? 'uh-home-tab-active' : ''"
-                                :aria-pressed="(layout === 'grid').toString()" @click="setLayout('grid')">
-                            {{ __('Cards') }}
-                        </button>
+                <div class="uh-results-tools">
+                    <div class="uh-text-toggle" role="group" aria-label="{{ __('Result layout') }}">
+                        <button type="button" :aria-pressed="(layout === 'grid').toString()" @click="setLayout('grid')">{{ __('Cards') }}</button>
+                        <button type="button" :aria-pressed="(layout === 'list').toString()" @click="setLayout('list')">{{ __('List') }}</button>
                     </div>
 
-                    <button type="button" class="uh-btn-outline uh-btn-sm" @click="toggleMap()"
-                            :aria-expanded="showMap.toString()">
-                        <x-icon name="map" class="size-4" />
+                    <button type="button" class="uh-btn-text" @click="toggleMap()"
+                            :aria-expanded="showMap.toString()" aria-controls="property-map-panel">
                         <span x-text="showMap ? '{{ __('Hide map') }}' : '{{ __('Map') }}'">{{ __('Map') }}</span>
                     </button>
 
-                    <label class="flex items-center gap-2 text-sm">
+                    <label class="uh-sort">
                         <span class="sr-only">{{ __('Sort by') }}</span>
-                        <select name="sort" form="property-filters" class="uh-select min-h-9 w-auto py-1.5 text-[0.8125rem]"
-                                onchange="this.form.requestSubmit()">
+                        <select name="sort" form="property-filters" onchange="this.form.requestSubmit()">
                             @foreach($sortOptions as $value => $label)
                                 <option value="{{ $value }}" @selected(($filters['sort'] ?? 'newest') === $value)>{{ $label }}</option>
                             @endforeach
@@ -226,7 +202,7 @@
             </div>
 
             @if(filled($activeFilters))
-                <div class="mt-4 flex flex-wrap items-center gap-2">
+                <div class="uh-active-filters">
                     @foreach($activeFilters as $chip)
                         <a class="uh-chip uh-chip-active" href="{{ $chip['url'] }}">
                             {{ $chip['label'] }}
@@ -234,72 +210,87 @@
                             <span class="sr-only">{{ __('Remove filter') }}</span>
                         </a>
                     @endforeach
-                    <a class="uh-btn-ghost uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
+                    <a class="uh-btn-text" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
                 </div>
             @endif
 
-            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-8">
-                <div>
+            <div class="uh-workspace" :class="showMap ? '' : 'is-mapless'">
+                <div class="uh-workspace-results" :class="submitting ? 'is-busy' : ''" :aria-busy="submitting.toString()">
                     @if($properties->isNotEmpty())
-                        <div class="grid gap-4 sm:grid-cols-2" x-show="layout === 'grid'">
+                        <div class="uh-grid-cards" x-show="layout === 'grid'">
                             @foreach($properties as $property)
-                                @include('public.partials.property-card', ['property' => $property])
+                                @include('public.partials.property-card', ['property' => $property, 'sizes' => '(min-width: 1100px) 26vw, (min-width: 640px) 50vw, 100vw'])
                             @endforeach
                         </div>
-                        <div class="grid gap-4" x-show="layout === 'list'" x-cloak>
+                        <div class="uh-list-rows" x-show="layout === 'list'" x-cloak>
                             @foreach($properties as $property)
                                 @include('public.partials.property-row', ['property' => $property])
                             @endforeach
                         </div>
 
                         @if($properties->hasPages())
-                            <div class="mt-9">{{ $properties->onEachSide(1)->links() }}</div>
+                            <div class="uh-pagination-wrap">{{ $properties->onEachSide(1)->links() }}</div>
                         @endif
                     @else
-                        <x-ui.empty icon="search" :title="__('No homes match these filters')"
-                                    :description="__('Nothing in our current inventory matches every filter you selected. Widening the price range or choosing a nearby area usually helps.')">
+                        <x-ui.empty icon="search" :title="__('Nothing matches this search yet')"
+                                    :description="filled($activeFilters)
+                                        ? __('Nothing we have right now meets every filter at once. Loosening one of them usually opens things up.')
+                                        : __('There are no live listings at the moment. Tell us what you are looking for and our sales team will get back to you.')">
                             @if(filled($activeFilters))
-                                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Clear all filters') }}</a>
+                                <div class="uh-empty-suggest">
+                                    <p>{{ __('Try removing') }}</p>
+                                    <ul>
+                                        @foreach($activeFilters as $chip)
+                                            <li>
+                                                <a class="uh-chip" href="{{ $chip['url'] }}">
+                                                    {{ $chip['label'] }}
+                                                    <x-icon name="close" class="size-3" />
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Start over with everything') }}</a>
+                                <button type="button" class="uh-btn-secondary uh-btn-sm" @click="toggleFilters()">
+                                    {{ __('Adjust filters') }}
+                                </button>
+                            @else
+                                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Tell us what you need') }}</a>
                             @endif
-                            <button type="button" class="uh-btn-outline uh-btn-sm" @click="filtersOpen = true">
-                                {{ __('Adjust filters') }}
-                            </button>
                         </x-ui.empty>
                     @endif
                 </div>
 
-                <aside class="space-y-4 lg:sticky lg:top-40">
-                    <div id="property-map-panel" class="hidden lg:block" :class="showMap ? '!block' : '!hidden'" aria-label="{{ __('Map of available homes') }}">
-                        <div class="uh-panel-flush overflow-hidden">
+                <aside class="uh-workspace-aside" :class="showMap ? 'max-[1099px]:order-first' : ''">
+                    <section id="property-map-panel" class="hidden lg:block" :class="showMap ? '!block' : '!hidden'" aria-label="{{ __('Map of available homes') }}">
+                        <div class="uh-map-frame">
                             <div data-uh-map
-                                 class="h-72 w-full lg:h-[24rem]"
+                                 class="h-80 w-full min-[1100px]:h-[min(62vh,36rem)]"
                                  data-lat="{{ config('urbanhaven.maps.default_lat') }}"
                                  data-lng="{{ config('urbanhaven.maps.default_lng') }}"
                                  data-zoom="12"
                                  data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
                                  data-attribution="{{ e(config('urbanhaven.maps.attribution')) }}"
                                  data-src="{{ $mapDataUrl }}"></div>
-                            <p class="border-t border-line px-4 py-3 text-xs text-[var(--color-muted)]">
-                                {{ __('The map shows the same results as the list. Pins may be approximate; exact addresses are shared by our sales team.') }}
-                            </p>
                         </div>
-                    </div>
+                        <p class="uh-map-note">{{ __('Pins may be approximate; exact addresses are shared by our sales team.') }}</p>
+                    </section>
 
                     @if($exploreAreas->isNotEmpty())
-                        <div class="uh-panel">
-                            <h2 class="uh-h4">{{ __('Explore more areas') }}</h2>
-                            <ul class="mt-3 divide-y divide-line">
+                        <section class="uh-area-panel" :class="showMap ? 'max-[1099px]:hidden' : ''" aria-labelledby="explore-areas-title">
+                            <h2 id="explore-areas-title" class="uh-area-title">{{ __('Explore more areas') }}</h2>
+                            <ul class="uh-area-list">
                                 @foreach($exploreAreas as $area)
                                     <li>
-                                        <a class="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-forest"
-                                           href="{{ route('properties.index', array_filter(['location_area_ids' => [$area->id], 'listing_type' => $listing ?: null])) }}">
-                                            <span class="truncate font-medium">{{ $area->name }}</span>
-                                            <span class="uh-numeric shrink-0 text-xs text-[var(--color-muted)]">{{ $area->properties_count }}</span>
+                                        <a href="{{ route('properties.index', array_filter(['location_area_ids' => [$area->id], 'listing_type' => $listing ?: null])) }}"
+                                           @if(in_array($area->id, $selectedAreaIds, true)) aria-current="true" @endif>
+                                            <span class="truncate">{{ $area->name }}</span>
+                                            <span class="uh-numeric">{{ $area->properties_count }}</span>
                                         </a>
                                     </li>
                                 @endforeach
                             </ul>
-                        </div>
+                        </section>
                     @endif
                 </aside>
             </div>

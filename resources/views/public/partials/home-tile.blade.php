@@ -16,7 +16,7 @@
                  alt="" loading="lazy" decoding="async">
         @endif
     </a>
-    <p class="mt-4 text-lg font-semibold tracking-tight">{{ $headline }}</p>
+    <p class="uh-listing-price">{{ $headline }}</p>
     <h3 class="mt-1 text-base font-semibold tracking-tight">
         <a class="uh-home-link" href="{{ $url }}" lang="{{ app()->getLocale() }}"
            data-track="property_card_click" data-track-property-id="{{ $property->id }}">{{ $property->title }}</a>
@@ -25,6 +25,6 @@
         {{ $property->locationArea?->name }}@if($property->locationArea?->city), {{ $property->locationArea->city }}@endif
     </p>
     <p class="mt-4">
-        <a class="uh-home-link text-sm" href="{{ $url }}">{{ __('View details') }}</a>
+        <a class="uh-home-link text-sm" href="{{ $url }}">{{ __('Explore') }}</a>
     </p>
 </article>

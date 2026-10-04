@@ -6,15 +6,16 @@
     $trackLocation = $trackLocation ?? 'card';
     $trackPropertyId = $trackPropertyId ?? null;
     $trackProjectId = $trackProjectId ?? null;
-    $detailsLabel = $detailsLabel ?? __('View details');
-    $detailsClass = $detailsClass ?? 'uh-home-link text-sm';
-    $dividerClass = $dividerClass ?? 'border-black/8';
+    $detailsLabel = $detailsLabel ?? __('Explore');
+    $detailsClass = $detailsClass ?? 'uh-arrow-link';
+    $dividerClass = $dividerClass ?? '';
     $iconClass = $iconClass ?? 'uh-icon-action';
     $showQuickView = $showQuickView ?? false;
+    $showDetails = $showDetails ?? true;
 @endphp
 
-<div class="mt-auto flex items-center justify-between gap-3 border-t pt-4 {{ $dividerClass }}">
-    <div class="flex items-center gap-1.5">
+<div class="uh-card-actions {{ $dividerClass }}">
+    <div class="uh-card-contact">
         @if($phoneHref)
             <a class="{{ $iconClass }}" href="{{ $phoneHref }}"
                data-track="phone_click" data-track-location="{{ $trackLocation }}"
@@ -40,12 +41,19 @@
         </button>
     </div>
 
-    <div class="flex items-center gap-3">
-        @if($showQuickView)
-            <button type="button" class="uh-btn-ghost uh-btn-sm" @click="$dispatch('open-preview', payload)">
-                {{ __('Quick view') }}
-            </button>
-        @endif
-        <a class="{{ $detailsClass }}" href="{{ $url }}">{{ $detailsLabel }}</a>
-    </div>
+    @if($showQuickView || $showDetails)
+        <div class="uh-card-next">
+            @if($showQuickView)
+                <button type="button" class="uh-btn-text" @click="$dispatch('open-preview', payload)">
+                    {{ __('Quick view') }}
+                </button>
+            @endif
+            @if($showDetails)
+                <a class="{{ $detailsClass }}" href="{{ $url }}">
+                    {{ $detailsLabel }}
+                    <x-icon name="arrow-right" class="size-3.5" />
+                </a>
+            @endif
+        </div>
+    @endif
 </div>

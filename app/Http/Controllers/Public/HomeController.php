@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\CmsBlock;
 use App\Models\LocationArea;
-use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\Setting;
@@ -75,12 +74,11 @@ class HomeController extends Controller
             'typeCards' => $typeCards,
             'areas' => $listedAreas,
             'heroAreas' => $areas,
-            'cities' => $areas->where('properties_count', '>', 0)->pluck('city')->filter()->unique()->values(),
-            'hasAvailableProjects' => Project::query()->published()->whereIn('development_stage', ['ongoing', 'upcoming'])->exists(),
-            'hasCompletedProjects' => Project::query()->published()->where('development_stage', 'completed')->exists(),
             'hasWhatsapp' => filled(Setting::get('whatsapp')),
             'heroImage' => $heroImageSource?->featuredImage(),
             'heroImageAlt' => $heroImageSource?->featuredImage()?->alt(app()->getLocale()) ?: '',
+            'heroListing' => $heroImageSource,
+            'liveListingCount' => $this->liveListings(Property::query(), $purposes)->count(),
             'seo' => SeoMeta::for(null, config('app.name'), $hero['body'] ?? 'Apartments, homes, land and commercial space for sale and rent in Dhaka, published directly by Urban Haven.', [
                 'json_ld' => [StructuredData::website()],
             ]),

@@ -14,18 +14,18 @@
         aria-label="{{ $addLabel }}"
         {{ $attributes->class([
             'uh-icon-action' => $variant === 'icon',
-            'uh-btn-outline uh-btn-sm' => $variant === 'button',
+            'uh-btn-text' => $variant === 'button',
         ]) }}>
-    @if($isCompare)
-        <x-icon name="compare" class="size-4" />
-        @if($variant === 'button')
+    @if($variant === 'button')
+        @if($isCompare)
             <span x-text="$store.saved.has('compare', {{ $id }}) ? @js(__('In compare')) : @js(__('Compare'))">{{ __('Compare') }}</span>
-        @endif
-    @else
-        <x-icon name="heart" class="size-4" x-show="!$store.saved.has('shortlist', {{ $id }})" />
-        <x-icon name="heart-solid" class="size-4 text-[var(--color-danger)]" x-show="$store.saved.has('shortlist', {{ $id }})" x-cloak />
-        @if($variant === 'button')
+        @else
             <span x-text="$store.saved.has('shortlist', {{ $id }}) ? @js(__('Saved')) : @js(__('Save'))">{{ __('Save') }}</span>
         @endif
+    @elseif($isCompare)
+        <x-icon name="compare" class="size-4" />
+    @else
+        <x-icon name="heart" class="size-4" x-show="!$store.saved.has('shortlist', {{ $id }})" />
+        <x-icon name="heart-solid" class="size-4 text-brass" x-show="$store.saved.has('shortlist', {{ $id }})" x-cloak />
     @endif
 </button>

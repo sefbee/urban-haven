@@ -9,11 +9,15 @@
     ]));
 @endphp
 
-<section class="uh-trust" aria-label="{{ __('What you get with Urban Haven') }}">
+<section id="home-standards" class="uh-statement scroll-mt-20" aria-labelledby="statement-title">
     <div class="uh-container">
-        <ul class="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+        <p id="statement-title" class="uh-statement-line" data-reveal>
+            <strong>{{ __('No marketplace. No unknown sellers.') }}</strong>
+            <span>{{ __('Every property here is published by the team that will show it to you.') }}</span>
+        </p>
+        <ul class="uh-statement-facts" aria-label="{{ __('What you get with Urban Haven') }}">
             @foreach($capabilities as $capability)
-                <li>
+                <li data-reveal style="--uh-i: {{ $loop->index }}">
                     <strong>{{ $capability['title'] }}</strong>
                     <span>{{ $capability['detail'] }}</span>
                 </li>

@@ -3,40 +3,59 @@
     $showTabs = $featuredSale->isNotEmpty() && $featuredRent->isNotEmpty();
 @endphp
 
-<section class="uh-home-section uh-home-featured bg-white" x-data="uhHomeTabs('{{ $defaultTab }}')">
+<section class="uh-section uh-showcase-section" x-data="uhHomeTabs('{{ $defaultTab }}')" aria-labelledby="featured-title">
     <div class="uh-container">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <h2 class="uh-home-title">{{ __('Featured Properties') }}</h2>
-                <p class="uh-home-lede">{{ __('Explore selected properties available through Urban Haven.') }}</p>
-            </div>
+        <header class="uh-section-head" data-reveal>
+            <h2 id="featured-title" class="uh-h2">{{ __('Featured Properties') }}</h2>
+            <p class="uh-lede">{{ __('A closer look at the places our team is featuring right now.') }}</p>
             @if($showTabs)
-                <div class="flex gap-6" role="group" aria-label="{{ __('Listing type') }}">
-                    <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'sale').toString()"
-                            :class="tab === 'sale' ? 'uh-home-tab-active' : ''" @click="tab = 'sale'">{{ __('Buy') }}</button>
-                    <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'rent').toString()"
-                            :class="tab === 'rent' ? 'uh-home-tab-active' : ''" @click="tab = 'rent'">{{ __('Rent') }}</button>
+                <div class="uh-seg" role="group" aria-label="{{ __('Listing type') }}">
+                    <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'sale').toString()"
+                            :class="tab === 'sale' ? 'is-on' : ''" @click="tab = 'sale'">{{ __('Buy') }}</button>
+                    <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'rent').toString()"
+                            :class="tab === 'rent' ? 'is-on' : ''" @click="tab = 'rent'">{{ __('Rent') }}</button>
                 </div>
             @endif
-        </div>
+        </header>
     </div>
 
-    @if($featuredSale->isNotEmpty())
-        <div class="uh-featured-breakout" x-bind:class="tab === 'sale' ? '' : 'hidden'">
-            @include('public.partials.featured-track', ['properties' => $featuredSale])
-        </div>
-    @endif
+    @foreach(['sale' => $featuredSale, 'rent' => $featuredRent] as $purpose => $listings)
+        @if($listings->isNotEmpty())
+            <div class="uh-showcase" x-data="uhShowcase({{ $listings->count() }})" x-bind:class="tab === '{{ $purpose }}' ? '' : 'hidden'"
+                 role="region" aria-roledescription="{{ __('carousel') }}"
+                 aria-label="{{ $purpose === 'rent' ? __('Featured properties for rent') : __('Featured properties for sale') }}"
+                 tabindex="0" @keydown.left.prevent="previous()" @keydown.right.prevent="next()"
+                 @pointerdown="dragStart($event)" @pointerup="dragEnd($event)" @pointercancel="dragging = false"
+                 data-reveal>
+                <div class="uh-showcase-stage" aria-live="polite">
+                    @foreach($listings as $property)
+                        @include('public.partials.showcase-slide', [
+                            'property' => $property,
+                            'index' => $loop->index,
+                            'total' => $loop->count,
+                        ])
+                    @endforeach
 
-    @if($featuredRent->isNotEmpty())
-        <div class="uh-featured-breakout" x-bind:class="tab === 'rent' ? '' : 'hidden'">
-            @include('public.partials.featured-track', ['properties' => $featuredRent])
-        </div>
-    @endif
+                    @if($listings->count() > 1)
+                        <button type="button" class="uh-showcase-arrow is-prev" @click.stop="previous()" aria-label="{{ __('Previous property') }}">
+                            <x-icon name="chevron-left" class="size-4" />
+                        </button>
+                        <button type="button" class="uh-showcase-arrow is-next" @click.stop="next()" aria-label="{{ __('Next property') }}">
+                            <x-icon name="chevron-right" class="size-4" />
+                        </button>
+                    @endif
+                </div>
+            </div>
+        @endif
+    @endforeach
 
-    <div class="uh-container mt-10 flex justify-center">
-        <a class="uh-home-pill" href="{{ route('properties.index') }}"
-           :href="@js(route('properties.index')) + '?listing_type=' + tab">
-            {{ __('View All Properties') }}
-        </a>
+    <div class="uh-container">
+        <div class="uh-section-foot">
+            <a class="uh-arrow-link" href="{{ route('properties.index') }}"
+               :href="@js(route('properties.index')) + '?listing_type=' + tab">
+                <span x-text="tab === 'rent' ? @js(__('See every property for rent')) : @js(__('See every property for sale'))">{{ __('See every property') }}</span>
+                <x-icon name="arrow-right" class="size-3.5" />
+            </a>
+        </div>
     </div>
 </section>

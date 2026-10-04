@@ -22,8 +22,7 @@
 
     @include('public.home.why')
 
-    <div class="uh-home-closer">
+    <section class="uh-section uh-closing">
         @include('public.home.cta')
-        @include('public.home.discover')
-    </div>
+    </section>
 @endsection

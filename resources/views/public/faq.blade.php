@@ -10,18 +10,18 @@
         ],
     ])
 
-    <div class="uh-container-narrow uh-section-tight">
+    <div class="uh-container-narrow uh-section-tight pt-0">
         @forelse($groups as $group => $faqs)
-            <section class="mb-10" aria-labelledby="faq-{{ \Illuminate\Support\Str::slug($group) }}">
-                <h2 id="faq-{{ \Illuminate\Support\Str::slug($group) }}" class="uh-h3">{{ $group }}</h2>
-                <div class="mt-4 divide-y divide-[var(--color-line)] rounded-xl bg-paper ring-1 ring-line">
+            <section class="uh-faq-group" aria-labelledby="faq-{{ \Illuminate\Support\Str::slug($group) }}">
+                <h2 id="faq-{{ \Illuminate\Support\Str::slug($group) }}" class="uh-h4">{{ $group }}</h2>
+                <div class="uh-faq">
                     @foreach($faqs as $faq)
-                        <details class="group px-5 py-4">
-                            <summary class="flex min-h-10 cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+                        <details>
+                            <summary>
                                 {{ $faq->question }}
-                                <x-icon name="chevron-down" class="size-4 shrink-0 transition group-open:rotate-180" />
+                                <x-icon name="plus" class="uh-faq-icon size-4 shrink-0" />
                             </summary>
-                            <div class="uh-prose mt-3 text-sm">{!! \Stevebauman\Purify\Facades\Purify::clean($faq->answer) !!}</div>
+                            <div class="uh-prose">{!! \Stevebauman\Purify\Facades\Purify::clean($faq->answer) !!}</div>
                         </details>
                     @endforeach
                 </div>
@@ -32,5 +32,14 @@
                 <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
             </x-ui.empty>
         @endforelse
+
+        @if($groups->isNotEmpty())
+            <aside class="uh-next">
+                <p class="uh-h3">{{ __('Still have a question? Ask our team directly.') }}</p>
+                <div class="uh-next-links">
+                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                </div>
+            </aside>
+        @endif
     </div>
 @endsection

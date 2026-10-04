@@ -12,30 +12,31 @@
     ])
 
     <div class="uh-container-narrow uh-section-tight">
-        <div class="uh-prose">
-            <p>{{ __('Every home on this site is company inventory. When you buy or rent through Urban Haven, the same desk coordinates the documents with our counsel.') }}</p>
-            <h2>{{ __('What we help with') }}</h2>
-            <ul>
-                <li>{{ __('Sale agreements and mutation follow-up for our listings') }}</li>
-                <li>{{ __('Letting paperwork and handover notes') }}</li>
-                <li>{{ __('Introductions to the firm that acts for Urban Haven Properties Ltd.') }}</li>
+        <p class="uh-prose uh-prose-lead">{{ __('Every home on this site is company inventory. When you buy or rent through Urban Haven, the same desk coordinates the documents with our counsel.') }}</p>
+
+        <div class="uh-surface uh-tool-card mt-10">
+            <h2 class="uh-pd-card-title">{{ __('What we help with') }}</h2>
+            <ul class="uh-check-list mt-5">
+                <li><x-icon name="check-circle" class="size-5" />{{ __('Sale agreements and mutation follow-up for our listings') }}</li>
+                <li><x-icon name="check-circle" class="size-5" />{{ __('Letting paperwork and handover notes') }}</li>
+                <li><x-icon name="check-circle" class="size-5" />{{ __('Introductions to the firm that acts for Urban Haven Properties Ltd.') }}</li>
             </ul>
-            <p>{{ __('We do not give independent legal advice to the public, and we do not list third-party lawyers for hire.') }}</p>
+            <p class="mt-6 border-t border-[var(--uh-line)] pt-5 text-[0.9375rem] leading-relaxed text-[var(--uh-muted)]">{{ __('We do not give independent legal advice to the public, and we do not list third-party lawyers for hire.') }}</p>
         </div>
 
-        <div class="uh-panel mt-10">
-            <p class="uh-eyebrow">{{ __('Contact Urban Haven Agent') }}</p>
-            <p class="mt-2 text-sm text-[var(--color-muted)]">{{ __('Ask the sales desk to outline the steps for a specific listing.') }}</p>
-            <div class="mt-5 flex flex-wrap gap-3">
+        <aside class="uh-next">
+            <p class="uh-h3">{{ __('Contact Urban Haven Agent') }}</p>
+            <p>{{ __('Ask the sales desk to outline the steps for a specific listing.') }}</p>
+            <div class="uh-next-links">
                 @if(filled($contactPhone))
                     <a class="uh-btn-primary uh-btn-sm" href="tel:{{ preg_replace('/[^\d+]/', '', $contactPhone) }}">
                         <x-icon name="phone" class="size-4" />
                         {{ __('Call Now') }}
                     </a>
                 @endif
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Inquire Now') }}</a>
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Browse homes') }}</a>
+                <a class="uh-btn-secondary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Inquire Now') }}</a>
+                <a class="uh-arrow-link" href="{{ route('properties.index') }}">{{ __('Browse homes') }} <x-icon name="arrow-right" class="size-3.5" /></a>
             </div>
-        </div>
+        </aside>
     </div>
 @endsection

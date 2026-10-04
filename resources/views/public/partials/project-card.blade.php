@@ -7,67 +7,47 @@
         ? 'BDT '.$compactStart
         : ($starting ? \App\Support\MoneyFormatter::formatBdt($starting) : null);
     $url = route('projects.show', $project->slug);
+    $feature = $feature ?? false;
     $stage = match ($project->development_stage) {
         'completed' => __('Completed'),
         'ongoing' => __('Under Construction'),
         'upcoming' => __('Upcoming'),
         default => $project->development_stage,
     };
+    $place = collect([$project->locationArea?->name, $project->city])->filter()->implode(', ');
+    $summary = \Illuminate\Support\Str::limit(trim(strip_tags((string) $project->description)), $feature ? 220 : 120);
+    $facts = array_values(array_filter([
+        $startingLabel ? __('From :price', ['price' => $startingLabel]) : null,
+        $unitCount ? trans_choice(':count home listed|:count homes listed', $unitCount, ['count' => $unitCount]) : null,
+    ]));
 @endphp
 
-<article class="uh-home-tile">
-    <a href="{{ $url }}" class="uh-home-tile-photo" tabindex="-1" aria-hidden="true">
+<article @class(['uh-project', 'is-feature' => $feature])>
+    <div class="uh-project-frame">
         @if($image)
-            <img src="{{ $image->url(768) }}"
-                 srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
-                 sizes="(min-width: 768px) 380px, 100vw"
+            <img src="{{ $image->url($feature ? 1920 : 768) }}"
+                 srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w, {{ $image->url(1920) }} 1920w"
+                 sizes="{{ $feature ? '(min-width: 1280px) 1200px, 100vw' : '(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw' }}"
                  alt="" loading="lazy" decoding="async">
+        @else
+            <span class="uh-media-placeholder">{{ $project->name }}</span>
         @endif
-        <span class="absolute left-3 top-3">
-            @php
-                $stageBadge = match ($project->development_stage) {
-                    'completed' => ['tone' => 'success', 'label' => __('Completed')],
-                    'ongoing' => ['tone' => 'warn', 'label' => __('Under Construction')],
-                    'upcoming' => ['tone' => 'info', 'label' => __('Upcoming')],
-                    default => null,
-                };
-            @endphp
-            @if($stageBadge)
-                <x-ui.badge :tone="$stageBadge['tone']">{{ $stageBadge['label'] }}</x-ui.badge>
-            @else
-                <x-ui.status :status="$project->development_stage" />
-            @endif
+    </div>
+
+    <div class="uh-project-body">
+        <p class="uh-project-meta">{{ $stage }}@if($place) · {{ $place }}@endif</p>
+        <h3 class="uh-project-name">
+            <a href="{{ $url }}">{{ $project->name }}</a>
+        </h3>
+        @if($summary !== '')
+            <p class="uh-project-summary">{{ $summary }}</p>
+        @endif
+        @if($facts)
+            <p class="uh-project-facts uh-numeric">{{ implode(' · ', $facts) }}</p>
+        @endif
+        <span class="uh-arrow-link uh-project-cta" aria-hidden="true">
+            {{ __('Explore the project') }}
+            <x-icon name="arrow-right" class="size-3.5" />
         </span>
-    </a>
-
-    <p class="uh-home-kicker mt-4">{{ $stage }}</p>
-    <h3 class="mt-1 text-lg font-semibold tracking-tight">
-        <a class="uh-home-link" href="{{ $url }}">{{ $project->name }}</a>
-    </h3>
-    <p class="mt-1 text-sm text-[var(--color-muted)]">
-        {{ $project->locationArea?->name }}@if($project->city), {{ $project->city }}@endif
-    </p>
-    @if($startingLabel)
-        <p class="mt-3 text-base font-semibold tracking-tight">{{ __('From :price', ['price' => $startingLabel]) }}</p>
-    @endif
-
-    @if($unitCount !== null)
-        <p class="mt-2 text-sm text-[var(--color-muted)]">
-            <span class="uh-numeric">{{ $unitCount }}</span>
-            {{ $unitCount === 1 ? __('property listed') : __('properties listed') }}
-        </p>
-    @elseif($project->developer_name)
-        <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $project->developer_name }}</p>
-    @endif
-
-    @include('public.partials.card-actions', [
-        'url' => $url,
-        'title' => $project->name,
-        'whatsapp' => $project->whatsappEnquiryUrl(),
-        'trackProjectId' => $project->id,
-        'trackLocation' => 'project_card',
-        'detailsLabel' => __('View Project'),
-        'detailsClass' => 'uh-home-link text-sm',
-        'dividerClass' => 'border-black/8',
-    ])
+    </div>
 </article>

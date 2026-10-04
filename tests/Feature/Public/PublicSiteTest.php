@@ -57,6 +57,21 @@ class PublicSiteTest extends TestCase
         $this->assertLessThan(strpos($html, 'First saved'), strpos($html, 'Second saved'));
     }
 
+    public function test_compare_view_spells_out_trade_offs_between_listings(): void
+    {
+        $smaller = $this->makeProperty(['title' => 'Smaller home', 'price' => 25_500_000, 'area_value' => 1650, 'bedrooms' => 3], published: true);
+        $larger = $this->makeProperty(['title' => 'Larger home', 'price' => 28_500_000, 'area_value' => 1850, 'bedrooms' => 3], published: true);
+
+        $html = $this->getJson(route('saved.cards', ['ids' => "{$smaller->id},{$larger->id}", 'view' => 'compare']))
+            ->assertOk()
+            ->json('html');
+
+        $this->assertStringContainsString('What changes if you choose another', $html);
+        $this->assertStringContainsString('200 sq ft more space for BDT 30 lakh more', $html);
+        $this->assertStringContainsString('Price per sq ft', $html);
+        $this->assertStringContainsString('Best value', $html);
+    }
+
     public function test_saved_cards_endpoint_validates_input(): void
     {
         $this->getJson(route('saved.cards', ['ids' => 'abc', 'view' => 'card']))->assertUnprocessable();

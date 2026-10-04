@@ -3,29 +3,29 @@
 @section('title', __('Page not found'))
 
 @section('content')
-    <main id="main" class="uh-container-narrow flex flex-1 flex-col justify-center py-16 md:py-24">
-        <p class="uh-eyebrow">404</p>
-        <h1 class="uh-h1 mt-3">{{ __('We could not find that page') }}</h1>
-        <p class="uh-lede mt-4">
+    <main id="main" class="uh-container-narrow uh-confirm flex flex-1 flex-col justify-center">
+        <p class="uh-error-code" aria-hidden="true">404</p>
+        <h1 class="uh-h1">{{ __('We could not find that page') }}</h1>
+        <p class="uh-lede">
             {{ __('The link may be out of date, or the home you were looking for is no longer published. These pages will help you pick up where you left off.') }}
         </p>
 
-        <div class="mt-8 grid gap-3 sm:grid-cols-3">
-            <a class="uh-card uh-card-hover p-5" href="{{ url('/') }}">
-                <x-icon name="home" class="size-5 text-[var(--color-gold-ink)]" />
-                <p class="mt-3 font-semibold">{{ __('Home page') }}</p>
-                <p class="mt-1 text-sm text-[var(--color-muted)]">{{ __('Start again from the beginning.') }}</p>
-            </a>
-            <a class="uh-card uh-card-hover p-5" href="{{ route('properties.index') }}">
-                <x-icon name="search" class="size-5 text-[var(--color-gold-ink)]" />
-                <p class="mt-3 font-semibold">{{ __('Browse homes') }}</p>
-                <p class="mt-1 text-sm text-[var(--color-muted)]">{{ __('Search everything we have available.') }}</p>
-            </a>
-            <a class="uh-card uh-card-hover p-5" href="{{ route('projects.index') }}">
-                <x-icon name="building" class="size-5 text-[var(--color-gold-ink)]" />
-                <p class="mt-3 font-semibold">{{ __('Our projects') }}</p>
-                <p class="mt-1 text-sm text-[var(--color-muted)]">{{ __('See the developments we have built.') }}</p>
-            </a>
-        </div>
+        <ul class="uh-error-links">
+            @foreach([
+                ['url' => url('/'), 'title' => __('Home page'), 'body' => __('Start again from the beginning.')],
+                ['url' => route('properties.index'), 'title' => __('Browse homes'), 'body' => __('Search everything we have available.')],
+                ['url' => route('projects.index'), 'title' => __('Our projects'), 'body' => __('See the developments we have built.')],
+            ] as $link)
+                <li>
+                    <a href="{{ $link['url'] }}">
+                        <span>
+                            <span class="block font-medium">{{ $link['title'] }}</span>
+                            <span class="mt-0.5 block text-sm text-[var(--uh-muted)]">{{ $link['body'] }}</span>
+                        </span>
+                        <x-icon name="arrow-right" class="size-4 shrink-0" />
+                    </a>
+                </li>
+            @endforeach
+        </ul>
     </main>
 @endsection

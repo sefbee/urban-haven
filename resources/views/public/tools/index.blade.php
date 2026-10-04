@@ -10,13 +10,25 @@
         ],
     ])
 
-    <div class="uh-container grid gap-10 py-10 lg:grid-cols-2 lg:items-start">
-            <div id="valuation" class="scroll-mt-24">
-            <div class="uh-panel">
-                <h2 class="uh-h3">{{ __('Valuation Tool') }}</h2>
-                <p class="mt-1.5 text-sm text-[var(--color-muted)]">{{ __('Share the basics. A member of the sales desk will call with a guided figure — we do not publish automated valuations.') }}</p>
+    @php($whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp')))
 
-                <div class="mt-6">
+    <div class="uh-container uh-section-tight">
+        <div id="emi" class="uh-surface uh-tool-card scroll-mt-28">
+            @include('public.partials.emi-calculator', ['price' => 10000000, 'editable' => true, 'headingId' => 'tools-emi'])
+        </div>
+
+        <div class="uh-tool-split">
+            <div>
+                <h2 class="uh-h2">{{ __('Valuation Tool') }}</h2>
+                <p class="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-[var(--uh-muted)]">{{ __('Share the basics. A member of the sales desk will call with a guided figure — we do not publish automated valuations.') }}</p>
+                <ul class="uh-check-list mt-8">
+                    <li><x-icon name="check-circle" class="size-5" />{{ __('A real person from our sales desk calls you') }}</li>
+                    <li><x-icon name="check-circle" class="size-5" />{{ __('Based on recent Urban Haven sales and lettings') }}</li>
+                    <li><x-icon name="check-circle" class="size-5" />{{ __('No obligation to list with us') }}</li>
+                </ul>
+            </div>
+            <div id="valuation" class="uh-convert uh-surface scroll-mt-28">
+                <div class="uh-convert-body mt-0">
                     @include('public.partials.lead-form', [
                         'leadType' => 'general_contact',
                         'source' => 'valuation',
@@ -29,29 +41,18 @@
             </div>
         </div>
 
-        <div id="emi" class="scroll-mt-24">
-            @include('public.partials.emi-calculator', ['price' => 10000000, 'editable' => true, 'headingId' => 'tools-emi'])
-        </div>
-
-        @php($whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp')))
-        <div class="lg:col-span-2">
-            <div class="uh-panel">
-                <h2 class="uh-h3">{{ __('Contact Urban Haven Agent') }}</h2>
-                <p class="mt-1.5 max-w-2xl text-sm text-[var(--color-muted)]">
-                    {{ __('Every home on this site is Urban Haven inventory. Call, WhatsApp, or send a brief and the same desk will follow up.') }}
-                </p>
-                <div class="mt-6 flex flex-wrap gap-3">
-                    <a class="uh-btn-primary" href="{{ route('cms.show', 'contact') }}">
-                        {{ __('Contact us') }}
+        <aside class="uh-next">
+            <p class="uh-h3">{{ __('Contact Urban Haven Agent') }}</p>
+            <p>{{ __('Every home on this site is Urban Haven inventory. Call, WhatsApp, or send a brief and the same desk will follow up.') }}</p>
+            <div class="uh-next-links">
+                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                @if($whatsappHref)
+                    <a class="uh-btn-secondary uh-btn-sm" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="tools">
+                        <x-icon name="whatsapp" class="size-4" />
+                        {{ __('WhatsApp Us') }}
                     </a>
-                    @if($whatsappHref)
-                        <a class="uh-btn-whatsapp" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="tools">
-                            <x-icon name="whatsapp" class="size-4" />
-                            {{ __('WhatsApp Us') }}
-                        </a>
-                    @endif
-                </div>
+                @endif
             </div>
-        </div>
+        </aside>
     </div>
 @endsection

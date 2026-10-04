@@ -163,7 +163,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Property type')
             ->assertSee('Bedrooms')
             ->assertSee('Price range')
-            ->assertSee('Search Properties')
+            ->assertSee('Explore properties')
             ->assertSee('Listed directly by Urban Haven')
             ->assertSee('Book a site visit online')
             ->assertSee('Why Urban Haven?')
@@ -217,7 +217,7 @@ class PropertyDiscoveryTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSeeInOrder([
-                'Search Properties',
+                'Explore properties',
                 'Listed directly by Urban Haven',
                 'Explore by Property Type',
                 'Featured Properties',
@@ -229,11 +229,10 @@ class PropertyDiscoveryTest extends TestCase
                 'Explore Properties by Location',
                 'Why Urban Haven?',
                 'Not sure where to start?',
-                'Explore Urban Haven',
-                'Available Projects',
             ])
+            ->assertDontSee('Explore Urban Haven')
             ->assertSee('Apartment')
-            ->assertSee('View details')
+            ->assertSee('Explore this home')
             ->assertSee('aria-label="Call"', false)
             ->assertSee('aria-label="WhatsApp"', false)
             ->assertSee('aria-label="Share"', false)
@@ -410,7 +409,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSee('Homes for sale in Gulshan')
             ->assertSee('Quick view')
-            ->assertSee('View details')
+            ->assertSee('Explore this home')
             ->assertSee('aria-label="Call"', false)
             ->assertSee('aria-label="WhatsApp"', false)
             ->assertSee('aria-label="Share"', false)

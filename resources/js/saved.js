@@ -53,7 +53,13 @@ export const registerSavedStore = (Alpine) => {
                 return;
             } else {
                 this[list] = [...this[list], id];
-                this.notice = list === 'compare' ? 'Added to compare.' : 'Saved to your shortlist on this device.';
+                if (list === 'compare') {
+                    this.notice = this.compare.length === 1
+                        ? 'Added to compare. Add one more to see them side by side.'
+                        : `Added. ${this.compare.length} properties ready to compare.`;
+                } else {
+                    this.notice = 'Saved. It stays on this device — find it any time under Shortlist.';
+                }
                 window.uhTrack?.(list === 'compare' ? 'compare_add' : 'shortlist_add', { property_id: id });
             }
 
@@ -72,8 +78,14 @@ export const registerSavedStore = (Alpine) => {
          * Replace a list with the IDs the server confirmed are still published.
          */
         prune(list, validIds) {
-            this[list] = this[list].filter((id) => validIds.includes(id));
-            write(KEYS[list], this[list]);
+            const kept = this[list].filter((id) => validIds.includes(id));
+
+            if (kept.length === this[list].length) {
+                return;
+            }
+
+            this[list] = kept;
+            write(KEYS[list], kept);
         },
 
         clear(list) {

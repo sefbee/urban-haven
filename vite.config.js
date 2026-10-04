@@ -11,15 +11,24 @@ export default defineConfig({
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                    preload: [{ weight: 400 }, { weight: 500 }],
                 }),
                 bunny('Instrument Serif', {
                     weights: [400],
+                    styles: ['normal', 'italic'],
+                    preload: [{ weight: 400 }],
+                }),
+                bunny('JetBrains Mono', {
+                    weights: [400, 500],
+                    preload: false,
                 }),
                 bunny('Plus Jakarta Sans', {
                     weights: [400, 500, 600, 700],
+                    preload: false,
                 }),
                 bunny('Noto Sans Bengali', {
                     weights: [400, 500, 600],
+                    preload: false,
                 }),
             ],
         }),

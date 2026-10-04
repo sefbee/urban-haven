@@ -1,31 +1,32 @@
-<section class="uh-home-section">
+<section id="home-locations" class="uh-section scroll-mt-20" aria-labelledby="locations-title">
     <div class="uh-container">
-        <h2 class="uh-home-title">{{ __('Explore Properties by Location') }}</h2>
-        <p class="uh-home-lede">{{ __('Neighbourhoods where Urban Haven currently has properties listed.') }}</p>
+        <header class="uh-section-head" data-reveal>
+            <h2 id="locations-title" class="uh-h2">{{ __('Explore Properties by Location') }}</h2>
+            <p class="uh-lede">{{ __('Where would you like to wake up?') }}</p>
+            <a class="uh-arrow-link" href="{{ route('properties.index', ['view' => 'map']) }}">
+                {{ __('See them on the map') }}
+                <x-icon name="arrow-right" class="size-3.5" />
+            </a>
+        </header>
 
-        <div class="uh-home-spots">
+        <ul class="uh-places">
             @foreach($areas as $area)
-                @php
-                    $image = $area->coverSource?->featuredImage();
-                @endphp
-                <a href="{{ $area->hasLandingPage() ? route('locations.show', $area->slug) : route('properties.index', ['location_area_id' => $area->id]) }}"
-                   class="uh-home-spot">
-                    <span class="uh-home-spot-photo">
-                        @if($image)
-                            <img src="{{ $image->url(768) }}"
-                                 srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w"
-                                 sizes="(min-width: 1024px) 22rem, 100vw"
-                                 alt="" loading="lazy" decoding="async">
-                        @endif
-                    </span>
-                    <span class="uh-home-spot-title">{{ $area->name }}</span>
-                    <span class="uh-home-spot-meta">
-                        {{ $area->city }}
-                        <span aria-hidden="true"> · </span>
-                        {{ trans_choice(':count property|:count properties', $area->properties_count, ['count' => $area->properties_count]) }}
-                    </span>
-                </a>
+                <li data-reveal style="--uh-i: {{ $loop->index % 4 }}">
+                    <a href="{{ $area->hasLandingPage() ? route('locations.show', $area->slug) : route('properties.index', ['location_area_id' => $area->id]) }}"
+                       class="uh-place">
+                        <span class="uh-place-icon" aria-hidden="true">
+                            <x-icon name="pin" class="size-4" />
+                        </span>
+                        <span class="uh-place-copy">
+                            <span class="uh-place-name">{{ $area->name }}</span>
+                            <span class="uh-place-meta">
+                                @if($area->city){{ $area->city }} · @endif{{ trans_choice(':count listing|:count listings', $area->properties_count, ['count' => $area->properties_count]) }}
+                            </span>
+                        </span>
+                        <x-icon name="arrow-right" class="uh-place-arrow" />
+                    </a>
+                </li>
             @endforeach
-        </div>
+        </ul>
     </div>
 </section>

@@ -58,11 +58,14 @@
         'compass' => '<circle cx="12" cy="12" r="9"/><path d="m14.6 9.4-1.3 4.9-4.9 1.3 1.3-4.9 4.9-1.3Z"/>',
         'upload' => '<path d="M12 16V5"/><path d="m8 8 4-4 4 4"/><path d="M5 20h14"/>',
         'minus' => '<path d="M5 12h14"/>',
+        'car' => '<path d="M4 16v-4l2-5h12l2 5v4z"/><path d="M4 12h16"/><path d="M6.5 16v2.5"/><path d="M17.5 16v2.5"/><path d="M7.5 14h.01"/><path d="M16.5 14h.01"/>',
+        'sofa' => '<path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v4H3z"/><path d="M5 17v2"/><path d="M19 17v2"/>',
+        'road' => '<path d="M7 21 10 3"/><path d="m17 21-3-18"/><path d="M12 7v2"/><path d="M12 13v2"/><path d="M12 19v2"/>',
         'locate' => '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><circle cx="12" cy="12" r="8"/>',
     ];
 @endphp
 
-<svg {{ $attributes->class($class) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+<svg {{ $attributes->class($class) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
     {!! $paths[$name] ?? $paths['info'] !!}
 </svg>

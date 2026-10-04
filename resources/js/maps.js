@@ -40,7 +40,7 @@ const showMessage = (element, message) => {
     if (!note) {
         note = document.createElement('p');
         note.dataset.uhMapMessage = 'true';
-        note.className = 'mt-2 text-xs text-[var(--color-muted)]';
+        note.className = 'uh-map-note';
         note.setAttribute('role', 'status');
         element.insertAdjacentElement('afterend', note);
     }
@@ -51,19 +51,163 @@ const popupFor = (point) => [
     `<strong>${escapeHtml(point.title)}</strong>`,
     point.price ? escapeHtml(point.price) : '',
     point.approximate ? '<em>Approximate location</em>' : '',
-    `<a href="${escapeHtml(safeUrl(point.url))}">View details</a>`,
+    `<a href="${escapeHtml(safeUrl(point.url))}">Explore this property</a>`,
 ].filter(Boolean).join('<br>');
+
+/**
+ * When the matching result card is on the page, the popup borrows its photograph and place so the
+ * pin opens as the same property the visitor has been looking at in the list.
+ */
+const identityFor = (point) => {
+    const card = document.querySelector(`.uh-listing[data-spotlight="${Number(point.id)}"]`);
+    const image = card?.querySelector('.uh-listing-frame img');
+    const source = image ? safeUrl(image.currentSrc || image.src) : '#';
+    const place = card?.querySelector('.uh-listing-place > span:first-child')?.textContent.trim();
+
+    if (!card) {
+        return popupFor(point);
+    }
+
+    return `<a class="uh-pin-card" href="${escapeHtml(safeUrl(point.url))}">${
+        source !== '#' ? `<img src="${escapeHtml(source)}" alt="">` : ''
+    }<span class="uh-pin-card-body">${
+        place ? `<span class="uh-pin-card-place">${escapeHtml(place)}</span>` : ''
+    }<strong class="uh-pin-card-title">${escapeHtml(point.title)}</strong>${
+        point.price ? `<span class="uh-pin-card-price">${escapeHtml(point.price)}</span>` : ''
+    }${point.approximate ? '<em>Approximate location</em>' : ''}<span class="uh-pin-card-cta">Explore this property &rarr;</span></span></a>`;
+};
+
+const MARK = '#1d1d1f';
+
+/**
+ * Short pin labels: "BDT 42,000,000" becomes "4.2 Cr", "BDT 85,000 /month" becomes "85K/mo".
+ */
+const pinLabel = (price) => {
+    const amount = Number(String(price ?? '').replace(/[^0-9.]/g, ''));
+
+    if (!amount) {
+        return '';
+    }
+
+    const trim = (value) => String(Number(value.toFixed(2)));
+    const rent = /month/i.test(price) ? '/mo' : '';
+
+    if (amount >= 10_000_000) {
+        return `${trim(amount / 10_000_000)} Cr${rent}`;
+    }
+
+    if (amount >= 100_000) {
+        return `${trim(amount / 100_000)} L${rent}`;
+    }
+
+    return amount >= 1000 ? `${trim(amount / 1000)}K${rent}` : `${amount}${rent}`;
+};
+
+const pinFor = (L, point, stacked) => {
+    const label = pinLabel(point.price);
+
+    if (!label) {
+        return L.divIcon({ className: 'uh-pin-dot', html: '<span></span>', iconSize: [16, 16] });
+    }
+
+    return L.divIcon({
+        className: 'uh-pin',
+        html: `<span>${escapeHtml(label)}</span>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 8 + stacked * 26],
+    });
+};
+
+/**
+ * Result cards carry data-spotlight="{id}" so a card and its pin can light each other up.
+ */
+const pinsById = new Map();
+
+const setCardSpotlight = (id, on) => {
+    document.querySelectorAll(`[data-spotlight="${Number(id)}"]`).forEach((card) => card.classList.toggle('is-spotlit', on));
+};
+
+const setPinSpotlight = (id, on) => {
+    (pinsById.get(Number(id)) || []).forEach((marker) => {
+        marker.getElement()?.classList.toggle('is-spotlit', on);
+        marker.setZIndexOffset(on ? 1000 : 0);
+    });
+};
+
+let selectedId = null;
+
+const setSelected = (id) => {
+    if (selectedId !== null) {
+        (pinsById.get(selectedId) || []).forEach((marker) => marker.getElement()?.classList.remove('is-selected'));
+        document.querySelectorAll(`[data-spotlight="${selectedId}"]`).forEach((card) => card.classList.remove('is-selected'));
+    }
+
+    selectedId = id === null ? null : Number(id);
+    if (selectedId === null) {
+        return;
+    }
+
+    (pinsById.get(selectedId) || []).forEach((marker) => marker.getElement()?.classList.add('is-selected'));
+    const card = document.querySelector(`.uh-listing[data-spotlight="${selectedId}"]`);
+    if (card && card.offsetParent !== null) {
+        card.classList.add('is-selected');
+        card.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    }
+};
+
+let spotlightBound = false;
+
+const bindSpotlight = () => {
+    if (spotlightBound) {
+        return;
+    }
+    spotlightBound = true;
+
+    const handler = (on) => (event) => {
+        const card = event.target.closest?.('[data-spotlight]');
+        if (!card || (event.relatedTarget instanceof Node && card.contains(event.relatedTarget))) {
+            return;
+        }
+        setPinSpotlight(card.dataset.spotlight, on);
+    };
+
+    document.addEventListener('mouseover', handler(true));
+    document.addEventListener('mouseout', handler(false));
+    document.addEventListener('focusin', handler(true));
+    document.addEventListener('focusout', handler(false));
+};
+
+const placeListing = (L, layer, point, seen) => {
+    const key = `${Number(point.lat).toFixed(4)},${Number(point.lng).toFixed(4)}`;
+    const stacked = seen.get(key) ?? 0;
+    seen.set(key, stacked + 1);
+
+    const marker = L.marker([point.lat, point.lng], { title: point.title, icon: pinFor(L, point, stacked), riseOnHover: true })
+        .bindPopup(() => identityFor(point), { className: 'uh-pin-popup', minWidth: 248, maxWidth: 248, offset: [0, -34 - stacked * 26] })
+        .addTo(layer);
+
+    if (point.id) {
+        pinsById.set(Number(point.id), [...(pinsById.get(Number(point.id)) || []), marker]);
+        marker.on('mouseover', () => setCardSpotlight(point.id, true));
+        marker.on('mouseout', () => setCardSpotlight(point.id, false));
+        marker.on('popupopen', () => setSelected(point.id));
+        marker.on('popupclose', () => {
+            if (selectedId === Number(point.id)) {
+                setSelected(null);
+            }
+        });
+    }
+};
 
 const plot = (L, map, element, payload) => {
     const layer = L.featureGroup().addTo(map);
+    const seen = new Map();
 
-    (payload.points || []).forEach((point) => {
-        L.marker([point.lat, point.lng], { title: point.title }).bindPopup(popupFor(point)).addTo(layer);
-    });
+    (payload.points || []).forEach((point) => placeListing(L, layer, point, seen));
 
     (payload.clusters || []).forEach((cluster) => {
         if (cluster.count === 1 && cluster.url) {
-            L.marker([cluster.lat, cluster.lng], { title: cluster.title }).bindPopup(popupFor(cluster)).addTo(layer);
+            placeListing(L, layer, cluster, seen);
             return;
         }
 
@@ -121,17 +265,17 @@ const boot = async (element) => {
     map.on('blur', () => map.scrollWheelZoom.disable());
 
     if (element.dataset.radius) {
-        L.circle([lat, lng], { radius: Number(element.dataset.radius), color: '#2f5a43', weight: 1, fillColor: '#2f5a43', fillOpacity: 0.12 }).addTo(map);
+        L.circle([lat, lng], { radius: Number(element.dataset.radius), color: MARK, weight: 1, opacity: 0.35, fillColor: MARK, fillOpacity: 0.05 }).addTo(map);
     }
 
     if (element.dataset.approximate === 'true') {
-        L.circle([lat, lng], { radius: 600, color: '#2f5a43', weight: 1, fillOpacity: 0.1 }).addTo(map);
-        showMessage(element, 'The pin shows the approximate area, not the exact building.');
+        L.circle([lat, lng], { radius: 600, color: MARK, weight: 1, opacity: 0.35, dashArray: '4 4', fillColor: MARK, fillOpacity: 0.04 }).addTo(map);
     } else if (element.dataset.pin === 'true') {
-        L.marker([lat, lng]).addTo(map);
+        L.marker([lat, lng], { icon: L.divIcon({ className: 'uh-pin-dot', html: '<span></span>', iconSize: [16, 16] }) }).addTo(map);
     }
 
     if (element.dataset.src) {
+        bindSpotlight();
         try {
             const response = await fetch(element.dataset.src, { headers: { Accept: 'application/json' } });
             if (!response.ok) {

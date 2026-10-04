@@ -17,87 +17,104 @@
         </div>
     @endif
 
-    <div class="uh-page-head">
+    <header class="uh-page-head">
         <div @class(['uh-container' => $hasForm, 'uh-container-narrow' => ! $hasForm])>
             <x-ui.breadcrumbs :items="[
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $page->title],
             ]" />
-            <h1 class="uh-home-title">{{ $page->title }}</h1>
+            <h1 class="uh-h1 uh-page-title">{{ $page->title }}</h1>
         </div>
-    </div>
+    </header>
 
     @if($hasForm)
-        <div class="uh-container uh-section-tight grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
+        <div class="uh-container uh-detail-grid">
             <div class="min-w-0">
-                <div class="uh-prose">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}</div>
+                <div class="uh-prose uh-prose-lead max-w-[64ch]">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}</div>
 
                 @if($template === 'contact' && (filled($phone) || filled($email) || $whatsappHref || filled($address)))
-                    <ul class="mt-8 grid gap-3 text-sm sm:grid-cols-2">
+                    <ul class="uh-contact-cards">
                         @if(filled($phone))
                             <li>
-                                <a class="uh-panel flex items-center gap-3" href="{{ \App\Support\PhoneNumber::telHref($phone) }}" data-track="phone_click" data-track-location="contact_page">
-                                    <x-icon name="phone" class="size-5 text-[var(--color-gold-ink)]" />
-                                    <span dir="ltr" class="uh-numeric font-semibold">{{ $phone }}</span>
+                                <a class="uh-contact-card" href="{{ \App\Support\PhoneNumber::telHref($phone) }}" data-track="phone_click" data-track-location="contact_page">
+                                    <span class="uh-contact-card-icon"><x-icon name="phone" class="size-5" /></span>
+                                    <span class="min-w-0">
+                                        <span class="uh-contact-card-label">{{ __('Phone') }}</span>
+                                        <span class="uh-contact-card-value uh-numeric" dir="ltr">{{ $phone }}</span>
+                                    </span>
                                 </a>
                             </li>
                         @endif
                         @if($whatsappHref)
                             <li>
-                                <a class="uh-panel flex items-center gap-3" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="contact_page">
-                                    <x-icon name="whatsapp" class="size-5 text-[var(--color-gold-ink)]" />
-                                    <span class="font-semibold">{{ __('WhatsApp') }}</span>
+                                <a class="uh-contact-card" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="contact_page">
+                                    <span class="uh-contact-card-icon"><x-icon name="whatsapp" class="size-5" /></span>
+                                    <span class="min-w-0">
+                                        <span class="uh-contact-card-label">{{ __('WhatsApp') }}</span>
+                                        <span class="uh-contact-card-value">{{ __('Message us') }}</span>
+                                    </span>
                                 </a>
                             </li>
                         @endif
                         @if(filled($email))
                             <li>
-                                <a class="uh-panel flex items-center gap-3 break-all" href="mailto:{{ $email }}">
-                                    <x-icon name="mail" class="size-5 text-[var(--color-gold-ink)]" />
-                                    <span class="font-semibold">{{ $email }}</span>
+                                <a class="uh-contact-card" href="mailto:{{ $email }}">
+                                    <span class="uh-contact-card-icon"><x-icon name="mail" class="size-5" /></span>
+                                    <span class="min-w-0">
+                                        <span class="uh-contact-card-label">{{ __('Email') }}</span>
+                                        <span class="uh-contact-card-value">{{ $email }}</span>
+                                    </span>
                                 </a>
                             </li>
                         @endif
                         @if(filled($address))
-                            <li class="uh-panel flex items-start gap-3">
-                                <x-icon name="pin" class="mt-0.5 size-5 shrink-0 text-[var(--color-gold-ink)]" />
-                                <span>
-                                    <span class="block font-semibold">{{ $address }}</span>
-                                    @if(filled($officeHours))
-                                        <span class="mt-1 block text-xs text-[var(--color-muted)]">{{ $officeHours }}</span>
-                                    @endif
-                                </span>
+                            <li>
+                                <div class="uh-contact-card">
+                                    <span class="uh-contact-card-icon"><x-icon name="pin" class="size-5" /></span>
+                                    <span class="min-w-0">
+                                        <span class="uh-contact-card-label">{{ __('Office') }}</span>
+                                        <span class="uh-contact-card-value">{{ $address }}</span>
+                                        @if(filled($officeHours))
+                                            <span class="uh-contact-card-note">{{ $officeHours }}</span>
+                                        @endif
+                                    </span>
+                                </div>
                             </li>
                         @endif
                     </ul>
                 @endif
             </div>
 
-            <aside class="uh-panel" aria-labelledby="page-form-heading">
-                <h2 id="page-form-heading" class="uh-h3">{{ $template === 'campaign' ? __('Register your interest') : __('Send us a message') }}</h2>
-                <p class="mt-1 text-sm text-[var(--color-muted)]">{{ __('Our sales team replies during office hours.') }}</p>
-                <div class="mt-5">
-                    @include('public.partials.lead-form', [
-                        'leadType' => $template === 'campaign' ? 'campaign' : 'general_contact',
-                        'source' => $template === 'campaign' ? 'campaign:'.$page->slug : 'contact_page',
-                        'prefix' => 'page',
-                        'messageLabel' => __('How can we help?'),
-                        'messagePlaceholder' => __('What are you looking for, budget, preferred area…'),
-                    ])
+            <aside class="min-w-0 min-[1100px]:sticky min-[1100px]:top-[calc(var(--uh-bar-h)+1.5rem)]" aria-labelledby="page-form-heading">
+                <div class="uh-convert uh-surface">
+                    <h2 id="page-form-heading" class="uh-convert-title">{{ $template === 'campaign' ? __('Register your interest') : __('Send us a message') }}</h2>
+                    <p class="uh-convert-who">{{ __('Our sales team replies during office hours.') }}</p>
+                    <div class="uh-convert-body">
+                        @include('public.partials.lead-form', [
+                            'leadType' => $template === 'campaign' ? 'campaign' : 'general_contact',
+                            'source' => $template === 'campaign' ? 'campaign:'.$page->slug : 'contact_page',
+                            'prefix' => 'page',
+                            'messageLabel' => __('How can we help?'),
+                            'messagePlaceholder' => __('What are you looking for, budget, preferred area…'),
+                        ])
+                    </div>
                 </div>
             </aside>
         </div>
     @else
         <div class="uh-container-narrow uh-section-tight">
-            <div class="uh-prose">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}</div>
+            <div class="uh-prose uh-prose-lead">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}</div>
 
-            <div class="mt-12 border-t border-line pt-7">
-                <p class="uh-eyebrow">{{ __('Next step') }}</p>
-                <div class="mt-3 flex flex-wrap gap-3">
-                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Search properties') }}</a>
-                    <a class="uh-btn-outline uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+            <aside class="uh-next">
+                <p class="uh-h3">{{ __('Ready for the next step?') }}</p>
+                <p>{{ __('Browse the homes we have available, or ask our team anything.') }}</p>
+                <div class="uh-next-links">
+                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
+                    @if($page->slug !== 'contact')
+                        <a class="uh-arrow-link" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }} <x-icon name="arrow-right" class="size-3.5" /></a>
+                    @endif
                 </div>
-            </div>
+            </aside>
         </div>
     @endif
 @endsection

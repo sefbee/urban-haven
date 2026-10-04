@@ -12,19 +12,50 @@
     $timezone = config('urbanhaven.display_timezone');
     $minVisit = now($timezone)->addHours(2)->startOfHour()->format('Y-m-d\TH:i');
     $maxVisit = now($timezone)->addDays((int) config('urbanhaven.lead.visit_window_days', 90))->format('Y-m-d\TH:i');
+    $showNextSteps = $showNextSteps ?? true;
+    $officeHours = \App\Models\Setting::get('office_hours');
+    $nextSteps = $isVisit
+        ? array_values(array_filter([
+            __('We call you to confirm the time before you travel.'),
+            ($addressOnBooking ?? false) ? __('The exact address is shared when you book a visit.') : null,
+        ]))
+        : array_values(array_filter([
+            __('Our sales team reads your message.'),
+            __('We reply by the method you choose above.'),
+            $officeHours ? __('Office hours: :hours', ['hours' => $officeHours]) : null,
+        ]));
+    $intents = $showMessage && ! $isVisit ? ($intents ?? []) : [];
+    $visitSlots = [];
+    if ($isVisit) {
+        $earliest = \Illuminate\Support\Carbon::parse($minVisit, $timezone);
+        $tomorrow = now($timezone)->addDay()->startOfDay();
+        $candidates = [
+            $tomorrow->copy()->setTime(11, 0),
+            $tomorrow->copy()->setTime(16, 0),
+            $tomorrow->copy()->next(\Carbon\CarbonInterface::FRIDAY)->setTime(11, 0),
+            $tomorrow->copy()->next(\Carbon\CarbonInterface::SATURDAY)->setTime(16, 0),
+        ];
+        foreach ($candidates as $slot) {
+            if ($slot->gte($earliest) && ! array_key_exists($slot->format('Y-m-d\TH:i'), $visitSlots)) {
+                $visitSlots[$slot->format('Y-m-d\TH:i')] = $slot->isSameDay($tomorrow)
+                    ? __('Tomorrow, :time', ['time' => $slot->format('g a')])
+                    : $slot->translatedFormat('D j M').', '.$slot->format('g a');
+            }
+        }
+    }
     $fieldError = fn (string $field) => "<p class=\"uh-error\" x-cloak x-show=\"fieldError('{$field}')\"><span x-text=\"fieldError('{$field}')\"></span></p>";
 @endphp
 
 <div x-data="uhLeadForm(@js($isVisit ? 'visit_request' : ($leadType ?? 'inquiry')))">
-    <div x-cloak x-show="done" class="uh-alert uh-alert-success" role="status" tabindex="-1" x-effect="done && $nextTick(() => $el.focus())">
-        <x-icon name="check-circle" class="mt-0.5 size-4 shrink-0" />
-        <div>
-            <p class="font-semibold">{{ $isVisit ? __('Visit request received') : __('Enquiry received') }}</p>
-            <p class="mt-1" x-text="message"></p>
-        </div>
+    <div x-cloak x-show="done" x-transition.opacity.duration.300ms class="uh-form-success" role="status" tabindex="-1" x-effect="done && $nextTick(() => $el.focus())">
+        <p class="uh-h4">{{ $isVisit ? __('Visit request received') : __('Enquiry received') }}</p>
+        <p class="text-sm leading-relaxed" x-text="message"></p>
+        @if($isVisit)
+            <p class="text-sm text-[var(--uh-muted)]">{{ __('Dhaka time. We will call to confirm before you travel.') }}</p>
+        @endif
     </div>
 
-    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" class="space-y-4" novalidate
+    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" class="uh-lead-form" novalidate
           x-show="!done" @submit="submit($event)" @focusin.once="start()">
         @csrf
         <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
@@ -70,7 +101,16 @@
         </div>
 
         @if($isVisit)
-            <div>
+            <div @input="if ($event.target.name === 'preferred_at') slot = $event.target.value">
+                @if($visitSlots)
+                    <div class="uh-intents" role="group" aria-label="{{ __('Suggested times') }}">
+                        <p class="uh-intents-label">{{ __('Suggested times') }}</p>
+                        @foreach($visitSlots as $value => $label)
+                            <button type="button" class="uh-intent" :aria-pressed="(slot === @js($value)).toString()" aria-pressed="false"
+                                    @click="useSlot(@js($value))">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                @endif
                 <x-ui.input name="preferred_at" id="{{ $prefix }}-at" type="datetime-local" :label="__('Preferred date and time')"
                             min="{{ $minVisit }}" max="{{ $maxVisit }}" step="900" required
                             :hint="__('Dhaka time. We will call to confirm before you travel.')" />
@@ -88,6 +128,15 @@
             </x-ui.select>
             @if($showMessage)
                 <div>
+                    @if($intents)
+                        <div class="uh-intents" role="group" aria-label="{{ __('What would you like to know?') }}">
+                            <p class="uh-intents-label">{{ __('What would you like to know?') }}</p>
+                            @foreach($intents as $label => $text)
+                                <button type="button" class="uh-intent" :aria-pressed="(intent === @js($text)).toString()" aria-pressed="false"
+                                        @click="useIntent(@js($text))">{{ $label }}</button>
+                            @endforeach
+                        </div>
+                    @endif
                     <x-ui.textarea name="message" id="{{ $prefix }}-message" :label="$messageLabel" rows="3" maxlength="2000" optional
                                    :placeholder="$messagePlaceholder" />
                     {!! $fieldError('message') !!}
@@ -98,7 +147,7 @@
         <div>
             <label class="uh-check items-start">
                 <input type="checkbox" name="consent_given" value="1" required @checked(old('consent_given'))>
-                <span class="text-xs leading-relaxed text-[var(--color-muted)]">{{ $consentText }}</span>
+                <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ $consentText }}</span>
             </label>
             @error('consent_given')
                 <p class="uh-error"><span>{{ $message }}</span></p>
@@ -111,5 +160,9 @@
             <span class="uh-spinner" x-show="submitting" x-cloak></span>
             <span x-text="submitting ? @js(__('Sending…')) : @js($submitLabel)">{{ $submitLabel }}</span>
         </button>
+
+        @if($showNextSteps)
+            <p class="uh-next-steps">{{ implode(' ', $nextSteps) }}</p>
+        @endif
     </form>
 </div>

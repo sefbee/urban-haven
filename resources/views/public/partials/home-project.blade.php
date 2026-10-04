@@ -50,7 +50,7 @@
             'whatsapp' => $project->whatsappEnquiryUrl(),
             'trackProjectId' => $project->id,
             'trackLocation' => 'project_card',
-            'detailsLabel' => __('View Project'),
+            'detailsLabel' => __('Explore the project'),
             'detailsClass' => 'uh-home-link text-sm',
             'dividerClass' => 'border-black/8',
         ])

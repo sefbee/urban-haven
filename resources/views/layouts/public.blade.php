@@ -17,6 +17,7 @@
     $consent = request()->cookie($consentCookie);
     $privacyUrl = \App\Models\CmsPage::query()->where('slug', 'privacy')->published()->exists() ? route('cms.show', 'privacy') : null;
     $isHome = request()->routeIs('home');
+    $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
 
     $headerMenu = \App\Models\MenuItem::forLocation('header');
     $navLinks = $headerMenu->isNotEmpty()
@@ -46,7 +47,7 @@
 <html lang="{{ str_replace('_', '-', $locale) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#ffffff">
         <title>{{ ($seo['title'] ?? config('app.name')) === config('app.name') ? config('app.name') : ($seo['title'].' — '.config('app.name')) }}</title>
@@ -65,19 +66,20 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('head')
     </head>
-    <body @class(['uh-home min-h-screen antialiased text-[#1d1d1f]', 'uh-is-home' => $isHome])>
+    <body @class(['uh-home min-h-screen antialiased', 'uh-is-home' => $isHome, 'uh-has-overlay' => $overlayHeader])>
         <a class="uh-skip" href="#main">{{ __('Skip to content') }}</a>
 
-        <header class="uh-site-bar uh-site-bar-home sticky top-0 z-50"
-                x-data="{ open: false, lang: false, sky: {{ $isHome ? 'true' : 'false' }} }"
-                @keydown.escape.window="open = false; lang = false"
-                @if($isHome) @scroll.window.passive="sky = window.scrollY < 72" :class="sky && !open ? 'is-over-sky' : ''" @endif>
-            <div class="uh-container flex h-12 items-center justify-between gap-4">
-                <a href="{{ route('home') }}" class="flex shrink-0 items-center">
+        <header @class(['uh-site-bar', 'is-overlay' => $overlayHeader])
+                x-data="uhSiteBar(@js($overlayHeader))"
+                @uh-menu.window="open = $event.detail"
+                @keydown.escape.window="lang = false"
+                :class="{ 'is-overlay': !solid }">
+            <div class="uh-container uh-bar-row">
+                <a href="{{ route('home') }}" class="uh-brand" @if($isHome) aria-current="page" @endif>
                     <span class="uh-wordmark">Urban Haven</span>
                 </a>
 
-                <nav class="hidden items-center gap-0.5 lg:flex" aria-label="{{ __('Main navigation') }}">
+                <nav class="uh-nav" aria-label="{{ __('Main navigation') }}">
                     @foreach($navLinks as $link)
                         <a href="{{ $link['url'] }}"
                            @if($link['external']) rel="noopener" target="_blank" @endif
@@ -86,36 +88,24 @@
                     @endforeach
                 </nav>
 
-                <div class="flex items-center gap-1 sm:gap-2">
-                    @if(filled($contactPhone))
-                        <a class="uh-bar-quiet hidden items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold sm:inline-flex"
-                           href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="header">
-                            <x-icon name="phone" class="size-3.5" />
-                            <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
-                        </a>
-                    @endif
-
+                <div class="uh-bar-actions">
                     <div class="relative hidden sm:block" @click.outside="lang = false">
-                        <button type="button"
-                                class="uh-bar-quiet inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 text-xs font-semibold"
+                        <button type="button" class="uh-bar-quiet"
                                 @click="lang = !lang" :aria-expanded="lang.toString()" aria-haspopup="listbox"
                                 aria-controls="locale-menu">
-                            {{ $locale === 'bn' ? 'বাংলা' : 'ENG' }}
-                            <x-icon name="chevron-down" class="size-3.5" />
+                            {{ $locale === 'bn' ? 'বাংলা' : 'EN' }}
                         </button>
-                        <div id="locale-menu" x-cloak x-bind:class="lang ? 'block' : 'hidden'"
-                             class="absolute right-0 z-20 mt-2 w-36 overflow-hidden rounded-xl bg-white p-1 ring-1 ring-black/8"
+                        <div id="locale-menu" x-cloak x-bind:class="lang ? 'block' : 'hidden'" class="uh-lang-menu"
                              role="listbox" aria-label="{{ __('Language') }}">
-                            @foreach(['en' => 'ENG', 'bn' => 'বাংলা'] as $code => $label)
+                            @foreach(['en' => 'English', 'bn' => 'বাংলা'] as $code => $label)
                                 <form method="POST" action="{{ route('locale.switch') }}">
                                     @csrf
                                     <input type="hidden" name="locale" value="{{ $code }}">
-                                    <button type="submit" lang="{{ $code }}" role="option"
-                                            @class([
-                                                'flex min-h-9 w-full items-center rounded-lg px-3 text-left text-xs font-semibold text-[#1d1d1f]/70 hover:bg-black/4',
-                                                'bg-black/5 text-[#1d1d1f]' => $locale === $code,
-                                            ])>
+                                    <button type="submit" lang="{{ $code }}" role="option" aria-selected="{{ $locale === $code ? 'true' : 'false' }}">
                                         {{ $label }}
+                                        @if($locale === $code)
+                                            <x-icon name="check" class="size-3.5" />
+                                        @endif
                                     </button>
                                 </form>
                             @endforeach
@@ -123,157 +113,192 @@
                     </div>
 
                     <a href="{{ route('shortlist') }}" x-data
-                       class="uh-bar-quiet relative inline-flex size-10 items-center justify-center rounded-full transition hover:bg-black/5"
+                       class="uh-bar-quiet uh-bar-shortlist"
                        :aria-label="'{{ __('Shortlist') }} (' + $store.saved.shortlist.length + ')'" aria-label="{{ __('Shortlist') }}">
-                        <x-icon name="heart" class="size-4" />
-                        <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length"
-                              class="absolute -right-0.5 -top-0.5 inline-flex size-4 items-center justify-center rounded-full bg-[#1d1d1f] text-[0.625rem] font-bold text-white"></span>
+                        <x-icon name="heart" class="size-[1.125rem]" />
+                        <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-bar-count"></span>
                     </a>
 
-                    <button type="button"
-                            class="uh-bar-quiet inline-flex size-10 items-center justify-center rounded-full hover:bg-black/5 lg:hidden"
-                            @click="open = !open" :aria-expanded="open.toString()" aria-controls="mobile-nav">
+                    <button type="button" class="uh-bar-quiet min-[1100px]:hidden"
+                            @click="open = true; $dispatch('uh-menu', true)" :aria-expanded="open.toString()" aria-controls="mobile-nav">
                         <span class="sr-only">{{ __('Menu') }}</span>
-                        <x-icon name="menu" class="size-5" x-show="!open" />
-                        <x-icon name="close" class="size-5" x-show="open" x-cloak />
+                        <x-icon name="menu" class="size-5" />
                     </button>
                 </div>
             </div>
+        </header>
 
-            <div id="mobile-nav" x-cloak x-bind:class="open ? 'block' : 'hidden'"
-                 class="border-t border-black/8 bg-white lg:hidden">
-                <nav class="uh-container flex flex-col py-3" aria-label="{{ __('Mobile navigation') }}">
+        <div id="mobile-nav" class="uh-menu min-[1100px]:hidden" x-cloak
+             x-data="{ open: false }"
+             x-show="open"
+             x-transition.opacity.duration.250ms
+             @uh-menu.window="open = $event.detail; $nextTick(() => open && $refs.close.focus())"
+             @keydown.escape.window="if (open) { open = false; $dispatch('uh-menu', false) }"
+             x-effect="document.documentElement.style.overflow = open ? 'hidden' : ''"
+             role="dialog" aria-modal="true" aria-label="{{ __('Mobile navigation') }}">
+            <div class="uh-container flex flex-1 flex-col pb-8">
+                <div class="uh-menu-head">
+                    <a href="{{ route('home') }}" class="uh-brand">
+                        <span class="uh-wordmark">Urban Haven</span>
+                    </a>
+                    <button type="button" x-ref="close" class="uh-bar-quiet" @click="open = false; $dispatch('uh-menu', false)">
+                        <span class="sr-only">{{ __('Close menu') }}</span>
+                        <x-icon name="close" class="size-5" />
+                    </button>
+                </div>
+
+                <nav class="uh-menu-list" aria-label="{{ __('Mobile navigation') }}">
                     @foreach($navLinks as $link)
-                        <a href="{{ $link['url'] }}"
-                           class="flex min-h-12 items-center rounded-lg px-3 text-[0.9375rem] font-medium text-[#1d1d1f]/80 hover:bg-black/4"
+                        <a href="{{ $link['url'] }}" @if($link['external']) rel="noopener" target="_blank" @endif
                            @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
                     @endforeach
-                    <a href="{{ route('shortlist') }}" class="flex min-h-12 items-center justify-between rounded-lg px-3 text-[0.9375rem] font-medium text-[#1d1d1f]/80 hover:bg-black/4" x-data>
+                    <a href="{{ route('shortlist') }}" x-data>
                         {{ __('Shortlist') }}
-                        <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length"
-                              class="inline-flex size-5 items-center justify-center rounded-full bg-[#1d1d1f] text-[0.6875rem] font-bold text-white"></span>
+                        <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-menu-count"></span>
                     </a>
+                </nav>
+
+                <div class="uh-menu-foot">
                     @if(filled($contactPhone))
-                        <a href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="mobile_menu"
-                           class="flex min-h-12 items-center gap-2 rounded-lg px-3 text-[0.9375rem] font-medium text-[#1d1d1f]/80 hover:bg-black/4">
-                            <x-icon name="phone" class="size-4" />
-                            <span dir="ltr">{{ $contactPhone }}</span>
+                        <a href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="mobile_menu">
+                            <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
                         </a>
                     @endif
-                    <div class="flex items-center gap-2 px-3 py-2">
-                        @foreach(['en' => 'ENG', 'bn' => 'বাংলা'] as $code => $label)
+                    <div class="flex items-center gap-1">
+                        @foreach(['en' => 'EN', 'bn' => 'বাংলা'] as $code => $label)
                             <form method="POST" action="{{ route('locale.switch') }}">
                                 @csrf
                                 <input type="hidden" name="locale" value="{{ $code }}">
-                                <button type="submit" lang="{{ $code }}" @class([
-                                    'inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold text-[#1d1d1f]/60 hover:text-[#1d1d1f]',
-                                    'bg-black/5 text-[#1d1d1f]' => $locale === $code,
-                                ])>{{ $label }}</button>
+                                <button type="submit" lang="{{ $code }}" @class(['uh-menu-lang', 'is-active' => $locale === $code])
+                                        @if($locale === $code) aria-current="true" @endif>{{ $label }}</button>
                             </form>
                         @endforeach
                     </div>
-                </nav>
+                </div>
             </div>
-        </header>
+        </div>
 
         <main id="main">
             @if(session('status') || $errors->any())
-                <div class="uh-container pt-6">
+                <div @class(['uh-container pt-6', 'relative z-10 pt-24' => $overlayHeader])>
                     <x-ui.flash />
                 </div>
             @endif
             @yield('content')
         </main>
 
-        <footer @class(['bg-hero text-white' => ! $isHome, 'uh-home-foot' => $isHome])>
-            <div @class(['uh-container grid gap-10 py-14 md:grid-cols-12', 'hidden' => $isHome])>
-                <div class="md:col-span-5">
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-white">{{ $companyName }}</p>
-                    @if(filled($contactAddress))
-                        <p class="mt-3 text-sm text-white/70">{{ $contactAddress }}</p>
-                    @endif
-                    <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
+        <footer class="uh-site-foot">
+            <div class="uh-container">
+                <div class="uh-foot-top">
+                    <a href="{{ route('home') }}" class="uh-brand">
+                        <span class="uh-wordmark">{{ $companyName }}</span>
+                    </a>
+                    <p class="uh-foot-line">
                         {{ __('Every listing on this site is published by our own team, not a marketplace of unknown sellers.') }}
                     </p>
-                    <div class="mt-6 flex flex-wrap gap-2">
-                        @if($whatsappHref)
-                            <a class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/20 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                               href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="footer">
-                                <x-icon name="whatsapp" class="size-4" />
-                                {{ __('WhatsApp Us') }}
-                            </a>
+                </div>
+
+                <div class="uh-foot-columns">
+                    <nav aria-label="{{ __('Explore') }}">
+                        <p class="uh-foot-heading">{{ __('Explore') }}</p>
+                        <ul class="uh-foot-list">
+                            @if(in_array('sale', $purposes, true))
+                                <li><a href="{{ route('properties.index', ['listing_type' => 'sale']) }}">{{ __('Properties for sale') }}</a></li>
+                            @endif
+                            @if(in_array('rent', $purposes, true))
+                                <li><a href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
+                            @endif
+                            <li><a href="{{ route('properties.index', ['view' => 'map']) }}">{{ __('Map') }}</a></li>
+                            <li><a href="{{ route('projects.index') }}">{{ __('Projects') }}</a></li>
+                            <li><a href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
+                            <li><a href="{{ route('compare') }}">{{ __('Compare') }}</a></li>
+                        </ul>
+                    </nav>
+
+                    <nav aria-label="{{ __('Company') }}">
+                        <p class="uh-foot-heading">{{ __('Company') }}</p>
+                        <ul class="uh-foot-list">
+                            @foreach($footerLinks as $link)
+                                <li><a href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
+                            @endforeach
+                        </ul>
+                    </nav>
+
+                    <div>
+                        <p class="uh-foot-heading">{{ __('Contact') }}</p>
+                        <ul class="uh-foot-list">
+                            @if(filled($contactPhone))
+                                <li>
+                                    <a href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="footer">
+                                        <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
+                                    </a>
+                                </li>
+                            @endif
+                            @if($whatsappHref)
+                                <li><a href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="footer">{{ __('WhatsApp') }}</a></li>
+                            @endif
+                            @if(filled($contactEmail))
+                                <li><a class="break-all" href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></li>
+                            @endif
+                            @if(filled($contactAddress))
+                                <li class="uh-foot-address">{{ $contactAddress }}</li>
+                            @endif
+                        </ul>
+                        @if($socialLinks)
+                            <ul class="uh-foot-social">
+                                @foreach($socialLinks as $social)
+                                    <li>
+                                        <a href="{{ $social }}" rel="noopener me" target="_blank">{{ \Illuminate\Support\Str::of(parse_url($social, PHP_URL_HOST))->replace('www.', '') }}</a>
+                                    </li>
+                                @endforeach
+                            </ul>
                         @endif
-                        @foreach($socialLinks as $social)
-                            <a class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/20 px-3 text-xs text-white/75 transition hover:bg-white/10"
-                               href="{{ $social }}" rel="noopener me" target="_blank">{{ \Illuminate\Support\Str::of(parse_url($social, PHP_URL_HOST))->replace('www.', '') }}</a>
-                        @endforeach
                     </div>
                 </div>
 
-                <nav class="md:col-span-3" aria-label="{{ __('Explore') }}">
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">{{ __('Explore') }}</p>
-                    <ul class="mt-4 space-y-1 text-sm">
-                        @if(in_array('sale', $purposes, true))
-                            <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ route('properties.index', ['listing_type' => 'sale']) }}">{{ __('Properties for sale') }}</a></li>
-                        @endif
-                        @if(in_array('rent', $purposes, true))
-                            <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
-                        @endif
-                        <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ route('projects.index') }}">{{ __('Projects') }}</a></li>
-                        <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
-                        <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ route('compare') }}">{{ __('Compare') }}</a></li>
-                    </ul>
-                </nav>
-
-                <nav class="md:col-span-4" aria-label="{{ __('Company') }}">
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">{{ __('Company') }}</p>
-                    <ul class="mt-4 space-y-1 text-sm">
-                        @foreach($footerLinks as $link)
-                            <li><a class="inline-flex min-h-9 items-center text-white/75 transition hover:text-white" href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
-                        @endforeach
-                        @if(filled($contactPhone))
-                            <li>
-                                <a class="inline-flex min-h-9 items-center gap-2 text-white/75 transition hover:text-white" href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="footer">
-                                    <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if(filled($contactEmail))
-                            <li>
-                                <a class="inline-flex min-h-9 items-center gap-2 break-all text-white/75 transition hover:text-white" href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a>
-                            </li>
-                        @endif
-                    </ul>
-                </nav>
-            </div>
-
-            <div class="border-t border-white/10">
-                <div class="uh-container flex flex-wrap items-center justify-between gap-3 py-5 text-xs text-white/45">
+                <div class="uh-foot-legal">
                     <p>© {{ date('Y') }} {{ $companyName }}</p>
-                    <div class="flex items-center gap-4">
-                        @if($hasAnalytics)
-                            <button type="button" class="transition hover:text-white" x-data @click="$dispatch('uh:consent-open')">{{ __('Cookie settings') }}</button>
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        @if($privacyUrl)
+                            <a href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
                         @endif
-                        <a class="transition hover:text-white" href="{{ route('admin.login') }}" rel="nofollow">{{ __('Staff sign in') }}</a>
+                        @if($hasAnalytics)
+                            <button type="button" x-data @click="$dispatch('uh:consent-open')">{{ __('Cookie settings') }}</button>
+                        @endif
+                        <a href="{{ route('admin.login') }}" rel="nofollow">{{ __('Staff sign in') }}</a>
                     </div>
                 </div>
             </div>
         </footer>
 
+        <div class="uh-float" x-data="{ show: false, timer: null }"
+             x-init="$watch('$store.saved.notice', (message) => { if (! message) return; show = true; clearTimeout(timer); timer = setTimeout(() => { show = false; $store.saved.notice = '' }, 3200) })">
+            <div class="uh-toast" x-show="show" x-cloak x-transition.opacity.duration.250ms role="status" aria-live="polite">
+                <span x-text="$store.saved.notice"></span>
+            </div>
+            @unless(request()->routeIs('compare'))
+                <a href="{{ route('compare') }}" class="uh-compare-tray" x-show="$store.saved.compare.length > 0" x-cloak x-transition.opacity.duration.250ms>
+                    <span x-text="$store.saved.compare.length === 1 ? @js(__('Pick one more to compare')) : @js(__('Compare :count properties')).replace(':count', $store.saved.compare.length)">{{ __('Compare') }}</span>
+                    <x-icon name="arrow-right" class="size-3.5 shrink-0" />
+                </a>
+            @endunless
+        </div>
+
         @if($hasAnalytics)
             <div x-data="uhConsent(@js($consent))" x-cloak x-show="open" @uh:consent-open.window="open = true"
-                 class="fixed inset-x-3 bottom-3 z-[90] mx-auto max-w-xl rounded-xl bg-white p-5 text-sm shadow-2xl ring-1 ring-line sm:inset-x-auto sm:right-4"
+                 x-transition.opacity.duration.250ms
+                 class="uh-dialog uh-consent"
                  role="dialog" aria-modal="false" aria-labelledby="consent-title">
-                <h2 id="consent-title" class="font-semibold text-ink">{{ __('Analytics cookies') }}</h2>
-                <p class="mt-1.5 text-[var(--color-muted)]">
+                <h2 id="consent-title" class="uh-h4">{{ __('Analytics cookies') }}</h2>
+                <p class="mt-2 text-sm leading-relaxed text-[var(--uh-muted)]">
                     {{ __('We would like to measure visits and enquiries to improve this site. Nothing is loaded until you agree.') }}
                     @if($privacyUrl)
-                        <a class="font-semibold text-emerald underline" href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
+                        <a class="uh-link" href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
                     @endif
                 </p>
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div class="mt-5 flex flex-wrap gap-2">
                     <button type="button" class="uh-btn-primary uh-btn-sm" @click="choose('granted')">{{ __('Allow analytics') }}</button>
-                    <button type="button" class="uh-btn-outline uh-btn-sm" @click="choose('denied')">{{ __('No thanks') }}</button>
+                    <button type="button" class="uh-btn-secondary uh-btn-sm" @click="choose('denied')">{{ __('No thanks') }}</button>
                 </div>
             </div>
         @endif

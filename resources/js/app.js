@@ -22,6 +22,41 @@ const escapeHtml = (value) =>
         .replaceAll("'", '&#039;');
 
 /**
+ * Public header. Transparent over a full-bleed cover, then a solid surface once the cover has
+ * scrolled away. It never hides, so navigation is always one glance away.
+ */
+Alpine.data('uhSiteBar', (overlay = false) => ({
+    open: false,
+    lang: false,
+    overlay,
+    solid: !overlay,
+    ticking: false,
+    init() {
+        this.update();
+        window.addEventListener('scroll', () => this.queue(), { passive: true });
+        window.addEventListener('resize', () => this.queue(), { passive: true });
+    },
+    queue() {
+        if (this.ticking) {
+            return;
+        }
+        this.ticking = true;
+        requestAnimationFrame(() => {
+            this.ticking = false;
+            this.update();
+        });
+    },
+    threshold() {
+        const cover = document.querySelector('[data-cover]');
+
+        return cover ? Math.max(24, cover.offsetHeight - this.$el.offsetHeight) : 24;
+    },
+    update() {
+        this.solid = !this.overlay || window.scrollY > this.threshold();
+    },
+}));
+
+/**
  * Image gallery with keyboard navigation and an optional lightbox.
  */
 Alpine.data('uhGallery', (count = 0) => ({
@@ -58,7 +93,8 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     filtersOpen: false,
     submitting: false,
     more: hasAdvanced,
-    showMap: window.matchMedia('(min-width: 1024px)').matches,
+    showMap: window.matchMedia('(min-width: 1024px)').matches
+        || new URLSearchParams(window.location.search).get('view') === 'map',
     layout: 'grid',
     preview: null,
     slide: 0,
@@ -174,156 +210,280 @@ Alpine.data('uhRail', () => ({
 }));
 
 /**
+ * Sticky in-page tabs that follow the section being read.
+ */
+Alpine.data('uhSectionTabs', () => ({
+    current: null,
+    sections: [],
+    ticking: false,
+    onScroll: null,
+    init() {
+        this.sections = [...this.$el.querySelectorAll('a[href^="#"]')]
+            .map((link) => document.getElementById(link.getAttribute('href').slice(1)))
+            .filter(Boolean);
+        this.current = this.sections[0]?.id ?? null;
+        this.onScroll = () => {
+            if (this.ticking) {
+                return;
+            }
+            this.ticking = true;
+            requestAnimationFrame(() => {
+                this.ticking = false;
+                this.update();
+            });
+        };
+        window.addEventListener('scroll', this.onScroll, { passive: true });
+        this.update();
+    },
+    destroy() {
+        window.removeEventListener('scroll', this.onScroll);
+    },
+    update() {
+        const line = window.innerHeight * 0.3;
+        const passed = this.sections.filter((section) =>
+            getComputedStyle(section).position !== 'sticky' && section.getBoundingClientRect().top <= line);
+        const next = passed.at(-1) ?? this.sections[0];
+
+        if (next && next.id !== this.current) {
+            this.current = next.id;
+            this.reveal();
+        }
+    },
+    reveal() {
+        this.$nextTick(() => {
+            const link = this.$el.querySelector(`a[href="#${this.current}"]`);
+            const strip = link?.parentElement;
+            if (link && strip && strip.scrollWidth > strip.clientWidth) {
+                strip.scrollTo({ left: link.offsetLeft - 16, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+            }
+        });
+    },
+}));
+
+/**
  * Homepage sale/rent section tabs.
  */
 Alpine.data('uhHomeTabs', (initial = 'sale') => ({
     tab: initial,
+}));
+
+/**
+ * Homepage featured carousel: one centred listing with its neighbours receding either side.
+ * Wraps in both directions; swipe, arrow keys and clicking a neighbour all move it.
+ */
+Alpine.data('uhShowcase', (count = 0) => ({
+    count,
+    active: 0,
+    dragging: false,
+    dragX: 0,
+    slot(index) {
+        if (this.count < 2) {
+            return 'active';
+        }
+
+        let offset = (index - this.active + this.count) % this.count;
+        if (offset > this.count / 2) {
+            offset -= this.count;
+        }
+
+        if (offset === 0) {
+            return 'active';
+        }
+        if (offset === 1) {
+            return 'next';
+        }
+        if (offset === -1) {
+            return 'prev';
+        }
+
+        return offset > 0 ? 'far-next' : 'far-prev';
+    },
+    go(index) {
+        this.active = (index + this.count) % this.count;
+    },
+    next() {
+        this.go(this.active + 1);
+    },
+    previous() {
+        this.go(this.active - 1);
+    },
+    dragStart(event) {
+        if (event.pointerType === 'mouse') {
+            return;
+        }
+        this.dragging = true;
+        this.dragX = event.clientX;
+    },
+    dragEnd(event) {
+        if (!this.dragging) {
+            return;
+        }
+        this.dragging = false;
+        const distance = event.clientX - this.dragX;
+        if (Math.abs(distance) > 40) {
+            distance < 0 ? this.next() : this.previous();
+        }
+    },
+}));
+
+/**
+ * Homepage search card. The location field suggests known areas as you type and falls back to a
+ * keyword search; the button says how many properties match before anyone submits.
+ */
+Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, areas = [], budgets = {} } = {}) => ({
+    purpose: initial,
+    query: '',
+    area: '',
+    type: '',
+    beds: '',
+    min: '',
+    max: '',
+    suggesting: false,
+    highlighted: -1,
+    submitting: false,
+    matches: null,
+    counting: false,
+    countTimer: null,
+    countRequest: 0,
     init() {
-        this.$watch('tab', () => {
-            this.$nextTick(() => {
-                this.$el.querySelectorAll('[data-uh-featured]').forEach((stage) => {
-                    stage.dispatchEvent(new CustomEvent('uh-featured-sync'));
-                });
+        ['purpose', 'area', 'type', 'beds', 'min', 'max'].forEach((key) => {
+            this.$watch(key, () => this.queueCount());
+        });
+        this.$watch('query', () => {
+            if (!this.area) {
+                this.queueCount();
+            }
+        });
+        window.addEventListener('pageshow', () => {
+            this.submitting = false;
+            this.$root.querySelectorAll('input[name], select[name]').forEach((field) => {
+                field.disabled = false;
             });
         });
     },
-}));
-
-/**
- * Featured listing slider: one active card in the center, with faded neighbors peeking.
- */
-Alpine.data('uhFeaturedSlider', (count = 1) => ({
-    index: 0,
-    count,
-    locking: false,
-    init() {
-        this.$nextTick(() => this.sync(true));
+    get refined() {
+        return this.query.trim() !== '' || this.type !== '' || this.beds !== '' || this.hasMin || this.hasMax;
     },
-    sync(instant = true) {
-        if (this.$el.offsetParent === null) {
-            return;
+    get buttonLabel() {
+        if (this.matches === null) {
+            return labels.idle;
+        }
+        if (this.matches === 0) {
+            return labels.none;
         }
 
-        this.reveal(instant);
+        return this.matches === 1 ? labels.one : labels.many.replace(':count', this.matches.toLocaleString());
     },
-    go(i) {
-        if (this.count < 1) {
-            return;
+    get suggestions() {
+        const needle = this.query.trim().toLowerCase();
+        if (this.area || needle === '') {
+            return [];
         }
 
-        this.index = (i + this.count) % this.count;
-        this.reveal();
+        return areas.filter((option) => option.label.toLowerCase().includes(needle)).slice(0, 6);
     },
-    next() {
-        this.go(this.index + 1);
+    typed() {
+        this.area = '';
+        this.suggesting = true;
+        this.highlighted = -1;
     },
-    previous() {
-        this.go(this.index - 1);
-    },
-    slideAt(index, clone = false) {
-        return [...(this.$refs.scroller?.children ?? [])].find((slide) => {
-            return Number(slide.dataset.index) === index && Boolean(slide.dataset.clone) === clone;
-        });
-    },
-    reveal(instant = false) {
-        const root = this.$refs.scroller;
-        const slide = this.slideAt(this.index);
-
-        if (! root || ! slide) {
+    move(step) {
+        const total = this.suggestions.length;
+        if (!total) {
             return;
         }
-
-        this.locking = true;
-        root.scrollLeft = Math.max(0, slide.offsetLeft - (root.clientWidth - slide.offsetWidth) / 2);
-        clearTimeout(this.unlockTimer);
-        this.unlockTimer = setTimeout(() => {
-            this.locking = false;
-        }, 60);
+        this.suggesting = true;
+        this.highlighted = (this.highlighted + step + total) % total;
     },
-    onScroll() {
-        const root = this.$refs.scroller;
-        if (! root || this.locking) {
+    pick(option) {
+        this.area = String(option.id);
+        this.query = option.label;
+        this.suggesting = false;
+        this.highlighted = -1;
+    },
+    pickHighlighted(event) {
+        const option = this.suggesting ? this.suggestions[this.highlighted] : null;
+        if (option) {
+            event.preventDefault();
+            this.pick(option);
+        }
+    },
+    get minBudgets() {
+        const options = budgets[this.purpose] ?? [];
+
+        return this.max === '' ? options : options.filter((option) => option.value < Number(this.max));
+    },
+    get maxBudgets() {
+        const options = budgets[this.purpose] ?? [];
+
+        return this.min === '' ? options : options.filter((option) => option.value > Number(this.min));
+    },
+    reset() {
+        this.query = '';
+        this.area = '';
+        this.type = '';
+        this.beds = '';
+        this.min = '';
+        this.max = '';
+        this.matches = null;
+    },
+    queueCount() {
+        if (!countUrl) {
             return;
         }
+        clearTimeout(this.countTimer);
+        this.countTimer = setTimeout(() => this.count(), 280);
+    },
+    async count() {
+        const params = new URLSearchParams({ listing_type: this.purpose });
+        if (this.area) {
+            params.set('location_area_id', this.area);
+        } else if (this.query.trim()) {
+            params.set('q', this.query.trim());
+        }
+        if (this.type) params.set('property_type_id', this.type);
+        if (this.beds) params.set('min_beds', this.beds);
+        if (this.hasMin) params.set('min_price', this.min);
+        if (this.hasMax) params.set('max_price', this.max);
 
-        const center = root.scrollLeft + root.clientWidth / 2;
-        let nearest = null;
-        let distance = Infinity;
-
-        [...root.children].forEach((slide) => {
-            const mid = slide.offsetLeft + slide.offsetWidth / 2;
-            const gap = Math.abs(mid - center);
-            if (gap < distance) {
-                distance = gap;
-                nearest = slide;
+        const request = ++this.countRequest;
+        this.counting = true;
+        try {
+            const response = await fetch(`${countUrl}?${params}`, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error(String(response.status));
             }
-        });
-
-        if (! nearest) {
-            return;
+            const payload = await response.json();
+            if (request === this.countRequest) {
+                this.matches = Number(payload.total ?? 0);
+            }
+        } catch {
+            if (request === this.countRequest) {
+                this.matches = null;
+            }
+        } finally {
+            if (request === this.countRequest) {
+                this.counting = false;
+            }
         }
-
-        this.index = Number(nearest.dataset.index);
-
-        if (nearest.dataset.clone) {
-            this.reveal(true);
-        }
-    },
-    onKey(event) {
-        if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            this.next();
-        } else if (event.key === 'ArrowLeft') {
-            event.preventDefault();
-            this.previous();
-        }
-    },
-}));
-
-/**
- * Homepage hero search: purpose toggle and a dual-thumb price range.
- */
-Alpine.data('uhHeroSearch', (initial = 'sale') => ({
-    purpose: initial,
-    min: '',
-    max: '',
-    submitting: false,
-    saleCeiling: 480_000_000,
-    rentCeiling: 500_000,
-    get ceiling() {
-        return this.purpose === 'rent' ? this.rentCeiling : this.saleCeiling;
-    },
-    get step() {
-        return this.purpose === 'rent' ? 1000 : 100_000;
     },
     get hasMin() {
         return this.min !== '' && Number(this.min) > 0;
     },
     get hasMax() {
-        return this.max !== '' && Number(this.max) > 0 && Number(this.max) < this.ceiling;
+        return this.max !== '' && Number(this.max) > 0;
     },
     setPurpose(next) {
         this.purpose = next;
         this.min = '';
         this.max = '';
     },
-    clampMin() {
-        if (this.min === '') {
-            return;
-        }
-
-        const next = Math.max(0, Math.min(Number(this.min) || 0, this.ceiling));
-        this.min = this.max !== '' ? Math.min(next, Number(this.max)) : next;
-    },
-    clampMax() {
-        if (this.max === '') {
-            return;
-        }
-
-        const floor = this.min !== '' ? Number(this.min) : 0;
-        this.max = Math.max(floor, Math.min(Number(this.max) || 0, this.ceiling));
-    },
-    submit() {
+    submit(event) {
+        event.target.querySelectorAll('input[name], select[name]').forEach((field) => {
+            if (field.value === '') {
+                field.disabled = true;
+            }
+        });
         this.$nextTick(() => {
             this.submitting = true;
         });
@@ -521,9 +681,41 @@ Alpine.data('uhLeadForm', (formName = 'inquiry') => ({
     error: '',
     errors: {},
     token: '',
+    intent: '',
+    slot: '',
     init() {
         this.token = this.$el.querySelector('input[name="submission_token"]')?.value || newToken();
         this.syncToken();
+    },
+    /**
+     * Intent chips write a starting sentence into the message, but never replace what the visitor typed.
+     */
+    useIntent(text) {
+        const field = this.$root.querySelector('textarea[name="message"]');
+        if (!field) {
+            return;
+        }
+
+        const current = field.value.trim();
+        if (current === '' || current === this.intent) {
+            field.value = this.intent === text ? '' : text;
+            this.intent = this.intent === text ? '' : text;
+        } else if (!current.includes(text)) {
+            field.value = `${current}\n${text}`;
+            this.intent = text;
+        }
+
+        this.start();
+    },
+    useSlot(value) {
+        const field = this.$root.querySelector('input[name="preferred_at"]');
+        if (!field) {
+            return;
+        }
+
+        field.value = value;
+        this.slot = value;
+        this.start();
     },
     syncToken() {
         const field = this.$el.querySelector('input[name="submission_token"]');
@@ -807,6 +999,63 @@ Alpine.data('uhConfirm', (message = 'Are you sure?') => ({
     },
 }));
 
+/**
+ * Below-the-fold blocks marked data-reveal rise in once as they enter the viewport.
+ * Content above the fold, hidden content and reduced-motion visitors are never hidden.
+ */
+const bootReveals = () => {
+    const targets = [...document.querySelectorAll('body.uh-home [data-reveal]:not(.is-pending)')];
+
+    if (! targets.length || prefersReducedMotion() || ! ('IntersectionObserver' in window)) {
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+
+    const fold = window.innerHeight * 0.94;
+
+    targets.forEach((target) => {
+        const rect = target.getBoundingClientRect();
+
+        if (rect.height === 0 || rect.top < fold) {
+            return;
+        }
+
+        target.classList.add('is-pending');
+        observer.observe(target);
+    });
+};
+
+/**
+ * Lazy photographs settle in once decoded instead of popping in. Images whose visibility is
+ * already managed by their component (opacity 0 until active) are left alone.
+ */
+const bootImageFades = () => {
+    if (prefersReducedMotion()) {
+        return;
+    }
+
+    document.querySelectorAll('body.uh-home img[loading="lazy"]').forEach((image) => {
+        if (image.complete || getComputedStyle(image).opacity !== '1') {
+            return;
+        }
+
+        image.classList.add('uh-img-pending');
+        image.addEventListener('load', () => {
+            image.classList.remove('uh-img-pending');
+            image.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'cubic-bezier(0.28, 0.11, 0.32, 1)' });
+        }, { once: true });
+        image.addEventListener('error', () => image.classList.remove('uh-img-pending'), { once: true });
+    });
+};
+
 registerSavedStore(Alpine);
 
 window.Alpine = Alpine;
@@ -826,6 +1075,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bootAdminSelects();
     bootMaps();
     bindTrackedClicks();
+    bootReveals();
+    bootImageFades();
 
     const consent = document.cookie.match(new RegExp(`(?:^|; )${window.uhAnalytics?.cookie || 'uh_consent'}=([^;]*)`))?.[1];
     bootAnalytics(consent);

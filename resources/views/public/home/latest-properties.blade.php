@@ -3,43 +3,37 @@
     $showTabs = $latestSale->isNotEmpty() && $latestRent->isNotEmpty();
 @endphp
 
-<section class="uh-home-section">
+<section class="uh-section uh-band-paper" aria-labelledby="latest-title">
     <div class="uh-container" x-data="uhHomeTabs('{{ $defaultTab }}')">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <h2 class="uh-home-title">{{ __('Latest Properties') }}</h2>
-                <p class="uh-home-lede">{{ __('Recently added properties from Urban Haven.') }}</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-6">
-                @if($showTabs)
-                    <div class="flex gap-6" role="group" aria-label="{{ __('Listing type') }}">
-                        <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'sale').toString()"
-                                :class="tab === 'sale' ? 'uh-home-tab-active' : ''" @click="tab = 'sale'">{{ __('For sale') }}</button>
-                        <button type="button" class="uh-home-tab" :aria-pressed="(tab === 'rent').toString()"
-                                :class="tab === 'rent' ? 'uh-home-tab-active' : ''" @click="tab = 'rent'">{{ __('For rent') }}</button>
-                    </div>
-                @endif
-                <a class="uh-home-pill" href="{{ route('properties.index') }}"
-                   :href="@js(route('properties.index')) + '?listing_type=' + tab">
-                    {{ __('View All Properties') }}
-                </a>
-            </div>
+        <header class="uh-section-head" data-reveal>
+            <h2 id="latest-title" class="uh-h2">{{ __('Latest Properties') }}</h2>
+            <p class="uh-lede">{{ __('New to Urban Haven this week.') }}</p>
+            @if($showTabs)
+                <div class="uh-seg" role="group" aria-label="{{ __('Listing type') }}">
+                    <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'sale').toString()"
+                            :class="tab === 'sale' ? 'is-on' : ''" @click="tab = 'sale'">{{ __('For sale') }}</button>
+                    <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'rent').toString()"
+                            :class="tab === 'rent' ? 'is-on' : ''" @click="tab = 'rent'">{{ __('For rent') }}</button>
+                </div>
+            @endif
+        </header>
+
+        @foreach(['sale' => $latestSale, 'rent' => $latestRent] as $purpose => $listings)
+            @if($listings->isNotEmpty())
+                <div class="uh-grid-cards" x-bind:class="tab === '{{ $purpose }}' ? '' : 'hidden'">
+                    @foreach($listings as $property)
+                        @include('public.partials.property-card', ['property' => $property, 'revealIndex' => $loop->index % 3])
+                    @endforeach
+                </div>
+            @endif
+        @endforeach
+
+        <div class="uh-section-foot">
+            <a class="uh-arrow-link" href="{{ route('properties.index', ['sort' => 'newest']) }}"
+               :href="@js(route('properties.index')) + '?sort=newest&listing_type=' + tab">
+                {{ __('See everything new') }}
+                <x-icon name="arrow-right" class="size-3.5" />
+            </a>
         </div>
-
-        @if($latestSale->isNotEmpty())
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" x-bind:class="tab === 'sale' ? '' : 'hidden'">
-                @foreach($latestSale as $property)
-                    @include('public.partials.home-tile', ['property' => $property])
-                @endforeach
-            </div>
-        @endif
-
-        @if($latestRent->isNotEmpty())
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" x-bind:class="tab === 'rent' ? '' : 'hidden'">
-                @foreach($latestRent as $property)
-                    @include('public.partials.home-tile', ['property' => $property])
-                @endforeach
-            </div>
-        @endif
     </div>
 </section>

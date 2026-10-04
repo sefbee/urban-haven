@@ -11,11 +11,11 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('head')
     </head>
-    <body class="uh-home flex min-h-screen flex-col antialiased text-[#1d1d1f]">
-        <header class="uh-site-bar uh-site-bar-home sticky top-0 z-50">
-            <div class="uh-container flex h-12 items-center">
-                <a href="{{ url('/') }}" class="text-sm font-bold tracking-wide text-[#1d1d1f]">
-                    Urban Haven
+    <body class="uh-home flex min-h-screen flex-col antialiased">
+        <header class="uh-site-bar">
+            <div class="uh-container uh-bar-row">
+                <a href="{{ url('/') }}" class="uh-brand">
+                    <span class="uh-wordmark">Urban Haven</span>
                     <span class="sr-only">— {{ __('home page') }}</span>
                 </a>
             </div>
@@ -23,8 +23,8 @@
 
         @yield('content')
 
-        <footer class="mt-auto bg-hero text-white">
-            <div class="uh-container flex h-16 items-center text-xs text-white/45">
+        <footer class="uh-site-foot mt-auto">
+            <div class="uh-container uh-foot-legal">
                 &copy; {{ now()->year }} Urban Haven Properties Ltd.
             </div>
         </footer>

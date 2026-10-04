@@ -4,12 +4,12 @@
     $lede = $lede ?? null;
 @endphp
 
-<div class="uh-page-head">
+<header class="uh-page-head">
     <div class="{{ $wide ? 'uh-container' : 'uh-container-narrow' }}">
         <x-ui.breadcrumbs :items="$crumbs" />
-        <h1 class="uh-home-title">{{ $title }}</h1>
+        <h1 class="uh-h1 uh-page-title">{{ $title }}</h1>
         @if(filled($lede))
-            <p class="uh-home-lede">{{ $lede }}</p>
+            <p class="uh-lede">{{ $lede }}</p>
         @endif
     </div>
-</div>
+</header>

@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-[70] bg-ink/40" x-cloak
+<div class="uh-scrim-modal z-[70]" x-cloak
      x-bind:class="filtersOpen ? 'block' : 'hidden'"
      x-bind:aria-hidden="(!filtersOpen).toString()"
      @click="closeFilters()"></div>
@@ -10,21 +10,72 @@
        role="dialog" aria-modal="true" aria-labelledby="more-filters-title"
        x-bind:aria-hidden="(!filtersOpen).toString()"
        @click.stop @keydown.escape.stop="closeFilters()">
-    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+    <div class="uh-drawer-head">
         <h2 id="more-filters-title" class="uh-h4">{{ __('More Filters') }}</h2>
         <button type="button" class="uh-icon-btn" @click="closeFilters()" aria-label="{{ __('Close filters') }}">
             <x-icon name="close" class="size-5" />
         </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-5 py-5">
+    <div class="uh-drawer-body">
+        <fieldset class="uh-drawer-group">
+            <legend class="uh-legend">{{ __('Area size') }}</legend>
+            <div class="flex flex-wrap gap-1.5">
+                <label class="uh-choice">
+                    <input type="radio" form="property-filters" name="area_band" value="" @checked(blank($filters['area_band'] ?? null))>
+                    <span>{{ __('Any') }}</span>
+                </label>
+                @foreach(\App\Support\SearchBands::areas() as $key => $band)
+                    <label class="uh-choice">
+                        <input type="radio" form="property-filters" name="area_band" value="{{ $key }}" @checked(($filters['area_band'] ?? '') === $key)>
+                        <span>{{ $band['label'] }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </fieldset>
+
+        @if($showBedroomFilters ?? true)
+        <fieldset class="uh-drawer-group" x-data="{ count: {{ $minBeds !== '' ? (int) $minBeds : 0 }} }">
+            <legend class="uh-legend">{{ __('Bedroom') }}</legend>
+            <div class="mt-2 flex items-center gap-3">
+                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bedrooms') }}">
+                    <x-icon name="minus" class="size-4" />
+                </button>
+                <p class="min-w-10 text-center font-medium">
+                    <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBeds === '' ? __('Any') : ($minBeds === '5' ? '5+' : $minBeds) }}</span>
+                </p>
+                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bedrooms') }}">
+                    <x-icon name="plus" class="size-4" />
+                </button>
+                <input type="hidden" form="property-filters" name="min_beds" :value="count || ''" :disabled="count === 0">
+            </div>
+        </fieldset>
+
+        <fieldset class="uh-drawer-group" x-data="{ count: {{ $minBaths !== '' ? (int) $minBaths : 0 }} }">
+            <legend class="uh-legend">{{ __('Bathroom') }}</legend>
+            <div class="mt-2 flex items-center gap-3">
+                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bathrooms') }}">
+                    <x-icon name="minus" class="size-4" />
+                </button>
+                <p class="min-w-10 text-center font-medium">
+                    <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBaths === '' ? __('Any') : ($minBaths === '5' ? '5+' : $minBaths) }}</span>
+                </p>
+                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bathrooms') }}">
+                    <x-icon name="plus" class="size-4" />
+                </button>
+                <input type="hidden" form="property-filters" name="min_baths" :value="count || ''" :disabled="count === 0">
+            </div>
+        </fieldset>
+
+        @endif
+
         @php
             $verification = array_map('strval', (array) ($filters['verification'] ?? []));
             if ($verification === [] && ! empty($filters['is_verified'])) {
                 $verification = ['verified'];
             }
         @endphp
-        <fieldset>
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Property Verification') }}</legend>
             <label class="uh-check">
                 <input type="checkbox" form="property-filters" name="verification[]" value="verified" @checked(in_array('verified', $verification, true))>
@@ -36,7 +87,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="mt-6">
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Furnishing Status') }}</legend>
             @php
                 $furnishing = array_map('strval', (array) ($filters['furnishing'] ?? []));
@@ -63,7 +114,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="mt-6">
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Property Facing') }}</legend>
             <div class="grid grid-cols-2 gap-1">
                 @foreach(config('urbanhaven.facings') as $value => $label)
@@ -75,7 +126,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="mt-6">
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Road Access (Feet)') }}</legend>
             <div class="grid grid-cols-2 gap-3">
                 <x-ui.select name="min_road_width" form="property-filters" :label="__('Min')" sr-label>
@@ -93,7 +144,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="mt-6">
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Property Age') }}</legend>
             @php
                 $ageChips = [
@@ -114,7 +165,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="mt-6">
+        <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Road Type') }}</legend>
             <div class="grid gap-1">
                 @foreach(['Blacktopped', 'Concrete', 'Gravelled', 'Alley'] as $road)
@@ -126,43 +177,9 @@
             </div>
         </fieldset>
 
-        @if($showBedroomFilters ?? true)
-        <fieldset class="mt-6" x-data="{ count: {{ $minBeds !== '' ? (int) $minBeds : 0 }} }">
-            <legend class="uh-legend">{{ __('Bedroom') }}</legend>
-            <div class="mt-2 flex items-center gap-3">
-                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bedrooms') }}">
-                    <x-icon name="minus" class="size-4" />
-                </button>
-                <p class="min-w-10 text-center text-sm font-semibold">
-                    <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBeds === '' ? __('Any') : ($minBeds === '5' ? '5+' : $minBeds) }}</span>
-                </p>
-                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bedrooms') }}">
-                    <x-icon name="plus" class="size-4" />
-                </button>
-                <input type="hidden" form="property-filters" name="min_beds" :value="count || ''" :disabled="count === 0">
-            </div>
-        </fieldset>
-
-        <fieldset class="mt-6" x-data="{ count: {{ $minBaths !== '' ? (int) $minBaths : 0 }} }">
-            <legend class="uh-legend">{{ __('Bathroom') }}</legend>
-            <div class="mt-2 flex items-center gap-3">
-                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bathrooms') }}">
-                    <x-icon name="minus" class="size-4" />
-                </button>
-                <p class="min-w-10 text-center text-sm font-semibold">
-                    <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBaths === '' ? __('Any') : ($minBaths === '5' ? '5+' : $minBaths) }}</span>
-                </p>
-                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bathrooms') }}">
-                    <x-icon name="plus" class="size-4" />
-                </button>
-                <input type="hidden" form="property-filters" name="min_baths" :value="count || ''" :disabled="count === 0">
-            </div>
-        </fieldset>
-
-        @endif
 
         @if($amenities->isNotEmpty())
-            <fieldset class="mt-6">
+            <fieldset class="uh-drawer-group">
                 <legend class="uh-legend">{{ __('Amenities') }}</legend>
                 <div class="grid gap-1">
                     @foreach($amenities as $amenity)
@@ -177,8 +194,8 @@
         @endif
     </div>
 
-    <div class="flex gap-2 border-t border-line px-5 py-4">
-        <a class="uh-btn-ghost flex-1" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
+    <div class="uh-drawer-foot">
+        <a class="uh-btn-text" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
         <button type="submit" form="property-filters" class="uh-btn-primary flex-1">{{ __('Apply filters') }}</button>
     </div>
 </aside>
