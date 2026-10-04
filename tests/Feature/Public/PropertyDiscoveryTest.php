@@ -171,7 +171,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('Post Property');
     }
 
-    public function test_home_arranges_projects_featured_latest_types_and_locations(): void
+    public function test_home_arranges_types_featured_latest_and_locations(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
         Setting::set('phone', '+8801711000000', 'contact');
@@ -219,16 +219,13 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSeeInOrder([
                 'Search Properties',
                 'Listed directly by Urban Haven',
-                'Featured Projects',
-                'Haven Residences Gulshan',
-                'View Project',
+                'Explore by Property Type',
                 'Featured Properties',
                 'Gulshan featured sale',
                 'Quiet featured rental',
                 'Latest Properties',
                 'Banani latest sale',
                 'Newest rental floor',
-                'Explore by Property Type',
                 'Explore Properties by Location',
                 'Why Urban Haven?',
                 'Not sure where to start?',
@@ -243,6 +240,8 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('tel:+8801711000000', false)
             ->assertSee('wa.me/8801711000000', false)
             ->assertDontSee('<span class="mt-5 block text-lg font-semibold tracking-tight">Unused Land Type</span>', false)
+            ->assertDontSee('Featured Projects')
+            ->assertDontSee('View Project')
             ->assertDontSee('Completed Projects')
             ->assertDontSee('Post Property');
     }

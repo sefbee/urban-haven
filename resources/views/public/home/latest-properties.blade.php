@@ -19,7 +19,7 @@
                                 :class="tab === 'rent' ? 'uh-home-tab-active' : ''" @click="tab = 'rent'">{{ __('For rent') }}</button>
                     </div>
                 @endif
-                <a class="uh-home-link text-sm" href="{{ route('properties.index') }}"
+                <a class="uh-home-pill" href="{{ route('properties.index') }}"
                    :href="@js(route('properties.index')) + '?listing_type=' + tab">
                     {{ __('View All Properties') }}
                 </a>

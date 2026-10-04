@@ -1,21 +1,20 @@
 <section @class(['uh-hero-stage', 'has-photo' => (bool) $heroImage])>
-    <div @class(['uh-hero-photo', 'uh-hero-photo-empty' => ! $heroImage])>
-        @if($heroImage)
-            <img src="{{ $heroImage->url(1920) }}"
-                 srcset="{{ $heroImage->url(768) }} 768w, {{ $heroImage->url(1280) }} 1280w, {{ $heroImage->url(1920) }} 1920w"
-                 sizes="100vw"
-                 alt="{{ $heroImageAlt }}" fetchpriority="high" decoding="async">
-        @endif
-    </div>
-    <div class="uh-hero-veil" aria-hidden="true"></div>
-
-    <div class="uh-container uh-hero-copy">
+    <div class="uh-hero-copy">
         <h1 class="uh-hero-title">
             {{ $hero['title'] ?? __('Find a property in Dhaka') }}
         </h1>
         <p class="uh-hero-lede">
             {{ $hero['body'] ?? __('Search apartments, homes, land and commercial space listed directly by Urban Haven.') }}
         </p>
+    </div>
+
+    <div @class(['uh-hero-house', 'uh-hero-house-empty' => ! $heroImage])>
+        @if($heroImage)
+            <img src="{{ $heroImage->url(1920) }}"
+                 srcset="{{ $heroImage->url(768) }} 768w, {{ $heroImage->url(1280) }} 1280w, {{ $heroImage->url(1920) }} 1920w"
+                 sizes="100vw"
+                 alt="{{ $heroImageAlt }}" fetchpriority="high" decoding="async">
+        @endif
     </div>
 </section>
 

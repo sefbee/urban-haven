@@ -33,8 +33,8 @@
         </div>
     @endif
 
-    <div class="uh-container mt-8">
-        <a class="uh-home-link text-sm" href="{{ route('properties.index') }}"
+    <div class="uh-container mt-10 flex justify-center">
+        <a class="uh-home-pill" href="{{ route('properties.index') }}"
            :href="@js(route('properties.index')) + '?listing_type=' + tab">
             {{ __('View All Properties') }}
         </a>

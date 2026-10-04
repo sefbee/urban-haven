@@ -1,4 +1,4 @@
-<section class="uh-home-section">
+<section class="uh-home-discover">
     <div class="uh-container">
         <h2 class="uh-home-title">{{ __('Explore Urban Haven') }}</h2>
         <p class="uh-home-lede">{{ __('Jump to the listings, types, locations, and projects that are live on this site.') }}</p>

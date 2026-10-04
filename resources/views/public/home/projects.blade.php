@@ -5,7 +5,7 @@
                 <h2 class="uh-home-title">{{ __('Featured Projects') }}</h2>
                 <p class="uh-home-lede">{{ __('Developments by Urban Haven, with their current stage and listed units.') }}</p>
             </div>
-            <a class="uh-home-link text-sm" href="{{ route('projects.index') }}">{{ __('All projects') }}</a>
+            <a class="uh-home-pill" href="{{ route('projects.index') }}">{{ __('All projects') }}</a>
         </div>
 
         <div class="mt-8 space-y-10">

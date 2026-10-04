@@ -4,8 +4,8 @@
     @include('public.home.hero')
     @include('public.home.trust')
 
-    @if($projects->isNotEmpty())
-        @include('public.home.projects')
+    @if($typeCards->isNotEmpty())
+        @include('public.home.types')
     @endif
 
     @if($featuredSale->isNotEmpty() || $featuredRent->isNotEmpty())
@@ -16,15 +16,14 @@
         @include('public.home.latest-properties')
     @endif
 
-    @if($typeCards->isNotEmpty())
-        @include('public.home.types')
-    @endif
-
     @if($areas->isNotEmpty())
         @include('public.home.locations')
     @endif
 
     @include('public.home.why')
-    @include('public.home.cta')
-    @include('public.home.discover')
+
+    <div class="uh-home-closer">
+        @include('public.home.cta')
+        @include('public.home.discover')
+    </div>
 @endsection

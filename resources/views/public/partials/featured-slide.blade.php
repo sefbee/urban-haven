@@ -71,14 +71,16 @@
             </div>
         </div>
 
-        @include('public.partials.card-actions', [
-            'url' => $url,
-            'title' => $property->title,
-            'whatsapp' => $property->isUnavailable() ? null : $whatsapp,
-            'trackPropertyId' => $property->id,
-            'trackLocation' => 'featured',
-            'dividerClass' => 'border-black/8',
-            'detailsClass' => 'uh-home-link text-sm',
-        ])
+        <div class="uh-featured-actions">
+            @include('public.partials.card-actions', [
+                'url' => $url,
+                'title' => $property->title,
+                'whatsapp' => $property->isUnavailable() ? null : $whatsapp,
+                'trackPropertyId' => $property->id,
+                'trackLocation' => 'featured',
+                'dividerClass' => 'border-black/8',
+                'detailsClass' => 'uh-home-link text-sm',
+            ])
+        </div>
     </div>
 </article>

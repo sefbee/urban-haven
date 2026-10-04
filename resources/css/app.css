@@ -223,6 +223,18 @@ body.uh-home .uh-site-bar-home {
     border-bottom: 1px solid rgb(0 0 0 / 0.06);
 }
 
+body.uh-home .uh-wordmark {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #1d1d1f;
+}
+
+body.uh-home .uh-bar-quiet {
+    color: rgb(29 29 31 / 0.7);
+}
+
 body.uh-home .uh-nav-link {
     min-height: 2rem;
     border-radius: 0;
@@ -749,6 +761,386 @@ body.uh-home .uh-home-cta .uh-search-submit {
 
     body.uh-home .uh-home-spots {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+body.uh-is-home {
+    background: #fff;
+}
+
+body.uh-is-home .uh-site-bar-home {
+    background: transparent;
+    border-bottom: 0;
+    backdrop-filter: none;
+}
+
+body.uh-is-home .uh-site-bar-home:not(.is-over-sky) {
+    background: rgb(255 255 255 / 0.88);
+    backdrop-filter: saturate(180%) blur(16px);
+}
+
+body.uh-is-home .uh-wordmark {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #111;
+}
+
+body.uh-is-home .uh-site-bar-home .uh-nav-link,
+body.uh-is-home .uh-site-bar-home .uh-bar-quiet,
+body.uh-is-home .uh-site-bar-home a,
+body.uh-is-home .uh-site-bar-home button {
+    color: #111;
+}
+
+body.uh-is-home .uh-site-bar-home .uh-bar-quiet {
+    color: rgb(17 17 17 / 0.72);
+}
+
+body.uh-is-home .uh-hero-stage {
+    height: 100svh;
+    min-height: 36rem;
+    max-height: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 6.5rem 1.25rem 0;
+    background: linear-gradient(180deg, #b7d6ee 0%, #d4eaf8 42%, #eef6fb 100%);
+}
+
+body.uh-is-home .uh-hero-copy {
+    z-index: 2;
+    padding: 0;
+}
+
+body.uh-is-home .uh-hero-title {
+    max-width: 16ch;
+    font-size: clamp(2.6rem, 6.4vw, 5.1rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    color: #fff;
+}
+
+body.uh-is-home .uh-hero-lede {
+    max-width: 34rem;
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.86);
+}
+
+body.uh-is-home .uh-hero-house {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    height: min(62vh, 40rem);
+    margin-top: auto;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+}
+
+body.uh-is-home .uh-hero-house img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    mix-blend-mode: multiply;
+    animation: uh-house-rise 1.15s ease-out both;
+}
+
+body.uh-is-home .uh-hero-house-empty {
+    height: 18vh;
+}
+
+@keyframes uh-house-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8%) scale(1.12);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1.12);
+    }
+}
+
+body.uh-is-home .uh-search-card {
+    width: min(68rem, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2.75rem 0 1.25rem;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+}
+
+body.uh-is-home .uh-home-section {
+    padding-block: 5.75rem;
+    background: #fff;
+}
+
+body.uh-is-home .uh-home-title {
+    font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+    font-weight: 500;
+    letter-spacing: -0.042em;
+    line-height: 1.05;
+}
+
+body.uh-is-home .uh-home-lede {
+    max-width: 36rem;
+    margin-top: 0.85rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+body.uh-is-home .uh-trust {
+    padding-block: 3rem;
+    background: #fff;
+}
+
+body.uh-is-home .uh-trust strong {
+    font-weight: 500;
+    letter-spacing: -0.02em;
+}
+
+body.uh-is-home .uh-home-spots {
+    gap: 1.75rem;
+    margin-top: 2.75rem;
+}
+
+body.uh-is-home .uh-home-spot {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.uh-is-home .uh-home-spot-photo {
+    height: 12.5rem;
+    border-radius: 1.5rem;
+}
+
+body.uh-is-home .uh-home-spot-title {
+    margin-top: 1rem;
+    padding-inline: 0;
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+body.uh-is-home .uh-home-spot-meta,
+body.uh-is-home .uh-home-spot .uh-home-link {
+    padding-inline: 0;
+    margin-inline: 0;
+}
+
+body.uh-is-home .uh-home-featured {
+    padding-block: 5.75rem;
+}
+
+body.uh-is-home .uh-featured-stage {
+    --uh-featured-gap: 1.5rem;
+    --uh-featured-photo-h: 18.5rem;
+}
+
+body.uh-is-home .uh-featured-slide {
+    opacity: 0.16;
+}
+
+body.uh-is-home .uh-featured-slide[data-active] {
+    opacity: 1;
+}
+
+body.uh-is-home .uh-featured-photo {
+    border-radius: 1.75rem;
+}
+
+body.uh-is-home .uh-featured-slide:not([data-active]) .uh-featured-actions {
+    visibility: hidden;
+}
+
+body.uh-is-home .uh-home-pill {
+    display: inline-flex;
+    min-height: 2.6rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    background: #111;
+    padding-inline: 1.15rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+body.uh-is-home .uh-home-pill:hover {
+    background: #000;
+    color: #fff;
+}
+
+body.uh-is-home .uh-home-project {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+body.uh-is-home .uh-home-project-photo {
+    max-height: none;
+    aspect-ratio: 16 / 9;
+    border-radius: 1.75rem;
+}
+
+body.uh-is-home .uh-home-tile-photo {
+    border-radius: 1.5rem;
+}
+
+body.uh-is-home .uh-home-why-intro {
+    max-width: 40rem;
+    margin-inline: auto;
+    text-align: center;
+}
+
+body.uh-is-home .uh-home-why-intro .uh-home-lede {
+    margin-inline: auto;
+}
+
+body.uh-is-home .uh-home-why-grid {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 3.25rem;
+    align-items: start;
+}
+
+body.uh-is-home .uh-home-why-item {
+    border-bottom: 1px solid #ececee;
+}
+
+body.uh-is-home .uh-home-why-trigger {
+    display: flex;
+    width: 100%;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.85rem;
+    text-align: left;
+    font-size: 1.15rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: #111;
+}
+
+body.uh-is-home .uh-home-why-item:not([data-open]) .uh-home-why-trigger {
+    color: #6e6e73;
+}
+
+body.uh-is-home .uh-home-why-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+body.uh-is-home .uh-home-why-item[data-open] .uh-home-why-chevron {
+    transform: rotate(180deg);
+}
+
+body.uh-is-home .uh-home-why-body {
+    max-width: 36rem;
+    padding-bottom: 1.15rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #6e6e73;
+}
+
+body.uh-is-home .uh-home-why-photo {
+    overflow: hidden;
+    border-radius: 1.75rem;
+    background: #eef2f5;
+    aspect-ratio: 4 / 3;
+}
+
+body.uh-is-home .uh-home-why-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+body.uh-is-home .uh-home-closer {
+    background: linear-gradient(180deg, #c4def1 0%, #d7eaf8 48%, #d7eaf8 100%);
+    color: #111;
+    padding-top: 6rem;
+}
+
+body.uh-is-home .uh-home-cta {
+    padding: 0 1.25rem 2.5rem;
+    background: transparent;
+}
+
+body.uh-is-home .uh-home-cta .uh-home-title,
+body.uh-is-home .uh-home-discover .uh-home-title,
+body.uh-is-home .uh-home-discover h3 {
+    color: #111;
+}
+
+body.uh-is-home .uh-home-cta .uh-home-lede,
+body.uh-is-home .uh-home-discover .uh-home-lede {
+    color: #4b5563;
+}
+
+body.uh-is-home .uh-home-discover li a {
+    color: #4b5563;
+}
+
+body.uh-is-home .uh-home-discover li a:hover {
+    color: #111;
+}
+
+body.uh-is-home .uh-home-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.75rem;
+}
+
+body.uh-is-home .uh-home-cta .uh-home-link {
+    color: #111;
+}
+
+body.uh-is-home .uh-home-discover {
+    padding: 3rem 0 2rem;
+}
+
+body.uh-is-home .uh-home-foot {
+    background: #d7eaf8;
+    color: #111;
+}
+
+body.uh-is-home .uh-home-foot .border-t {
+    border-color: rgb(17 17 17 / 0.08);
+}
+
+body.uh-is-home .uh-home-foot a,
+body.uh-is-home .uh-home-foot button,
+body.uh-is-home .uh-home-foot p {
+    color: #4b5563;
+}
+
+body.uh-is-home .uh-home-foot a:hover,
+body.uh-is-home .uh-home-foot button:hover {
+    color: #111;
+}
+
+@media (min-width: 768px) {
+    body.uh-is-home .uh-home-project {
+        grid-template-columns: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    body.uh-is-home .uh-home-why-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        gap: 4rem;
+        align-items: center;
     }
 }
 

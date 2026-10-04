@@ -67,7 +67,6 @@ class HomeController extends Controller
             'purposes' => $purposes,
             'hero' => $hero,
             'about' => CmsBlock::contentFor('about'),
-            'projects' => $this->featuredProjects(),
             'featuredSale' => $featured->get('sale', collect()),
             'featuredRent' => $featured->get('rent', collect()),
             'latestSale' => $latest->get('sale', collect()),
@@ -156,33 +155,5 @@ class HomeController extends Controller
         return $query->published()
             ->whereIn('listing_type', $purposes ?: ['__none__'])
             ->whereNotIn('availability', Property::UNAVAILABLE);
-    }
-
-    /**
-     * @return Collection<int, Project>
-     */
-    private function featuredProjects(): Collection
-    {
-        $ids = TaggedCache::remember(['homepage', 'projects'], 'home:projects', self::CACHE_SECONDS, function (): array {
-            $featured = Project::query()->published()->where('is_featured', true)->orderByDesc('id')->limit(self::SECTION_LIMIT)->pluck('id')->all();
-
-            return $featured !== [] ? $featured : Project::query()->published()->orderByDesc('id')->limit(self::SECTION_LIMIT)->pluck('id')->all();
-        });
-
-        return Project::query()
-            ->whereKey($ids)
-            ->with(['locationArea', 'media'])
-            ->withCount(['properties' => fn (Builder $query) => $query->published()])
-            ->addSelect([
-                'starting_price' => Property::query()
-                    ->selectRaw('min(price)')
-                    ->whereColumn('properties.project_id', 'projects.id')
-                    ->published()
-                    ->where('price_mode', Property::PRICE_FIXED)
-                    ->whereNotIn('availability', Property::UNAVAILABLE)
-                    ->whereNotNull('price'),
-            ])
-            ->orderByDesc('id')
-            ->get();
     }
 }

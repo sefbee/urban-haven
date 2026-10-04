@@ -16,6 +16,7 @@
     $consentCookie = config('urbanhaven.analytics.consent_cookie');
     $consent = request()->cookie($consentCookie);
     $privacyUrl = \App\Models\CmsPage::query()->where('slug', 'privacy')->published()->exists() ? route('cms.show', 'privacy') : null;
+    $isHome = request()->routeIs('home');
 
     $headerMenu = \App\Models\MenuItem::forLocation('header');
     $navLinks = $headerMenu->isNotEmpty()
@@ -64,14 +65,16 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('head')
     </head>
-    <body class="uh-home min-h-screen antialiased text-[#1d1d1f]">
+    <body @class(['uh-home min-h-screen antialiased text-[#1d1d1f]', 'uh-is-home' => $isHome])>
         <a class="uh-skip" href="#main">{{ __('Skip to content') }}</a>
 
         <header class="uh-site-bar uh-site-bar-home sticky top-0 z-50"
-                x-data="{ open: false, lang: false }" @keydown.escape.window="open = false; lang = false">
+                x-data="{ open: false, lang: false, sky: {{ $isHome ? 'true' : 'false' }} }"
+                @keydown.escape.window="open = false; lang = false"
+                @if($isHome) @scroll.window.passive="sky = window.scrollY < 72" :class="sky && !open ? 'is-over-sky' : ''" @endif>
             <div class="uh-container flex h-12 items-center justify-between gap-4">
                 <a href="{{ route('home') }}" class="flex shrink-0 items-center">
-                    <span class="block text-sm font-bold tracking-wide text-[#1d1d1f]">Urban Haven</span>
+                    <span class="uh-wordmark">Urban Haven</span>
                 </a>
 
                 <nav class="hidden items-center gap-0.5 lg:flex" aria-label="{{ __('Main navigation') }}">
@@ -85,7 +88,7 @@
 
                 <div class="flex items-center gap-1 sm:gap-2">
                     @if(filled($contactPhone))
-                        <a class="hidden items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-[#1d1d1f]/70 transition hover:text-[#1d1d1f] sm:inline-flex"
+                        <a class="uh-bar-quiet hidden items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold sm:inline-flex"
                            href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="header">
                             <x-icon name="phone" class="size-3.5" />
                             <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
@@ -94,7 +97,7 @@
 
                     <div class="relative hidden sm:block" @click.outside="lang = false">
                         <button type="button"
-                                class="inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-[#1d1d1f]/70 transition hover:text-[#1d1d1f]"
+                                class="uh-bar-quiet inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 text-xs font-semibold"
                                 @click="lang = !lang" :aria-expanded="lang.toString()" aria-haspopup="listbox"
                                 aria-controls="locale-menu">
                             {{ $locale === 'bn' ? 'বাংলা' : 'ENG' }}
@@ -120,7 +123,7 @@
                     </div>
 
                     <a href="{{ route('shortlist') }}" x-data
-                       class="relative inline-flex size-10 items-center justify-center rounded-full text-[#1d1d1f]/70 transition hover:bg-black/5"
+                       class="uh-bar-quiet relative inline-flex size-10 items-center justify-center rounded-full transition hover:bg-black/5"
                        :aria-label="'{{ __('Shortlist') }} (' + $store.saved.shortlist.length + ')'" aria-label="{{ __('Shortlist') }}">
                         <x-icon name="heart" class="size-4" />
                         <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length"
@@ -128,7 +131,7 @@
                     </a>
 
                     <button type="button"
-                            class="inline-flex size-10 items-center justify-center rounded-full text-[#1d1d1f] hover:bg-black/5 lg:hidden"
+                            class="uh-bar-quiet inline-flex size-10 items-center justify-center rounded-full hover:bg-black/5 lg:hidden"
                             @click="open = !open" :aria-expanded="open.toString()" aria-controls="mobile-nav">
                         <span class="sr-only">{{ __('Menu') }}</span>
                         <x-icon name="menu" class="size-5" x-show="!open" />
@@ -182,8 +185,8 @@
             @yield('content')
         </main>
 
-        <footer class="bg-hero text-white">
-            <div class="uh-container grid gap-10 py-14 md:grid-cols-12">
+        <footer @class(['bg-hero text-white' => ! $isHome, 'uh-home-foot' => $isHome])>
+            <div @class(['uh-container grid gap-10 py-14 md:grid-cols-12', 'hidden' => $isHome])>
                 <div class="md:col-span-5">
                     <p class="text-sm font-semibold uppercase tracking-[0.2em] text-white">{{ $companyName }}</p>
                     @if(filled($contactAddress))
