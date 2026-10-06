@@ -208,7 +208,7 @@
                             @if(in_array('rent', $purposes, true))
                                 <li><a href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
                             @endif
-                            <li><a href="{{ route('properties.index', ['view' => 'map']) }}">{{ __('Map') }}</a></li>
+                            <li><a href="{{ route('map') }}">{{ __('Map') }}</a></li>
                             <li><a href="{{ route('projects.index') }}">{{ __('Projects') }}</a></li>
                             <li><a href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
                             <li><a href="{{ route('compare') }}">{{ __('Compare') }}</a></li>

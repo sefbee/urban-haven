@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Support\TaggedCache;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class CmsBlock extends Model
 {
@@ -47,5 +49,36 @@ class CmsBlock extends Model
     public function hasDraft(): bool
     {
         return $this->draft_content !== null;
+    }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediable')->orderBy('sort_order');
+    }
+
+    /**
+     * Blocks that carry uploaded images (the homepage hero background).
+     */
+    public function acceptsImage(): bool
+    {
+        return $this->key === 'hero';
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    public function images(): Collection
+    {
+        return $this->media->filter(fn (Media $media): bool => $media->collection === 'gallery' && $media->is_public)->values();
+    }
+
+    /**
+     * Public images of a visible block in display order, empty when none have been uploaded.
+     *
+     * @return Collection<int, Media>
+     */
+    public static function imagesFor(string $key): Collection
+    {
+        return self::query()->with('media')->where('key', $key)->where('is_visible', true)->first()?->images() ?? new Collection;
     }
 }

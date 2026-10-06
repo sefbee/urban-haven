@@ -1,6 +1,8 @@
 @php
     $collections ??= ['gallery' => 'Photographs', 'floor_plan' => 'Floor plans', 'brochure' => 'Brochures'];
+    $hints ??= [];
     $owner->loadMissing('media');
+    $supportsCover = in_array('featured_media_id', $owner->getFillable(), true);
     $maxImageMb = max(1, (int) ceil(((int) config('urbanhaven.media.max_image_kb')) / 1024));
     $maxBrochureMb = max(1, (int) ceil(((int) config('urbanhaven.media.max_brochure_kb')) / 1024));
     $formatBytes = static function (int $bytes): string {
@@ -34,9 +36,11 @@
                 @else
                     The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP.
                     @if($collection === 'gallery')
-                        Images stay private until they have alt text. The cover is used on cards and social previews.
+                        Images stay private until they have alt text.
+                        @if($supportsCover) The cover is used on cards and social previews. @endif
                     @endif
                 @endif
+                {{ $hints[$collection] ?? '' }}
             </span>
         </p>
 
@@ -47,7 +51,8 @@
                 <input type="hidden" name="owner_type" value="{{ $ownerType }}">
                 <input type="hidden" name="owner_id" value="{{ $owner->id }}">
                 <input type="hidden" name="collection" value="{{ $collection }}">
-                <input id="upload-{{ $collection }}" x-ref="file" class="uh-admin-media-file" type="file" name="file" required
+                <input id="upload-{{ $collection }}" x-ref="file" class="uh-admin-media-file" type="file" required
+                       @if($isDocument) name="file" @else name="files[]" multiple @endif
                        accept="{{ $isDocument ? 'application/pdf' : 'image/jpeg,image/png,image/webp' }}"
                        aria-label="{{ $isDocument ? 'Brochure' : 'Photograph' }}"
                        @change="chosen(true)">
@@ -82,7 +87,7 @@
                 @endif
                 @foreach($items as $item)
                     @php
-                        $isCover = $owner->featured_media_id === $item->id;
+                        $isCover = $supportsCover && $owner->featured_media_id === $item->id;
                         $status = $isCover ? 'Cover' : ($item->is_public ? 'Uploaded' : 'Private');
                     @endphp
                     <li class="uh-admin-media-card">
@@ -117,7 +122,7 @@
                                 <x-ui.input name="alt_text" :label="$item->isDocument() ? 'Title' : 'Alt text'" :value="$item->alt_texts['en'] ?? ''" maxlength="200" :id="'alt-'.$item->id" />
                                 <input type="hidden" name="is_public" value="0">
                                 <label class="uh-check text-xs"><input type="checkbox" name="is_public" value="1" @checked($item->is_public)> <span>Public</span></label>
-                                @if($collection === 'gallery')
+                                @if($collection === 'gallery' && $supportsCover)
                                     <label class="uh-check text-xs"><input type="checkbox" name="make_cover" value="1"> <span>Use as cover</span></label>
                                 @endif
                                 <button type="submit" class="uh-btn-outline uh-btn-sm">Save</button>

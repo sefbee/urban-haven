@@ -25,6 +25,13 @@ class StoreProjectRequest extends FormRequest
             'location_area_id' => ['nullable', 'exists:location_areas,id'],
             'lat' => ['nullable', 'numeric'],
             'lng' => ['nullable', 'numeric'],
+            'video_url' => ['nullable', 'url:https', 'max:255', function (string $attribute, mixed $value, \Closure $fail): void {
+                $host = strtolower((string) parse_url((string) $value, PHP_URL_HOST));
+
+                if (! in_array($host, config('urbanhaven.media.allowed_video_hosts'), true)) {
+                    $fail('Use a YouTube or Vimeo link.');
+                }
+            }],
             'developer_name' => ['nullable', 'string', 'max:255'],
             'completion_date' => ['nullable', 'date'],
             'handover_info' => ['nullable', 'string'],

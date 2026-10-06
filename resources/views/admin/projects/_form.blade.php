@@ -63,6 +63,7 @@
                             :value="$model?->completion_date?->format('Y-m-d')" />
                 <x-ui.input name="lat" label="Latitude" type="number" step="0.0000001" dir="ltr" :value="$model->lat ?? ''" optional />
                 <x-ui.input name="lng" label="Longitude" type="number" step="0.0000001" dir="ltr" :value="$model->lng ?? ''" optional />
+                <x-ui.input name="video_url" label="Video URL" type="url" dir="ltr" :value="$model->video_url ?? ''" optional hint="YouTube or Vimeo link." />
             </div>
         </section>
 

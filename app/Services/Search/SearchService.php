@@ -39,8 +39,10 @@ class SearchService implements SearchServiceContract
             ->whereNotNull('lng')
             ->whereBetween('lat', [$bounds['south'], $bounds['north']])
             ->whereBetween('lng', [$bounds['west'], $bounds['east']])
+            ->with(['locationArea', 'propertyType', 'media'])
             ->limit($limit)
-            ->get(['id', 'title', 'slug', 'lat', 'lng', 'price', 'price_mode', 'price_basis', 'map_approximation', 'listing_type']);
+            ->get(['id', 'title', 'slug', 'lat', 'lng', 'price', 'price_mode', 'price_basis', 'map_approximation', 'listing_type',
+                'location_area_id', 'property_type_id', 'featured_media_id', 'bedrooms', 'bathrooms', 'area_value', 'area_unit', 'is_furnished']);
     }
 
     /**

@@ -6,6 +6,8 @@ use App\Contracts\SearchService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\SearchRequest;
 use App\Models\Property;
+use App\Models\PropertyType;
+use App\Support\AreaConverter;
 use App\Support\MoneyFormatter;
 use Illuminate\Http\JsonResponse;
 
@@ -27,7 +29,13 @@ class MapDataController extends Controller
             ->map(function (Property $property): ?array {
                 $coordinates = $property->publicCoordinates();
 
-                return $coordinates === null ? null : [
+                if ($coordinates === null) {
+                    return null;
+                }
+
+                $residential = $property->fieldProfile() !== PropertyType::PROFILE_PLOT;
+
+                return [
                     'id' => $property->id,
                     'title' => $property->title,
                     'url' => route('properties.show', $property->slug),
@@ -35,6 +43,12 @@ class MapDataController extends Controller
                     'lat' => $coordinates['lat'],
                     'lng' => $coordinates['lng'],
                     'approximate' => $coordinates['approximate'],
+                    'image' => $property->featuredImage()?->url(480),
+                    'place' => collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', '),
+                    'area' => $property->area_value ? AreaConverter::format($property->area_value, $property->area_unit) : null,
+                    'beds' => $residential ? $property->bedrooms : null,
+                    'baths' => $residential ? $property->bathrooms : null,
+                    'furnishing' => $residential && $property->is_furnished !== null ? ($property->is_furnished ? __('Furnished') : __('Unfurnished')) : null,
                 ];
             })
             ->filter()
@@ -52,7 +66,7 @@ class MapDataController extends Controller
 
     /**
      * @param  list<array{lat: float, lng: float, url: string, title: string}>  $points
-     * @return list<array{lat: float, lng: float, count: int, url: ?string, title: ?string}>
+     * @return list<array<string, mixed>>
      */
     private function cluster(array $points): array
     {
@@ -66,7 +80,7 @@ class MapDataController extends Controller
             $cells[$key]['first'] ??= $point;
         }
 
-        return array_values(array_map(fn (array $cell): array => [
+        return array_values(array_map(fn (array $cell): array => count($cell['lat']) === 1 ? [...$cell['first'], 'count' => 1] : [
             'lat' => round(array_sum($cell['lat']) / count($cell['lat']), 5),
             'lng' => round(array_sum($cell['lng']) / count($cell['lng']), 5),
             'count' => count($cell['lat']),

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Public;
 
+use App\Models\CmsPage;
 use App\Models\Faq;
 use App\Models\Lead;
 use App\Models\LocationArea;
@@ -34,6 +35,22 @@ class PublicSiteTest extends TestCase
             $this->get(route('home'))->assertOk()->assertSee('Our projects');
             $this->get(route('faq'))->assertOk()->assertSee('Can I book a weekend visit?');
         }
+    }
+
+    public function test_contact_page_offers_a_form_call_and_whatsapp_even_with_the_default_template(): void
+    {
+        Setting::query()->updateOrCreate(['key' => 'phone'], ['value' => '+8801711000000', 'cast' => 'string', 'group' => 'contact']);
+        Setting::query()->updateOrCreate(['key' => 'whatsapp'], ['value' => '+8801711000000', 'cast' => 'string', 'group' => 'contact']);
+        $page = CmsPage::query()->create(['slug' => 'contact', 'title' => 'Contact', 'template' => 'default', 'body' => '<p>Say hello.</p>', 'status' => 'published']);
+        $page->publicationState()->updateOrCreate([], ['status' => PublicationState::PUBLISHED]);
+
+        $this->get(route('cms.show', 'contact'))
+            ->assertOk()
+            ->assertSee('Chat on WhatsApp')
+            ->assertSee('href="https://wa.me/', false)
+            ->assertSee('href="tel:', false)
+            ->assertSee('name="consent_given"', false)
+            ->assertSee('value="general_contact"', false);
     }
 
     public function test_shortlist_and_compare_pages_render_without_an_account(): void

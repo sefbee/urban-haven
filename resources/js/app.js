@@ -1,6 +1,7 @@
 import Alpine from 'alpinejs';
 import { track, bootAnalytics, bindTrackedClicks } from './analytics';
 import { applySelectOption, bootAdminSelects } from './admin-selects';
+import { bootPublicSelects } from './public-selects';
 import { registerSavedStore } from './saved';
 import { bootMaps, refreshMaps } from './maps';
 
@@ -57,6 +58,33 @@ Alpine.data('uhSiteBar', (overlay = false) => ({
 }));
 
 /**
+ * Homepage cover photos crossfade on a timer. Choosing a photo, a hidden tab or reduced motion stops the timer.
+ */
+Alpine.data('uhCoverSlides', (count = 0) => ({
+    count,
+    active: 0,
+    timer: null,
+    init() {
+        if (this.count < 2 || prefersReducedMotion()) {
+            return;
+        }
+        this.timer = window.setInterval(() => {
+            if (!document.hidden) {
+                this.active = (this.active + 1) % this.count;
+            }
+        }, 6000);
+    },
+    show(index) {
+        this.active = index;
+        this.destroy();
+    },
+    destroy() {
+        window.clearInterval(this.timer);
+        this.timer = null;
+    },
+}));
+
+/**
  * Image gallery with keyboard navigation and an optional lightbox.
  */
 Alpine.data('uhGallery', (count = 0) => ({
@@ -87,14 +115,12 @@ Alpine.data('uhGallery', (count = 0) => ({
 }));
 
 /**
- * Listing browse: filter drawer, list or card layout, map, and quick view.
+ * Listing browse: filter drawer, list or card layout, and quick view.
  */
 Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     filtersOpen: false,
     submitting: false,
     more: hasAdvanced,
-    showMap: window.matchMedia('(min-width: 1024px)').matches
-        || new URLSearchParams(window.location.search).get('view') === 'map',
     layout: 'grid',
     preview: null,
     slide: 0,
@@ -126,13 +152,6 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     closeFilters() {
         this.filtersOpen = false;
         this.lockBody();
-    },
-    toggleMap() {
-        this.showMap = !this.showMap;
-        this.$nextTick(() => {
-            bootMaps();
-            refreshMaps();
-        });
     },
     openPreview(payload) {
         this.slide = 0;
@@ -216,7 +235,9 @@ Alpine.data('uhSectionTabs', () => ({
     current: null,
     sections: [],
     ticking: false,
+    lockedUntil: 0,
     onScroll: null,
+    onClick: null,
     init() {
         this.sections = [...this.$el.querySelectorAll('a[href^="#"]')]
             .map((link) => document.getElementById(link.getAttribute('href').slice(1)))
@@ -232,17 +253,33 @@ Alpine.data('uhSectionTabs', () => ({
                 this.update();
             });
         };
+        this.onClick = (event) => {
+            const link = event.target.closest('a[href^="#"]');
+            if (!link) {
+                return;
+            }
+            this.current = link.getAttribute('href').slice(1);
+            this.lockedUntil = Date.now() + 900;
+            this.reveal();
+        };
         window.addEventListener('scroll', this.onScroll, { passive: true });
+        this.$el.addEventListener('click', this.onClick);
         this.update();
     },
     destroy() {
         window.removeEventListener('scroll', this.onScroll);
+        this.$el.removeEventListener('click', this.onClick);
     },
     update() {
-        const line = window.innerHeight * 0.3;
+        if (Date.now() < this.lockedUntil) {
+            return;
+        }
+
+        const line = this.$el.getBoundingClientRect().bottom + Math.max(120, window.innerHeight * 0.2);
         const passed = this.sections.filter((section) =>
             getComputedStyle(section).position !== 'sticky' && section.getBoundingClientRect().top <= line);
-        const next = passed.at(-1) ?? this.sections[0];
+        const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+        const next = atEnd ? this.sections.at(-1) : (passed.at(-1) ?? this.sections[0]);
 
         if (next && next.id !== this.current) {
             this.current = next.id;
@@ -330,7 +367,7 @@ Alpine.data('uhShowcase', (count = 0) => ({
  * Homepage search card. The location field suggests known areas as you type and falls back to a
  * keyword search; the button says how many properties match before anyone submits.
  */
-Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, areas = [], budgets = {} } = {}) => ({
+Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, budgets = {} } = {}) => ({
     purpose: initial,
     query: '',
     area: '',
@@ -338,8 +375,6 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, a
     beds: '',
     min: '',
     max: '',
-    suggesting: false,
-    highlighted: -1,
     submitting: false,
     matches: null,
     counting: false,
@@ -374,39 +409,22 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, a
 
         return this.matches === 1 ? labels.one : labels.many.replace(':count', this.matches.toLocaleString());
     },
-    get suggestions() {
-        const needle = this.query.trim().toLowerCase();
-        if (this.area || needle === '') {
-            return [];
-        }
+    pickLocation(select) {
+        const value = select.value;
 
-        return areas.filter((option) => option.label.toLowerCase().includes(needle)).slice(0, 6);
-    },
-    typed() {
-        this.area = '';
-        this.suggesting = true;
-        this.highlighted = -1;
-    },
-    move(step) {
-        const total = this.suggestions.length;
-        if (!total) {
-            return;
+        if (value.startsWith('q:')) {
+            this.area = '';
+            this.query = value.slice(2);
+        } else if (value !== '') {
+            this.area = value;
+            this.query = select.selectedOptions[0]?.textContent.trim() ?? '';
+        } else {
+            this.area = '';
+            this.query = '';
         }
-        this.suggesting = true;
-        this.highlighted = (this.highlighted + step + total) % total;
     },
-    pick(option) {
-        this.area = String(option.id);
-        this.query = option.label;
-        this.suggesting = false;
-        this.highlighted = -1;
-    },
-    pickHighlighted(event) {
-        const option = this.suggesting ? this.suggestions[this.highlighted] : null;
-        if (option) {
-            event.preventDefault();
-            this.pick(option);
-        }
+    syncSelects() {
+        this.$nextTick(() => window.dispatchEvent(new CustomEvent('uh:selects-sync')));
     },
     get minBudgets() {
         const options = budgets[this.purpose] ?? [];
@@ -426,6 +444,10 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, a
         this.min = '';
         this.max = '';
         this.matches = null;
+        if (this.$refs.location) {
+            this.$refs.location.value = '';
+        }
+        this.syncSelects();
     },
     queueCount() {
         if (!countUrl) {
@@ -477,6 +499,7 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, a
         this.purpose = next;
         this.min = '';
         this.max = '';
+        this.syncSelects();
     },
     submit(event) {
         event.target.querySelectorAll('input[name], select[name]').forEach((field) => {
@@ -487,46 +510,6 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, a
         this.$nextTick(() => {
             this.submitting = true;
         });
-    },
-}));
-
-/**
- * Chip-style multi-select for Dhaka location areas.
- */
-Alpine.data('uhLocationTags', (areas = [], selectedIds = []) => ({
-    areas,
-    selected: selectedIds.map(String),
-    query: '',
-    open: false,
-    get selectedAreas() {
-        return this.areas.filter((area) => this.selected.includes(String(area.id)));
-    },
-    get suggestions() {
-        const query = this.query.trim().toLowerCase();
-
-        return this.areas.filter((area) => {
-            if (this.selected.includes(String(area.id))) {
-                return false;
-            }
-
-            return query === '' || String(area.name).toLowerCase().includes(query);
-        }).slice(0, 8);
-    },
-    add(id) {
-        const key = String(id);
-        if (!this.selected.includes(key)) {
-            this.selected.push(key);
-        }
-        this.query = '';
-        this.open = false;
-    },
-    remove(id) {
-        this.selected = this.selected.filter((value) => value !== String(id));
-    },
-    onEnter() {
-        if (this.suggestions[0]) {
-            this.add(this.suggestions[0].id);
-        }
     },
 }));
 
@@ -949,12 +932,13 @@ Alpine.data('uhMediaUpload', () => ({
         this.$refs.file?.click();
     },
     chosen(autoSubmit = false) {
-        const file = this.$refs.file?.files?.[0];
+        const files = [...(this.$refs.file?.files ?? [])];
+        const file = files[0];
         if (this.preview) {
             URL.revokeObjectURL(this.preview);
         }
-        this.filename = file?.name ?? '';
-        this.filesize = file ? this.formatSize(file.size) : '';
+        this.filename = files.length > 1 ? `${files.length} files` : (file?.name ?? '');
+        this.filesize = file ? this.formatSize(files.reduce((total, item) => total + item.size, 0)) : '';
         this.preview = file?.type?.startsWith('image/') ? URL.createObjectURL(file) : '';
         if (autoSubmit && file && this.$refs.file?.form) {
             this.submitting = true;
@@ -1073,6 +1057,7 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     bootAdminSelects();
+    bootPublicSelects();
     bootMaps();
     bindTrackedClicks();
     bootReveals();

@@ -22,12 +22,11 @@
     $purpose = $isRent ? __('For rent') : __('For sale');
     $availabilityLabel = __(\App\Models\Property::AVAILABILITY_LABELS[$property->availability] ?? ucfirst((string) $property->availability));
     $updatedAt = $property->updated_at?->timezone(config('urbanhaven.display_timezone'));
-    $mapTiles = config('urbanhaven.maps.tile_url');
-    $mapAttribution = config('urbanhaven.maps.attribution');
     $place = collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', ');
     $story = \App\Support\PropertyStory::for($property);
     $anchors = $story->anchors();
     $officeHours = \App\Models\Setting::get('office_hours');
+    $contactEmail = \App\Models\Setting::get('email');
     $contactName = $property->assignedContact?->name ?? __('Urban Haven sales team');
     $contactInitials = \Illuminate\Support\Str::of($contactName)->explode(' ')->filter()->take(2)->map(fn ($word) => mb_substr($word, 0, 1))->implode('');
     $availabilityNote = match (true) {
@@ -65,14 +64,11 @@
     ];
     $thumbs = $media->slice(1, 2)->values();
     $hiddenPhotos = max(0, $media->count() - 1 - $thumbs->count());
-    $showEmi = ! $isRent && ! $onRequest && filled($property->price) && ! $isUnavailable;
     $tabs = array_filter([
         'overview' => __('Overview'),
         'description' => $hasDescription ? __('Description') : null,
         'amenities' => $amenities->isNotEmpty() ? __('Amenities') : null,
         'floor-plans' => $floorPlans->isNotEmpty() ? __('Floor plans') : null,
-        'location' => $coordinates ? __('Location') : null,
-        'emi' => $showEmi ? __('EMI calculator') : null,
         'contact' => __('Contact'),
     ]);
     $enquiryIntents = $isUnavailable ? [] : [
@@ -153,41 +149,44 @@
             </header>
 
             <div class="uh-pd-layout">
-                <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
-                    @if($media->isNotEmpty())
-                        <button type="button" class="uh-pd-shot is-main"
-                                style="view-transition-name: uh-property-{{ $property->id }}"
-                                @click="open(0)"
-                                aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
-                            <img src="{{ $media->first()->url(1280) }}"
-                                 srcset="{{ $media->first()->url(768) }} 768w, {{ $media->first()->url(1280) }} 1280w, {{ $media->first()->url(1920) }} 1920w"
-                                 sizes="(min-width: 1100px) 60vw, 100vw"
-                                 alt="{{ $media->first()->alt(app()->getLocale()) }}"
-                                 fetchpriority="high" decoding="async">
-                        </button>
-                        @foreach($thumbs as $index => $image)
-                            <button type="button" class="uh-pd-shot"
-                                    @click="open({{ $index + 1 }})"
-                                    aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
-                                <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
-                                @if($loop->last && $hiddenPhotos > 0)
-                                    <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
-                                @endif
+                <x-media-stage class="uh-pd-stage" :title="$property->title" :photo-count="$media->count()"
+                               :video="$videoEmbed" :tour="$property->virtual_tour_url" :coordinates="$coordinates">
+                    <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
+                        @if($media->isNotEmpty())
+                            <button type="button" class="uh-pd-shot is-main"
+                                    style="view-transition-name: uh-property-{{ $property->id }}"
+                                    @click="open(0)"
+                                    aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
+                                <img src="{{ $media->first()->url(1280) }}"
+                                     srcset="{{ $media->first()->url(768) }} 768w, {{ $media->first()->url(1280) }} 1280w, {{ $media->first()->url(1920) }} 1920w"
+                                     sizes="(min-width: 1100px) 60vw, 100vw"
+                                     alt="{{ $media->first()->alt(app()->getLocale()) }}"
+                                     fetchpriority="high" decoding="async">
                             </button>
-                        @endforeach
-                        @if($media->count() > 1)
-                            <button type="button" class="uh-pd-gallery-all" @click="open(0)">
-                                <x-icon name="grid" class="size-4" />
-                                {{ __('View all :count photos', ['count' => $media->count()]) }}
-                            </button>
+                            @foreach($thumbs as $index => $image)
+                                <button type="button" class="uh-pd-shot"
+                                        @click="open({{ $index + 1 }})"
+                                        aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
+                                    <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
+                                    @if($loop->last && $hiddenPhotos > 0)
+                                        <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                            @if($media->count() > 1)
+                                <button type="button" class="uh-pd-gallery-all" @click="open(0)">
+                                    <x-icon name="grid" class="size-4" />
+                                    {{ __('View all :count photos', ['count' => $media->count()]) }}
+                                </button>
+                            @endif
+                        @else
+                            <div class="uh-pd-shot is-main is-empty">
+                                <x-icon name="image" class="size-8" />
+                                <span>{{ __('Photos coming soon') }}</span>
+                            </div>
                         @endif
-                    @else
-                        <div class="uh-pd-shot is-main is-empty">
-                            <x-icon name="image" class="size-8" />
-                            <span>{{ __('Photos coming soon') }}</span>
-                        </div>
-                    @endif
-                </section>
+                    </section>
+                </x-media-stage>
 
                 <aside class="uh-pd-summary uh-surface" aria-label="{{ __('Price and next steps') }}">
                     <div>
@@ -372,46 +371,6 @@
                         </section>
                     @endif
 
-                    @if($videoEmbed)
-                        <section class="uh-pd-card" aria-labelledby="video-heading">
-                            <h2 id="video-heading" class="uh-pd-card-title">{{ __('Video') }}</h2>
-                            <div class="uh-pd-media aspect-video bg-night">
-                                <iframe src="{{ $videoEmbed }}" title="{{ __('Video of :title', ['title' => $property->title]) }}"
-                                        class="size-full" loading="lazy"
-                                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen
-                                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                            </div>
-                        </section>
-                    @endif
-
-                    @if($coordinates)
-                        <section id="location" class="uh-pd-card" aria-labelledby="map-heading">
-                            <h2 id="map-heading" class="uh-pd-card-title">{{ __('Location') }}</h2>
-                            @if($place)
-                                <p class="uh-pd-card-lede">
-                                    <x-icon name="pin" class="size-4" />
-                                    {{ $place }}
-                                </p>
-                            @endif
-                            <div class="uh-pd-media">
-                                <div class="h-72 w-full sm:h-[26rem]" role="region" aria-label="{{ __('Map of :title', ['title' => $property->title]) }}"
-                                     data-uh-map data-lat="{{ $coordinates['lat'] }}" data-lng="{{ $coordinates['lng'] }}"
-                                     data-zoom="{{ $coordinates['approximate'] ? 14 : 16 }}"
-                                     data-pin="{{ $coordinates['approximate'] ? 'false' : 'true' }}"
-                                     data-approximate="{{ $coordinates['approximate'] ? 'true' : 'false' }}"
-                                     data-tiles="{{ $mapTiles }}" data-attribution="{{ $mapAttribution }}"></div>
-                            </div>
-                            <p class="uh-map-note">
-                                @if($coordinates['approximate'])
-                                    {{ __('The map shows the approximate neighbourhood. The exact address is shared when you book a visit.') }}
-                                @else
-                                    {{ __('The map shows the location of this property.') }}
-                                @endif
-                            </p>
-                        </section>
-                    @endif
-
                     @if($property->project)
                         <a href="{{ route('projects.show', $property->project->slug) }}" class="uh-pd-card uh-pd-project">
                             <span class="uh-pd-overview-icon"><x-icon name="building" class="size-5" /></span>
@@ -464,14 +423,68 @@
                         </dl>
                     </section>
 
-                    @if($showEmi)
-                        <section id="emi" class="uh-pd-card">
-                            @include('public.partials.emi-calculator', ['price' => $property->price, 'headingId' => 'emi-heading'])
-                        </section>
-                    @endif
+                    <section id="contact" class="uh-pd-card" aria-labelledby="contact-heading">
+                        <h2 id="contact-heading" class="uh-pd-card-title">{{ __('Contact') }}</h2>
+                        <div class="uh-pd-reach">
+                            <div class="uh-pd-agent">
+                                <span class="uh-pd-agent-avatar" aria-hidden="true">{{ $contactInitials }}</span>
+                                <span class="min-w-0">
+                                    <span class="uh-pd-agent-name">{{ $contactName }}</span>
+                                    <span class="uh-pd-agent-meta">
+                                        <x-icon name="shield" class="size-3.5" />
+                                        {{ __('Listed directly by Urban Haven') }}
+                                    </span>
+                                </span>
+                            </div>
+                            <ul class="uh-pd-reach-list">
+                                @if($callHref)
+                                    <li>
+                                        <x-icon name="phone" class="size-4" />
+                                        <a href="{{ $callHref }}" class="uh-numeric" dir="ltr" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="contact_card">{{ $callNumber }}</a>
+                                    </li>
+                                @endif
+                                @if(filled($contactEmail))
+                                    <li>
+                                        <x-icon name="mail" class="size-4" />
+                                        <a href="mailto:{{ $contactEmail }}" dir="ltr">{{ $contactEmail }}</a>
+                                    </li>
+                                @endif
+                                @if($officeHours)
+                                    <li>
+                                        <x-icon name="clock" class="size-4" />
+                                        <span>{{ $officeHours }}</span>
+                                    </li>
+                                @endif
+                                @if($property->reference)
+                                    <li>
+                                        <x-icon name="tag" class="size-4" />
+                                        <span>{{ __('Reference') }} <span class="uh-numeric">{{ $property->reference }}</span></span>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+                        <div class="uh-pd-reach-actions">
+                            <button type="button" class="uh-btn-primary" @click="$dispatch('uh:open-enquire')">
+                                <x-icon name="mail" class="size-4" />
+                                {{ $isUnavailable ? __('Ask about similar homes') : __('Send an enquiry') }}
+                            </button>
+                            @unless($isUnavailable)
+                                <button type="button" class="uh-btn-secondary" @click="$dispatch('uh:open-visit')">
+                                    <x-icon name="calendar" class="size-4" />
+                                    {{ __('Book a visit') }}
+                                </button>
+                            @endunless
+                            @if(filled($whatsapp))
+                                <a class="uh-btn-whatsapp" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="contact_card">
+                                    <x-icon name="whatsapp" class="size-4" />
+                                    {{ __('WhatsApp') }}
+                                </a>
+                            @endif
+                        </div>
+                    </section>
                 </div>
 
-                <aside id="contact" class="uh-pd-contact" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }"
+                <aside id="contact-panel" class="uh-pd-contact" x-data="{ tab: '{{ $visitTab ? 'visit' : 'enquire' }}' }"
                        @uh:open-visit.window="tab = 'visit'; $el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })"
                        @uh:open-enquire.window="tab = 'enquire'; $el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); setTimeout(() => $el.querySelector('#panel-enquire [name=name]')?.focus({ preventScroll: true }), 500)">
                     <div class="uh-convert uh-surface" id="enquire">

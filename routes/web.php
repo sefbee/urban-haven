@@ -30,6 +30,7 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\LeadController;
 use App\Http\Controllers\Public\LocaleController;
 use App\Http\Controllers\Public\LocationController;
+use App\Http\Controllers\Public\LocationSuggestionController;
 use App\Http\Controllers\Public\MapDataController;
 use App\Http\Controllers\Public\MediaDownloadController;
 use App\Http\Controllers\Public\ProjectController;
@@ -45,6 +46,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/properties', [PropertySearchController::class, 'index'])->name('properties.index');
+Route::get('/map', [PropertySearchController::class, 'map'])->name('map');
+Route::get('/search/locations', LocationSuggestionController::class)->middleware('throttle:public-json')->name('search.locations');
 Route::get('/properties/map', MapDataController::class)->middleware('throttle:public-json')->name('properties.map');
 Route::get('/properties/count', PropertyCountController::class)->middleware('throttle:public-json')->name('properties.count');
 Route::get('/properties/{slug}', [PropertyController::class, 'show'])->name('properties.show');
@@ -197,5 +200,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 Route::get('/{slug}', [CmsController::class, 'show'])
-    ->where('slug', '^(?!admin|properties|projects|locations|articles|faq|shortlist|compare|saved|inquiries|visit-requests|thank-you|track|media|locale|sitemap|sitemaps|robots\.txt|map-data|tools|legal|up|build|storage)[a-z0-9-]+$')
+    ->where('slug', '^(?!admin|properties|map|search|projects|locations|articles|faq|shortlist|compare|saved|inquiries|visit-requests|thank-you|track|media|locale|sitemap|sitemaps|robots\.txt|map-data|tools|legal|up|build|storage)[a-z0-9-]+$')
     ->name('cms.show');

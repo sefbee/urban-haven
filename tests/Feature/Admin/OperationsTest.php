@@ -14,6 +14,7 @@ use App\Notifications\OverdueFollowUpsDigest;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class OperationsTest extends TestCase
@@ -36,6 +37,70 @@ class OperationsTest extends TestCase
         $this->assertTrue($block->is_visible);
 
         $this->actingAs($editor)->post(route('admin.cms.blocks.publish', $block))->assertForbidden();
+    }
+
+    public function test_publisher_uploads_several_homepage_hero_images_and_editor_cannot(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        $editor = $this->staff(Role::CONTENT_EDITOR);
+        $block = CmsBlock::query()->create(['key' => 'hero', 'label' => 'Hero', 'content' => ['title' => 'Live title'], 'is_visible' => true, 'updated_at' => now()]);
+        $upload = fn (): array => [
+            'owner_type' => 'cms_block',
+            'owner_id' => $block->id,
+            'collection' => 'gallery',
+            'files' => [UploadedFile::fake()->image('skyline.jpg', 1600, 900), UploadedFile::fake()->image('river.jpg', 1600, 900)],
+        ];
+
+        $this->actingAs($editor)->post(route('admin.media.store'), $upload())->assertForbidden();
+        $this->assertSame(0, $block->media()->count());
+
+        $this->actingAs($owner)->post(route('admin.media.store'), $upload())->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(2, $block->media()->count());
+        $this->assertTrue(CmsBlock::imagesFor('hero')->isEmpty(), 'Images stay private until they have alt text.');
+
+        [$skyline, $river] = $block->media()->get()->all();
+        $this->actingAs($owner)->patch(route('admin.media.update', $skyline), ['alt_text' => 'Dhaka skyline at dusk', 'is_public' => '1'])->assertRedirect();
+        $this->actingAs($owner)->patch(route('admin.media.update', $river), ['alt_text' => 'Hatirjheel at night', 'is_public' => '1'])->assertRedirect();
+
+        $this->assertSame([$skyline->id, $river->id], CmsBlock::imagesFor('hero')->pluck('id')->all());
+        $this->get(route('home'))->assertOk()
+            ->assertSee('Dhaka skyline at dusk')
+            ->assertSee('uhCoverSlides(2)', false)
+            ->assertSee('Show photo 2 of 2');
+
+        $this->actingAs($editor)->delete(route('admin.media.destroy', $river))->assertForbidden();
+        $this->actingAs($owner)->delete(route('admin.media.destroy', $river))->assertRedirect();
+        $this->assertSame([$skyline->id], CmsBlock::imagesFor('hero')->pluck('id')->all());
+        $this->get(route('home'))->assertOk()->assertDontSee('uhCoverSlides', false);
+    }
+
+    public function test_hero_block_only_accepts_photographs(): void
+    {
+        Storage::fake('public');
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        $block = CmsBlock::query()->create(['key' => 'hero', 'label' => 'Hero', 'content' => ['title' => 'Live title'], 'is_visible' => true, 'updated_at' => now()]);
+
+        $this->actingAs($owner)->post(route('admin.media.store'), [
+            'owner_type' => 'cms_block',
+            'owner_id' => $block->id,
+            'collection' => 'brochure',
+            'file' => UploadedFile::fake()->create('brochure.pdf', 10, 'application/pdf'),
+        ])->assertSessionHasErrors('collection');
+    }
+
+    public function test_blocks_without_images_reject_uploads(): void
+    {
+        Storage::fake('public');
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        $block = CmsBlock::query()->create(['key' => 'about', 'label' => 'About', 'content' => ['title' => 'About'], 'is_visible' => true, 'updated_at' => now()]);
+
+        $this->actingAs($owner)->post(route('admin.media.store'), [
+            'owner_type' => 'cms_block',
+            'owner_id' => $block->id,
+            'file' => UploadedFile::fake()->image('skyline.jpg', 1600, 900),
+        ])->assertForbidden();
     }
 
     public function test_editor_changes_to_a_live_page_wait_for_a_publisher(): void

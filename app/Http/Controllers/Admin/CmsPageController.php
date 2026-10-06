@@ -23,7 +23,7 @@ class CmsPageController extends Controller
 
         return view('admin.cms.pages.index', [
             'pages' => CmsPage::query()->with('publicationState')->orderBy('title')->get(),
-            'blocks' => CmsBlock::query()->orderBy('sort_order')->orderBy('label')->get(),
+            'blocks' => CmsBlock::query()->with('media')->orderBy('sort_order')->orderBy('label')->get()->sortByDesc(fn (CmsBlock $block): bool => $block->acceptsImage())->values(),
             'canPublish' => request()->user()->hasPermission('cms.publish'),
         ]);
     }

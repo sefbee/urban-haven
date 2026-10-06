@@ -6,6 +6,12 @@
                       description="Standalone pages and the editable blocks used across the public site.">
         <x-slot:eyebrow>Website</x-slot:eyebrow>
         <x-slot:actions>
+            @if($canPublish && $blocks->contains(fn ($block) => $block->acceptsImage()))
+                <a class="uh-btn-outline uh-btn-sm" href="#hero-images">
+                    <x-icon name="image" class="size-4" />
+                    Homepage hero images
+                </a>
+            @endif
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New page
@@ -78,7 +84,18 @@
             <div class="mt-4 grid gap-4 lg:grid-cols-2">
                 @foreach($blocks as $block)
                     @php($fields = \Illuminate\Support\Arr::dot($block->draft_content ?? $block->content ?? []))
-                    <div class="uh-panel">
+                    @if($canPublish && $block->acceptsImage())
+                        <div id="hero-images" class="scroll-mt-24 lg:col-span-2">
+                            @include('admin.partials.media-manager', [
+                                'owner' => $block,
+                                'ownerType' => 'cms_block',
+                                'collections' => ['gallery' => 'Homepage hero images'],
+                                'hints' => ['gallery' => 'Use wide landscape photos, at least 1920 px across. Several public photos crossfade behind the homepage search; without any, a featured listing photo is used.'],
+                                'canEdit' => true,
+                            ])
+                        </div>
+                    @endif
+                    <div id="block-{{ $block->key }}" @class(['uh-panel scroll-mt-24', 'lg:col-span-2' => $block->acceptsImage()])>
                         <form method="POST" action="{{ route('admin.cms.blocks.update', $block) }}" x-data="uhForm" @submit="submit">
                             @csrf
                             @method('PUT')

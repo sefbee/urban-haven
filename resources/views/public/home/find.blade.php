@@ -6,10 +6,6 @@
         'rent' => collect([10_000, 15_000, 20_000, 30_000, 50_000, 75_000, 100_000, 150_000, 200_000, 300_000])
             ->map(fn (int $amount): array => ['value' => $amount, 'label' => $budgetLabel($amount)])->all(),
     ];
-    $searchAreas = $heroAreas->map(fn ($area): array => [
-        'id' => $area->id,
-        'label' => $area->name.($area->city ? ', '.$area->city : ''),
-    ])->values();
     $searchLabels = [
         'idle' => __('Search Properties'),
         'one' => __('Show 1 property'),
@@ -19,7 +15,7 @@
 @endphp
 
 <section id="find" class="uh-find scroll-mt-20" aria-labelledby="find-title"
-         x-data="uhHeroSearch({ initial: @js($purposes[0] ?? 'sale'), countUrl: @js(route('properties.count')), labels: @js($searchLabels), areas: @js($searchAreas), budgets: @js($budgets) })">
+         x-data="uhHeroSearch({ initial: @js($purposes[0] ?? 'sale'), countUrl: @js(route('properties.count')), labels: @js($searchLabels), budgets: @js($budgets) })">
     <div class="uh-container">
         <form method="GET" action="{{ route('properties.index') }}" class="uh-search" data-reveal @submit="submit($event)">
             <h2 id="find-title" class="sr-only">{{ __('Search properties') }}</h2>
@@ -41,84 +37,69 @@
             </div>
 
             <div class="uh-search-fields">
-                <div class="uh-search-cell is-location" @click.outside="suggesting = false">
+                <div class="uh-search-cell is-location">
                     <label for="find-location" class="uh-search-label">{{ __('Location') }}</label>
-                    <div class="uh-search-control">
+                    <div class="uh-search-control is-select2">
                         <x-icon name="pin" class="size-4 shrink-0 text-[var(--uh-faint)]" />
-                        <input id="find-location" type="search" x-model="query" maxlength="120" autocomplete="off"
-                               :name="area ? '' : 'q'" name="q"
-                               placeholder="{{ __('Area, street or project') }}"
-                               role="combobox" aria-autocomplete="list" aria-controls="find-location-list"
-                               :aria-expanded="(suggesting && suggestions.length > 0).toString()"
-                               :aria-activedescendant="highlighted >= 0 ? 'find-location-' + highlighted : null"
-                               @input="typed()" @focus="suggesting = true"
-                               @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)"
-                               @keydown.enter="pickHighlighted($event)" @keydown.escape="suggesting = false">
+                        <select id="find-location" x-ref="location" @change="pickLocation($event.target)"
+                                data-uh-select data-uh-select-ajax="{{ route('search.locations') }}" data-uh-select-tags data-uh-select-clear="true"
+                                data-placeholder="{{ __('Area, street or project') }}"
+                                data-uh-select-keyword="{{ __('Search for “:term”') }}"
+                                data-uh-select-empty="{{ __('No matching areas') }}"
+                                data-uh-select-searching="{{ __('Searching…') }}">
+                            <option value=""></option>
+                        </select>
                     </div>
                     <input type="hidden" name="location_area_id" :value="area" :disabled="! area">
-                    <ul id="find-location-list" class="uh-search-suggest" role="listbox" x-cloak
-                        x-show="suggesting && suggestions.length > 0" x-transition.opacity.duration.150ms>
-                        <template x-for="(option, index) in suggestions" :key="option.id">
-                            <li :id="'find-location-' + index" role="option" :aria-selected="(index === highlighted).toString()"
-                                :class="index === highlighted && 'is-highlighted'"
-                                @mousedown.prevent="pick(option)" @mouseenter="highlighted = index">
-                                <x-icon name="pin" class="size-3.5 shrink-0 text-[var(--uh-faint)]" />
-                                <span x-text="option.label"></span>
-                            </li>
-                        </template>
-                    </ul>
+                    <input type="hidden" name="q" :value="query" :disabled="area !== '' || query.trim() === ''">
                 </div>
 
-                <label class="uh-search-cell">
-                    <span class="uh-search-label">{{ __('Property type') }}</span>
-                    <span class="uh-search-control">
-                        <select name="property_type_id" x-model="type">
+                <div class="uh-search-cell">
+                    <label for="find-type" class="uh-search-label">{{ __('Property type') }}</label>
+                    <div class="uh-search-control is-select2">
+                        <select id="find-type" name="property_type_id" x-model="type" data-uh-select data-uh-select-clear="true">
                             <option value="">{{ __('Any type') }}</option>
                             @foreach($types as $propertyType)
                                 <option value="{{ $propertyType->id }}">{{ $propertyType->label }}</option>
                             @endforeach
                         </select>
-                        <x-icon name="chevron-down" class="uh-search-chevron" />
-                    </span>
-                </label>
+                    </div>
+                </div>
 
-                <label class="uh-search-cell">
-                    <span class="uh-search-label">{{ __('Bedrooms') }}</span>
-                    <span class="uh-search-control">
-                        <select name="min_beds" x-model="beds">
+                <div class="uh-search-cell">
+                    <label for="find-beds" class="uh-search-label">{{ __('Bedrooms') }}</label>
+                    <div class="uh-search-control is-select2">
+                        <select id="find-beds" name="min_beds" x-model="beds" data-uh-select data-uh-select-search="off">
                             <option value="">{{ __('Any') }}</option>
                             @foreach([1, 2, 3, 4, 5] as $bedCount)
                                 <option value="{{ $bedCount }}">{{ __(':count+ bedrooms', ['count' => $bedCount]) }}</option>
                             @endforeach
                         </select>
-                        <x-icon name="chevron-down" class="uh-search-chevron" />
-                    </span>
-                </label>
+                    </div>
+                </div>
 
                 <div class="uh-search-cell is-budget" role="group" aria-labelledby="find-budget">
                     <span id="find-budget" class="uh-search-label">{{ __('Price range') }}</span>
                     <div class="uh-search-range">
-                        <label class="uh-search-control">
-                            <span class="sr-only">{{ __('Minimum price') }}</span>
-                            <select name="min_price" x-model="min">
+                        <div class="uh-search-control is-select2">
+                            <label for="find-min" class="sr-only">{{ __('Minimum price') }}</label>
+                            <select id="find-min" name="min_price" x-model="min" data-uh-select data-uh-select-search="on" data-uh-select-auto-width="true">
                                 <option value="">{{ __('No min') }}</option>
                                 <template x-for="option in minBudgets" :key="purpose + option.value">
                                     <option :value="option.value" x-text="option.label" :selected="String(option.value) === min"></option>
                                 </template>
                             </select>
-                            <x-icon name="chevron-down" class="uh-search-chevron" />
-                        </label>
+                        </div>
                         <span class="uh-search-dash" aria-hidden="true">–</span>
-                        <label class="uh-search-control">
-                            <span class="sr-only">{{ __('Maximum price') }}</span>
-                            <select name="max_price" x-model="max">
+                        <div class="uh-search-control is-select2">
+                            <label for="find-max" class="sr-only">{{ __('Maximum price') }}</label>
+                            <select id="find-max" name="max_price" x-model="max" data-uh-select data-uh-select-search="on" data-uh-select-auto-width="true">
                                 <option value="">{{ __('No max') }}</option>
                                 <template x-for="option in maxBudgets" :key="purpose + option.value">
                                     <option :value="option.value" x-text="option.label" :selected="String(option.value) === max"></option>
                                 </template>
                             </select>
-                            <x-icon name="chevron-down" class="uh-search-chevron" />
-                        </label>
+                        </div>
                     </div>
                 </div>
 

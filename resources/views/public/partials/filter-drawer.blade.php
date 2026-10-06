@@ -1,3 +1,9 @@
+@php
+    $minBeds = (string) ($filters['min_beds'] ?? '');
+    $minBaths = (string) ($filters['min_baths'] ?? '');
+    $furnished = $filters['is_furnished'] ?? null;
+@endphp
+
 <div class="uh-scrim-modal z-[70]" x-cloak
      x-bind:class="filtersOpen ? 'block' : 'hidden'"
      x-bind:aria-hidden="(!filtersOpen).toString()"
@@ -129,13 +135,13 @@
         <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Road Access (Feet)') }}</legend>
             <div class="grid grid-cols-2 gap-3">
-                <x-ui.select name="min_road_width" form="property-filters" :label="__('Min')" sr-label>
+                <x-ui.select name="min_road_width" form="property-filters" :label="__('Min')" sr-label data-uh-select data-uh-select-search="off" data-uh-select-clear="true">
                     <option value="">{{ __('Min') }}</option>
                     @foreach([10, 12, 15, 20, 30, 40] as $feet)
                         <option value="{{ $feet }}" @selected((string) ($filters['min_road_width'] ?? '') === (string) $feet)>{{ $feet }} ft</option>
                     @endforeach
                 </x-ui.select>
-                <x-ui.select name="max_road_width" form="property-filters" :label="__('Max')" sr-label>
+                <x-ui.select name="max_road_width" form="property-filters" :label="__('Max')" sr-label data-uh-select data-uh-select-search="off" data-uh-select-clear="true">
                     <option value="">{{ __('Max') }}</option>
                     @foreach([20, 30, 40, 60, 80, 100] as $feet)
                         <option value="{{ $feet }}" @selected((string) ($filters['max_road_width'] ?? '') === (string) $feet)>{{ $feet }} ft</option>

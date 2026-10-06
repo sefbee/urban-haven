@@ -93,6 +93,86 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('Rent home');
     }
 
+    public function test_list_page_links_to_the_dedicated_map_instead_of_embedding_one(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $this->publishProperty('Sale home', ['lat' => 23.81, 'lng' => 90.41]);
+
+        $this->get(route('properties.index', ['listing_type' => 'sale']))
+            ->assertOk()
+            ->assertDontSee('data-uh-map', false)
+            ->assertSee(route('map', ['listing_type' => 'sale']), false);
+    }
+
+    public function test_map_page_shows_the_filtered_homes_beside_the_map(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $this->publishProperty('Sale home', ['listing_type' => 'sale', 'lat' => 23.81, 'lng' => 90.41]);
+        $this->publishProperty('Rent home', ['listing_type' => 'rent', 'price_basis' => 'monthly_rent', 'lat' => 23.75, 'lng' => 90.37]);
+
+        $this->get(route('map', ['listing_type' => 'sale']))
+            ->assertOk()
+            ->assertSee('data-uh-map', false)
+            ->assertSee('data-src=', false)
+            ->assertSee('id="property-filters"', false)
+            ->assertSee('Sale home')
+            ->assertDontSee('Rent home');
+    }
+
+    public function test_map_pins_carry_the_details_shown_in_the_popup_card(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $this->publishProperty('Pinned home', ['lat' => 23.81, 'lng' => 90.41, 'bedrooms' => 3, 'bathrooms' => 2, 'area_value' => 1850]);
+
+        $this->getJson(route('properties.map'))
+            ->assertOk()
+            ->assertJsonPath('points.0.title', 'Pinned home')
+            ->assertJsonPath('points.0.place', 'Gulshan, Dhaka')
+            ->assertJsonPath('points.0.beds', 3)
+            ->assertJsonPath('points.0.baths', 2)
+            ->assertJsonPath('points.0.furnishing', 'Unfurnished');
+    }
+
+    public function test_location_suggestions_match_active_areas_with_live_counts(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $gulshan = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
+        LocationArea::query()->create(['name' => 'Gulshan Lake', 'city' => 'Dhaka', 'is_active' => false]);
+        LocationArea::query()->create(['name' => 'Badda', 'city' => 'Dhaka', 'is_active' => true]);
+        $this->publishProperty('Gulshan listing', ['location_area_id' => $gulshan->id]);
+
+        $this->getJson(route('search.locations', ['q' => 'gul']))
+            ->assertOk()
+            ->assertJsonCount(1, 'results')
+            ->assertJsonPath('results.0.id', $gulshan->id)
+            ->assertJsonPath('results.0.text', 'Gulshan')
+            ->assertJsonPath('results.0.count', 1);
+
+        $this->getJson(route('search.locations', ['q' => '%']))->assertOk()->assertJsonCount(0, 'results');
+    }
+
+    public function test_property_page_switches_between_photos_video_and_map(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $property = $this->publishProperty('Media home', [
+            'lat' => 23.81,
+            'lng' => 90.41,
+            'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        $this->get(route('properties.show', $property->slug))
+            ->assertOk()
+            ->assertSee('uh-stage-switch', false)
+            ->assertSee("view = 'video'", false)
+            ->assertSee("view = 'map'", false);
+
+        $plain = $this->publishProperty('Plain home');
+
+        $this->get(route('properties.show', $plain->slug))
+            ->assertOk()
+            ->assertDontSee('uh-stage-switch', false);
+    }
+
     public function test_search_filters_by_multiple_location_areas(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
@@ -386,9 +466,10 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSee('href="#overview"', false)
             ->assertSee('href="#description"', false)
-            ->assertSee('id="emi"', false)
-            ->assertSee('href="#location"', false)
+            ->assertDontSee('id="emi"', false)
+            ->assertDontSee('id="location"', false)
             ->assertSee('href="#contact"', false)
+            ->assertSee('id="contact"', false)
             ->assertSee('Enquire')
             ->assertSee('Book a visit');
     }

@@ -1,10 +1,11 @@
 @extends('layouts.public')
 
 @php
-    $template = $page->template ?: ($page->slug === 'contact' ? 'contact' : 'default');
-    $phone = \App\Models\Setting::get('phone');
-    $email = \App\Models\Setting::get('email');
-    $address = \App\Models\Setting::get('address');
+    $template = $page->slug === 'contact' ? 'contact' : ($page->template ?: 'default');
+    $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
+    $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);
+    $email = \App\Models\Setting::get('email') ?: ($contactBlock['email'] ?? null);
+    $address = \App\Models\Setting::get('address') ?: ($contactBlock['address'] ?? null);
     $officeHours = \App\Models\Setting::get('office_hours');
     $whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp'));
     $hasForm = in_array($template, ['contact', 'campaign'], true);
@@ -23,7 +24,28 @@
                 ['label' => __('Home'), 'url' => route('home')],
                 ['label' => $page->title],
             ]" />
-            <h1 class="uh-h1 uh-page-title">{{ $page->title }}</h1>
+            <h1 class="uh-h1 uh-page-title">{{ $template === 'contact' ? __('Talk to our sales team') : $page->title }}</h1>
+            @if($template === 'contact')
+                <p class="uh-page-lede">{{ __('Call, WhatsApp or send a message. The people who manage our homes will get back to you.') }}</p>
+                <div class="uh-contact-actions">
+                    @if(filled($phone))
+                        <a class="uh-btn-primary" href="{{ \App\Support\PhoneNumber::telHref($phone) }}" data-track="phone_click" data-track-location="contact_page_head">
+                            <x-icon name="phone" class="size-4" />
+                            {{ __('Call now') }}
+                        </a>
+                    @endif
+                    @if($whatsappHref)
+                        <a class="uh-btn-whatsapp" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="contact_page_head">
+                            <x-icon name="whatsapp" class="size-4" />
+                            {{ __('Chat on WhatsApp') }}
+                        </a>
+                    @endif
+                    <a class="uh-btn-secondary" href="#page-form-heading">
+                        <x-icon name="mail" class="size-4" />
+                        {{ __('Send a message') }}
+                    </a>
+                </div>
+            @endif
         </div>
     </header>
 

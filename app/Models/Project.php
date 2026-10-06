@@ -26,6 +26,7 @@ class Project extends Model
         'property_category',
         'lat',
         'lng',
+        'video_url',
         'developer_name',
         'completion_date',
         'handover_info',

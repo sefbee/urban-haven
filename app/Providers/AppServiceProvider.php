@@ -8,6 +8,7 @@ use App\Contracts\LeadService as LeadServiceContract;
 use App\Contracts\MediaService as MediaServiceContract;
 use App\Contracts\SearchService as SearchServiceContract;
 use App\Contracts\SimilarPropertiesService;
+use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use App\Models\Lead;
 use App\Models\Post;
@@ -15,6 +16,7 @@ use App\Models\Project;
 use App\Models\Property;
 use App\Models\SiteVisitRequest;
 use App\Models\User;
+use App\Policies\CmsBlockPolicy;
 use App\Policies\CmsPagePolicy;
 use App\Policies\LeadPolicy;
 use App\Policies\PostPolicy;
@@ -69,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(SiteVisitRequest::class, SiteVisitRequestPolicy::class);
         Gate::policy(CmsPage::class, CmsPagePolicy::class);
+        Gate::policy(CmsBlock::class, CmsBlockPolicy::class);
         Gate::policy(Post::class, PostPolicy::class);
         Gate::policy(User::class, StaffPolicy::class);
 

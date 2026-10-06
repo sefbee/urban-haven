@@ -10,6 +10,8 @@
     $available = $project->properties;
     $decimals = (int) config('urbanhaven.maps.approximate_decimals', 2);
     $hasMap = filled($project->lat) && filled($project->lng);
+    $mapPoint = $hasMap ? ['lat' => round((float) $project->lat, $decimals), 'lng' => round((float) $project->lng, $decimals), 'approximate' => true] : null;
+    $videoEmbed = \App\Support\VideoEmbed::embedUrl($project->video_url);
     $place = collect([$project->locationArea?->name, $project->city])->filter()->implode(', ');
     $stage = match ($project->development_stage) {
         'completed' => __('Completed'),
@@ -98,38 +100,41 @@
             </header>
 
             <div class="uh-pd-layout">
-                <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
-                    @if($photos->isNotEmpty())
-                        <button type="button" class="uh-pd-shot is-main" @click="open(0)"
-                                aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
-                            <img src="{{ $photos->first()->url(1280) }}"
-                                 srcset="{{ $photos->first()->url(768) }} 768w, {{ $photos->first()->url(1280) }} 1280w, {{ $photos->first()->url(1920) }} 1920w"
-                                 sizes="(min-width: 1100px) 60vw, 100vw"
-                                 alt="{{ $photos->first()->alt(app()->getLocale()) }}"
-                                 fetchpriority="high" decoding="async">
-                        </button>
-                        @foreach($thumbs as $index => $image)
-                            <button type="button" class="uh-pd-shot" @click="open({{ $index }})"
-                                    aria-label="{{ __('Open image :number at full size', ['number' => $index + 1]) }}">
-                                <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
-                                @if($loop->last && $hiddenPhotos > 0)
-                                    <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
-                                @endif
+                <x-media-stage class="uh-pd-stage" :title="$project->name" :photo-count="$photos->count()"
+                               :video="$videoEmbed" :coordinates="$mapPoint">
+                    <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
+                        @if($photos->isNotEmpty())
+                            <button type="button" class="uh-pd-shot is-main" @click="open(0)"
+                                    aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
+                                <img src="{{ $photos->first()->url(1280) }}"
+                                     srcset="{{ $photos->first()->url(768) }} 768w, {{ $photos->first()->url(1280) }} 1280w, {{ $photos->first()->url(1920) }} 1920w"
+                                     sizes="(min-width: 1100px) 60vw, 100vw"
+                                     alt="{{ $photos->first()->alt(app()->getLocale()) }}"
+                                     fetchpriority="high" decoding="async">
                             </button>
-                        @endforeach
-                        @if($photos->count() > 1)
-                            <button type="button" class="uh-pd-gallery-all" @click="open(0)">
-                                <x-icon name="grid" class="size-4" />
-                                {{ __('View all :count photos', ['count' => $photos->count()]) }}
-                            </button>
+                            @foreach($thumbs as $index => $image)
+                                <button type="button" class="uh-pd-shot" @click="open({{ $index }})"
+                                        aria-label="{{ __('Open image :number at full size', ['number' => $index + 1]) }}">
+                                    <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
+                                    @if($loop->last && $hiddenPhotos > 0)
+                                        <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                            @if($photos->count() > 1)
+                                <button type="button" class="uh-pd-gallery-all" @click="open(0)">
+                                    <x-icon name="grid" class="size-4" />
+                                    {{ __('View all :count photos', ['count' => $photos->count()]) }}
+                                </button>
+                            @endif
+                        @else
+                            <div class="uh-pd-shot is-main is-empty">
+                                <x-icon name="image" class="size-8" />
+                                <span>{{ __('Photos coming soon') }}</span>
+                            </div>
                         @endif
-                    @else
-                        <div class="uh-pd-shot is-main is-empty">
-                            <x-icon name="image" class="size-8" />
-                            <span>{{ __('Photos coming soon') }}</span>
-                        </div>
-                    @endif
-                </section>
+                    </section>
+                </x-media-stage>
 
                 <aside class="uh-pd-summary uh-surface" aria-label="{{ __('Pricing and next steps') }}">
                     <div>

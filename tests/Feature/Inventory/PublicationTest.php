@@ -193,6 +193,27 @@ class PublicationTest extends TestCase
         $this->get(route('projects.show', $project->fresh()->slug))->assertOk()->assertSee('Lakeshore Residences');
     }
 
+    public function test_project_video_must_be_a_youtube_or_vimeo_link(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+
+        $this->actingAs($owner)->post(route('admin.projects.store'), [
+            'name' => 'River View',
+            'development_stage' => 'upcoming',
+            'city' => 'Dhaka',
+            'video_url' => 'https://example.com/tour.mp4',
+        ])->assertSessionHasErrors('video_url');
+
+        $this->actingAs($owner)->post(route('admin.projects.store'), [
+            'name' => 'River View',
+            'development_stage' => 'upcoming',
+            'city' => 'Dhaka',
+            'video_url' => 'https://vimeo.com/76979871',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('https://vimeo.com/76979871', Project::query()->where('name', 'River View')->value('video_url'));
+    }
+
     public function test_editor_sees_a_read_only_project_editor_without_publish_actions(): void
     {
         $owner = $this->staff(Role::OWNER_ADMIN);

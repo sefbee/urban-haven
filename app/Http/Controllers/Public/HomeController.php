@@ -48,7 +48,9 @@ class HomeController extends Controller
         $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query->whereNotIn('id', $featuredIds->all() ?: [0]));
 
         $listings = $featured->flatten()->concat($latest->flatten());
-        $heroImageSource = $listings->first(fn (Property $property) => $property->featuredImage() !== null);
+        $uploadedHeroImages = CmsBlock::imagesFor('hero');
+        $heroImageSource = $uploadedHeroImages->isEmpty() ? $listings->first(fn (Property $property) => $property->featuredImage() !== null) : null;
+        $heroImages = $uploadedHeroImages->isNotEmpty() ? $uploadedHeroImages : collect([$heroImageSource?->featuredImage()])->filter()->values();
         $typeCards = $this->withCoverImages(
             $types->where('properties_count', '>', 0)->values(),
             'property_type_id',
@@ -73,10 +75,8 @@ class HomeController extends Controller
             'types' => $types,
             'typeCards' => $typeCards,
             'areas' => $listedAreas,
-            'heroAreas' => $areas,
             'hasWhatsapp' => filled(Setting::get('whatsapp')),
-            'heroImage' => $heroImageSource?->featuredImage(),
-            'heroImageAlt' => $heroImageSource?->featuredImage()?->alt(app()->getLocale()) ?: '',
+            'heroImages' => $heroImages,
             'heroListing' => $heroImageSource,
             'liveListingCount' => $this->liveListings(Property::query(), $purposes)->count(),
             'seo' => SeoMeta::for(null, config('app.name'), $hero['body'] ?? 'Apartments, homes, land and commercial space for sale and rent in Dhaka, published directly by Urban Haven.', [

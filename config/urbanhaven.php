@@ -119,8 +119,8 @@ return [
     ],
 
     'maps' => [
-        'tile_url' => env('MAP_TILE_URL', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
-        'attribution' => env('MAP_ATTRIBUTION', '&copy; OpenStreetMap contributors'),
+        'tile_url' => env('MAP_TILE_URL', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'),
+        'attribution' => env('MAP_ATTRIBUTION', '&copy; OpenStreetMap contributors &copy; CARTO'),
         'default_lat' => (float) env('MAP_DEFAULT_LAT', 23.8103),
         'default_lng' => (float) env('MAP_DEFAULT_LNG', 90.4125),
         'approximate_decimals' => 2,

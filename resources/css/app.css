@@ -927,6 +927,14 @@ body.uh-auth {
     --shadow-uh-lg: 0 24px 48px -24px rgb(28 25 21 / 0.22);
 }
 
+body.uh-auth {
+    --admin-accent: #1b8a5c;
+    --admin-accent-hover: #166c49;
+    --admin-line-strong: #d9d2c6;
+    --admin-ink: #1c1915;
+    --admin-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 body.uh-admin {
     --admin-sidebar: 15.5rem;
     --admin-sidebar-collapsed: 4.25rem;

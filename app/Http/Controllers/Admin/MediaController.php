@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Contracts\MediaService;
 use App\Http\Controllers\Controller;
+use App\Models\CmsBlock;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Project;
@@ -12,29 +13,40 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 class MediaController extends Controller
 {
-    private const OWNERS = ['property' => Property::class, 'project' => Project::class, 'post' => Post::class];
+    private const OWNERS = ['property' => Property::class, 'project' => Project::class, 'post' => Post::class, 'cms_block' => CmsBlock::class];
 
     public function store(Request $request, MediaService $media): JsonResponse|RedirectResponse
     {
+        $maxKb = max((int) config('urbanhaven.media.max_image_kb'), (int) config('urbanhaven.media.max_brochure_kb'));
         $validated = $request->validate([
-            'file' => ['required', 'file', 'max:'.max((int) config('urbanhaven.media.max_image_kb'), (int) config('urbanhaven.media.max_brochure_kb'))],
+            'file' => ['required_without:files', 'file', 'max:'.$maxKb],
+            'files' => ['required_without:file', 'array', 'max:20'],
+            'files.*' => ['file', 'max:'.$maxKb],
             'owner_type' => ['required', Rule::in(array_keys(self::OWNERS))],
             'owner_id' => ['required', 'integer'],
-            'collection' => ['nullable', Rule::in([...Media::IMAGE_COLLECTIONS, ...Media::DOCUMENT_COLLECTIONS])],
+            'collection' => [
+                'nullable',
+                Rule::in($request->input('owner_type') === 'cms_block' ? ['gallery'] : [...Media::IMAGE_COLLECTIONS, ...Media::DOCUMENT_COLLECTIONS]),
+            ],
             'alt_text' => ['nullable', 'string', 'max:200'],
         ]);
 
         $owner = $this->owner($validated['owner_type'], (int) $validated['owner_id']);
         $this->authorize('update', $owner);
 
-        $record = $media->store($owner, $request->file('file'), $validated['collection'] ?? 'gallery', $validated['alt_text'] ?? null);
+        $records = collect($request->hasFile('file') ? [$request->file('file')] : $request->file('files'))
+            ->map(fn (UploadedFile $file): Media => $media->store($owner, $file, $validated['collection'] ?? 'gallery', $validated['alt_text'] ?? null));
+        $record = $records->first();
 
         if (! $request->expectsJson()) {
-            return back()->with('status', $record->is_public ? 'Uploaded.' : 'Uploaded. Add alt text to make it public.');
+            $uploaded = $records->count() > 1 ? $records->count().' files uploaded.' : 'Uploaded.';
+
+            return back()->with('status', $records->every(fn (Media $item): bool => $item->is_public) ? $uploaded : $uploaded.' Add alt text to make them public.');
         }
 
         return response()->json([
@@ -96,6 +108,9 @@ class MediaController extends Controller
 
     private function owner(string $type, int $id): Model
     {
-        return self::OWNERS[$type]::query()->findOrFail($id);
+        $owner = self::OWNERS[$type]::query()->findOrFail($id);
+        abort_if($owner instanceof CmsBlock && ! $owner->acceptsImage(), 403, 'This block does not take images.');
+
+        return $owner;
     }
 }
