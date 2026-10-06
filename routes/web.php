@@ -33,7 +33,6 @@ use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\LocationSuggestionController;
 use App\Http\Controllers\Public\MapDataController;
 use App\Http\Controllers\Public\MediaDownloadController;
-use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\PropertyController;
 use App\Http\Controllers\Public\PropertyCountController;
 use App\Http\Controllers\Public\PropertySearchController;
@@ -51,8 +50,8 @@ Route::get('/search/locations', LocationSuggestionController::class)->middleware
 Route::get('/properties/map', MapDataController::class)->middleware('throttle:public-json')->name('properties.map');
 Route::get('/properties/count', PropertyCountController::class)->middleware('throttle:public-json')->name('properties.count');
 Route::get('/properties/{slug}', [PropertyController::class, 'show'])->name('properties.show');
-Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-Route::get('/projects/{slug}', [ProjectController::class, 'show'])->name('projects.show');
+Route::permanentRedirect('/projects', '/properties');
+Route::permanentRedirect('/projects/{slug}', '/properties');
 Route::get('/locations/{slug}', [LocationController::class, 'show'])->name('locations.show');
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');

@@ -25,7 +25,6 @@
         : array_values(array_filter([
             in_array('sale', $purposes, true) ? ['label' => __('Buy'), 'url' => route('properties.index', ['listing_type' => 'sale']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'sale'] : null,
             in_array('rent', $purposes, true) ? ['label' => __('Rent'), 'url' => route('properties.index', ['listing_type' => 'rent']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'rent'] : null,
-            ['label' => __('Projects'), 'url' => route('projects.index'), 'external' => false, 'active' => request()->routeIs('projects.*')],
             ['label' => __('Articles'), 'url' => route('articles.index'), 'external' => false, 'active' => request()->routeIs('articles.*')],
             ['label' => __('About Us'), 'url' => route('cms.show', 'about'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'about'],
             ['label' => __('Contact'), 'url' => route('cms.show', 'contact'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'contact'],
@@ -209,7 +208,6 @@
                                 <li><a href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
                             @endif
                             <li><a href="{{ route('map') }}">{{ __('Map') }}</a></li>
-                            <li><a href="{{ route('projects.index') }}">{{ __('Projects') }}</a></li>
                             <li><a href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
                             <li><a href="{{ route('compare') }}">{{ __('Compare') }}</a></li>
                         </ul>

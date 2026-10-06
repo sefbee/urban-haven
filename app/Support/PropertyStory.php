@@ -178,15 +178,6 @@ final class PropertyStory
             ];
         }
 
-        if ($property->relationLoaded('project') && $property->project) {
-            $anchors[] = [
-                'title' => __('Part of :project', ['project' => $property->project->name]),
-                'detail' => filled($property->project->developer_name)
-                    ? __('A development by :developer', ['developer' => $property->project->developer_name])
-                    : null,
-            ];
-        }
-
         return $anchors;
     }
 

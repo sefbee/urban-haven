@@ -8,7 +8,6 @@ use App\Models\Lead;
 use App\Models\LocationArea;
 use App\Models\Media;
 use App\Models\MenuItem;
-use App\Models\Project;
 use App\Models\PublicationState;
 use App\Models\Redirect;
 use App\Models\Setting;
@@ -158,23 +157,6 @@ class PublicSiteTest extends TestCase
             ->assertDontSee(route('visits.store'), false);
 
         $this->get(route('properties.index'))->assertOk()->assertDontSee('Sold home');
-    }
-
-    public function test_project_page_uses_the_shared_lead_forms(): void
-    {
-        $project = Project::query()->create([
-            'name' => 'Haven Court',
-            'development_stage' => 'ongoing',
-            'city' => 'Dhaka',
-            'description' => 'Twelve storeys in Banani.',
-        ]);
-        $project->publicationState->update(['status' => PublicationState::PUBLISHED]);
-
-        $this->get(route('projects.show', $project->slug))
-            ->assertOk()
-            ->assertSee('name="project_id" value="'.$project->id.'"', false)
-            ->assertSee('name="consent_given"', false)
-            ->assertSee('Book a visit');
     }
 
     public function test_location_landing_page_lists_only_that_area(): void

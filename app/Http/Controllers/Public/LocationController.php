@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\LocationArea;
-use App\Models\Project;
 use App\Models\Property;
 use App\Models\Setting;
 use App\Support\SeoMeta;
@@ -35,7 +34,6 @@ class LocationController extends Controller
         return view('public.locations.show', [
             'area' => $area,
             'listings' => $listings,
-            'projects' => Project::query()->published()->where('location_area_id', $area->id)->with(['locationArea', 'media'])->limit(6)->get(),
             'purposes' => Setting::enabledPurposes(),
             'seo' => SeoMeta::for(null, 'Property in '.$area->name.', '.$area->city, $area->meta_description ?: mb_strimwidth(strip_tags((string) $area->intro), 0, 155, '…'), [
                 'json_ld' => [StructuredData::breadcrumbs([[__('Home'), route('home')], [$area->name, route('locations.show', $area->slug)]])],

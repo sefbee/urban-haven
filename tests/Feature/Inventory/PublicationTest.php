@@ -190,7 +190,6 @@ class PublicationTest extends TestCase
         $this->post(route('admin.projects.publish', $project))->assertRedirect();
 
         $this->assertSame(PublicationState::PUBLISHED, $project->fresh()->editorialStatus());
-        $this->get(route('projects.show', $project->fresh()->slug))->assertOk()->assertSee('Lakeshore Residences');
     }
 
     public function test_project_video_must_be_a_youtube_or_vimeo_link(): void

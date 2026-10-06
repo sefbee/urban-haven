@@ -67,18 +67,5 @@
                 <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Tell us what you need') }}</a>
             </x-ui.empty>
         @endif
-
-        @if($projects->isNotEmpty())
-            <section class="uh-section-tight pb-0" aria-labelledby="area-projects-heading">
-                <header class="uh-section-head">
-                    <h2 id="area-projects-heading" class="uh-h2">{{ __('Projects in :area', ['area' => $area->name]) }}</h2>
-                </header>
-                <div class="uh-project-grid">
-                    @foreach($projects as $project)
-                        @include('public.partials.project-card', ['project' => $project])
-                    @endforeach
-                </div>
-            </section>
-        @endif
     </div>
 @endsection

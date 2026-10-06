@@ -14,7 +14,7 @@
             @foreach([
                 ['url' => url('/'), 'title' => __('Home page'), 'body' => __('Start again from the beginning.')],
                 ['url' => route('properties.index'), 'title' => __('Browse homes'), 'body' => __('Search everything we have available.')],
-                ['url' => route('projects.index'), 'title' => __('Our projects'), 'body' => __('See the developments we have built.')],
+                ['url' => route('cms.show', 'contact'), 'title' => __('Contact us'), 'body' => __('Tell our sales team what you are looking for.')],
             ] as $link)
                 <li>
                     <a href="{{ $link['url'] }}">

@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\Faq;
 use App\Models\Post;
-use App\Models\Project;
 use App\Models\Property;
 use App\Models\Setting;
 use Illuminate\Support\Collection;
@@ -107,27 +106,6 @@ final class StructuredData
                 'numberOfBathroomsTotal' => $property->bathrooms,
                 'floorSize' => $property->area_sqft ? ['@type' => 'QuantitativeValue', 'value' => (float) $property->area_sqft, 'unitCode' => 'FTK'] : null,
                 'address' => $property->locationArea ? ['@type' => 'PostalAddress', 'addressLocality' => $property->locationArea->name, 'addressRegion' => $property->locationArea->city, 'addressCountry' => 'BD'] : null,
-            ]),
-        ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public static function project(Project $project): array
-    {
-        return array_filter([
-            '@context' => 'https://schema.org',
-            '@type' => 'Residence',
-            'name' => $project->name,
-            'url' => route('projects.show', $project->slug),
-            'description' => $project->description ? mb_strimwidth(strip_tags($project->description), 0, 300, '…') : null,
-            'image' => $project->featuredImage()?->url(1280),
-            'address' => array_filter([
-                '@type' => 'PostalAddress',
-                'addressLocality' => $project->locationArea?->name,
-                'addressRegion' => $project->city,
-                'addressCountry' => 'BD',
             ]),
         ]);
     }

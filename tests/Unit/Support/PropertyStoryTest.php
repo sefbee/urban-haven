@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Support;
 
-use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Support\PropertyStory;
@@ -44,8 +43,6 @@ class PropertyStoryTest extends TestCase
             'floor_number' => 7,
             'parking_spaces' => 1,
         ]);
-        $property->setRelation('project', new Project(['name' => 'Haven Residences', 'developer_name' => 'Urban Haven Properties Ltd.']));
-
         $anchors = PropertyStory::for($property)->anchors();
 
         $this->assertSame([
@@ -55,7 +52,6 @@ class PropertyStoryTest extends TestCase
             ['title' => 'Furnished', 'detail' => 'Move in without starting from scratch'],
             ['title' => 'Floor 7', 'detail' => 'Raised well above the street'],
             ['title' => 'Parking for 1 car', 'detail' => null],
-            ['title' => 'Part of Haven Residences', 'detail' => 'A development by Urban Haven Properties Ltd.'],
         ], $anchors);
         $this->assertSame(['East-facing', '2 balconies', 'Furnished'], PropertyStory::for($property)->glance());
     }

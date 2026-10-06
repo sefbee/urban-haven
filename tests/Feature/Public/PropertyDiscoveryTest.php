@@ -220,7 +220,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSee('Buy')
             ->assertSee('Rent')
-            ->assertSee('Projects')
+            ->assertDontSee(url('/projects'))
             ->assertSee('Articles')
             ->assertSee('About Us')
             ->assertSee('Contact')
@@ -346,38 +346,26 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('Latest Properties');
     }
 
-    public function test_projects_index_filters_by_development_stage(): void
+    public function test_projects_are_not_part_of_the_public_site(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
-        $area = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
-
-        $ongoing = Project::query()->create([
-            'name' => 'Ongoing Haven Court',
+        $area = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true, 'intro' => 'Leafy diplomatic quarter.']);
+        $project = Project::query()->create([
+            'name' => 'Haven Court Residences',
             'development_stage' => 'ongoing',
             'city' => 'Dhaka',
             'location_area_id' => $area->id,
             'developer_name' => 'Urban Haven Properties Ltd.',
         ]);
-        $ongoing->publicationState->update(['status' => PublicationState::PUBLISHED]);
+        $project->publicationState->update(['status' => PublicationState::PUBLISHED]);
+        $property = $this->publishProperty('Gulshan lake flat', ['location_area_id' => $area->id, 'project_id' => $project->id]);
 
-        $completed = Project::query()->create([
-            'name' => 'Completed Haven House',
-            'development_stage' => 'completed',
-            'city' => 'Dhaka',
-            'location_area_id' => $area->id,
-            'developer_name' => 'Urban Haven Properties Ltd.',
-        ]);
-        $completed->publicationState->update(['status' => PublicationState::PUBLISHED]);
-
-        $this->get(route('projects.index', ['development_stage' => 'available']))
-            ->assertOk()
-            ->assertSee('Ongoing Haven Court')
-            ->assertDontSee('Completed Haven House');
-
-        $this->get(route('projects.index', ['development_stage' => 'completed']))
-            ->assertOk()
-            ->assertSee('Completed Haven House')
-            ->assertDontSee('Ongoing Haven Court');
+        $this->get('/projects')->assertStatus(301)->assertRedirect(route('properties.index'));
+        $this->get('/projects/'.$project->slug)->assertStatus(301)->assertRedirect(route('properties.index'));
+        $this->get(route('properties.show', $property->slug))->assertOk()->assertDontSee('Haven Court Residences');
+        $this->get(route('locations.show', $area->slug))->assertOk()->assertSee('Gulshan lake flat')->assertDontSee('Haven Court Residences');
+        $this->get(route('sitemap'))->assertOk()->assertDontSee('projects.xml');
+        $this->get(route('sitemap.section', 'pages'))->assertOk()->assertDontSee(url('/projects'));
     }
 
     public function test_search_matches_keyword_against_title_and_area_name(): void

@@ -11,12 +11,6 @@
             <x-icon name="chevron-left" class="size-4" />
             All projects
         </a>
-        @if($model && $model->isPublished())
-            <a class="uh-btn-outline uh-btn-sm" href="{{ route('projects.show', $model->slug) }}">
-                <x-icon name="external" class="size-4" />
-                View live
-            </a>
-        @endif
     </x-slot:actions>
 </x-ui.page-header>
 

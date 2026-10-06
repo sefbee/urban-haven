@@ -63,7 +63,7 @@ class LeadController extends Controller
             'lead_type' => $lead->type,
             'message' => $message,
             'subject' => $lead->property?->title ?? $lead->project?->name,
-            'subject_url' => $lead->property ? route('properties.show', $lead->property->slug) : ($lead->project ? route('projects.show', $lead->project->slug) : null),
+            'subject_url' => $lead->property ? route('properties.show', $lead->property->slug) : null,
         ];
 
         if ($request->expectsJson()) {

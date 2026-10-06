@@ -371,20 +371,6 @@
                         </section>
                     @endif
 
-                    @if($property->project)
-                        <a href="{{ route('projects.show', $property->project->slug) }}" class="uh-pd-card uh-pd-project">
-                            <span class="uh-pd-overview-icon"><x-icon name="building" class="size-5" /></span>
-                            <span class="min-w-0 flex-1">
-                                <span class="uh-pd-card-sub block">{{ __('Part of a project') }}</span>
-                                <span class="uh-pd-project-name">{{ $property->project->name }}</span>
-                            </span>
-                            <span class="uh-arrow-link">
-                                {{ __('Explore the project') }}
-                                <x-icon name="arrow-right" class="size-3.5" />
-                            </span>
-                        </a>
-                    @endif
-
                     <section id="confidence" class="uh-pd-card" aria-labelledby="confidence-heading">
                         <h2 id="confidence-heading" class="uh-pd-card-title">{{ __('Before you decide') }}</h2>
                         <dl class="uh-assurance">
