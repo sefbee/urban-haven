@@ -19,7 +19,7 @@
                      data-zoom="12"
                      data-scroll-zoom="true"
                      data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
-                     data-attribution="{{ e(config('urbanhaven.maps.attribution')) }}"
+                     data-attribution="{{ config('urbanhaven.maps.attribution') }}"
                      data-src="{{ $mapDataUrl }}"></div>
                 @if(count($purposes) > 1)
                     <p class="uh-map-legend" aria-hidden="true">

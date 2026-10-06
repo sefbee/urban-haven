@@ -35,7 +35,7 @@
                                  data-uh-map data-lat="{{ $area->lat }}" data-lng="{{ $area->lng }}"
                                  data-zoom="14" data-pin="true"
                                  data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
-                                 data-attribution="{{ e(config('urbanhaven.maps.attribution')) }}"></div>
+                                 data-attribution="{{ config('urbanhaven.maps.attribution') }}"></div>
                         </div>
                         <p class="uh-map-note">{{ __('The map marks the neighbourhood. Exact addresses are shared by our sales team.') }}</p>
                     </div>
