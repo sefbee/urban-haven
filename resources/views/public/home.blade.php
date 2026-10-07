@@ -7,7 +7,7 @@
         @include('public.home.trending-properties')
     @endif
 
-    @if($featuredSale->isNotEmpty() || $featuredRent->isNotEmpty())
+    @if($featured->isNotEmpty())
         @include('public.home.featured-properties')
     @endif
 

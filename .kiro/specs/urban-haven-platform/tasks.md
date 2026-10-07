@@ -272,6 +272,40 @@ Implement all 25 features in strict dependency order (F00 → F24) on the existi
     - _Requirements: 21.1–21.4_
   - [x] 22.2 Create `resources/views/public/home.blade.php` extending `layouts.public`; render featured project cards (name, image, city, link), featured property cards (title, image, price via `MoneyFormatter`, area via `AreaConverter`, link), and CMS blocks
     - _Requirements: 21.1–21.3_
+  - [ ] 22.4 Add Swiper.js to `package.json` (`swiper` npm package); import `Swiper`, `EffectCoverflow`, `Navigation` modules in `resources/js/app.js`; register the modules via `Swiper.use([EffectCoverflow, Navigation])`
+  - [ ] 22.5 Create Blade component `resources/views/components/home/featured-slider.blade.php`; the component accepts a `$properties` Collection and renders a `<div class="swiper featured-coverflow-swiper">` container; each `.swiper-slide` contains:
+    - Top: rounded `<img>` card using the property's 768 px WebP derivative with `srcset` and `alt` from `alt_texts.en`
+    - Bottom-left: project/property title in a bold heading, short tagline/description below (truncated to 2 lines via Tailwind `line-clamp-2`)
+    - Bottom-right: price formatted via `MoneyFormatter::formatBdt` in bold large text; bedroom count with bed icon and bathroom count with bath icon below the price
+    - Render `<div class="swiper-button-prev">` and `<div class="swiper-button-next">` custom navigation elements styled as circular black buttons with `←` / `→` icons positioned between center and side slides
+  - [ ] 22.6 Initialise the Swiper instance in `resources/js/home-slider.js` (imported in `app.js`):
+    ```js
+    new Swiper('.featured-coverflow-swiper', {
+      effect: 'coverflow',
+      grabCursor: true,
+      centeredSlides: true,
+      slidesPerView: 'auto',
+      coverflowEffect: {
+        rotate: 40,        // Y-axis rotation for side slides
+        stretch: 0,
+        depth: 200,        // depth perspective for receding effect
+        modifier: 1,
+        slideShadows: false,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      loop: true,
+    });
+    ```
+    Set `.featured-coverflow-swiper .swiper-slide` width to `60%` via CSS so side slides are partially visible; center slide is `width: 60%`, side slides auto-size via Swiper
+  - [ ] 22.7 Add fade-out gradient overlay to side slides via CSS in `resources/css/app.css`:
+    - `.featured-coverflow-swiper .swiper-slide:not(.swiper-slide-active)::after` — pseudo-element with `background: linear-gradient(to right, white 0%, transparent 30%, transparent 70%, white 100%)` and `position: absolute; inset: 0; pointer-events: none`; this creates the soft white fade on the outer edges of non-active slides matching the design image
+  - [ ] 22.8 Style the custom navigation buttons in `resources/css/app.css`: `.swiper-button-prev, .swiper-button-next` — `width: 40px; height: 40px; background: #000; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center;`; override Swiper default `::after` icon or replace with SVG arrow icons in the Blade markup; position them between center and side slides using `top: 40%` and `z-index: 10`
+  - [ ] 22.9 Include the `<x-home.featured-slider :properties="$featuredProperties" />` component in `home.blade.php` in the featured listings section; pass the `$featuredProperties` Collection (max 6 published featured properties) from `HomeController::index`; update `HomeController` to eager-load `featuredMedia` on the collection
+  - [ ]* 22.10 Write browser-side smoke test or feature test: homepage response contains `.featured-coverflow-swiper` markup, each slide contains image, title, price and bedroom/bathroom metrics, navigation buttons present; verify no published featured properties results in section being hidden
+    - _Requirements: 21.1–21.4_
   - [x]* 22.3 Write feature tests: homepage returns 200, only published featured items shown, CMS block content rendered, response served from cache on second request
     - _Requirements: 21.1–21.4_
 

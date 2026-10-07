@@ -15,6 +15,8 @@
     <div class="uh-listing-frame" @if($morph) style="view-transition-name: uh-property-{{ $property->id }}" @endif>
         @include('public.partials.property-carousel', ['sizes' => $sizes ?? '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw'])
 
+        <p class="uh-listing-image-price uh-numeric">{{ $headline }}</p>
+
         @if($property->availability !== 'available')
             <span class="uh-listing-top">
                 <x-ui.status :status="$property->availability" />
@@ -30,28 +32,31 @@
     </div>
 
     <div class="uh-listing-body">
-        <h3 class="uh-listing-title">
-            <a class="line-clamp-2" href="{{ $url }}" lang="{{ app()->getLocale() }}"
-               data-track="property_card_click" data-track-property-id="{{ $property->id }}">{{ $property->title }}</a>
-        </h3>
+        <div class="uh-listing-content">
+            <div class="uh-listing-description">
+                <h3 class="uh-listing-title">
+                    <a class="line-clamp-2" href="{{ $url }}" lang="{{ app()->getLocale() }}"
+                       data-track="property_card_click" data-track-property-id="{{ $property->id }}">{{ $property->title }}</a>
+                </h3>
 
-        <p class="uh-listing-place">
-            <span>{{ $place ?: __('Dhaka') }}</span>
-            @if($property->propertyType?->label)
-                <span class="uh-listing-kind">{{ $property->propertyType->label }}</span>
+                <p class="uh-listing-place">
+                    <span>{{ $place ?: __('Dhaka') }}</span>
+                    @if($property->propertyType?->label)
+                        <span class="uh-listing-kind">{{ $property->propertyType->label }}</span>
+                    @endif
+                </p>
+            </div>
+
+            @if($facts)
+                <p class="uh-listing-facts uh-numeric">
+                    @foreach($facts as $fact)
+                        <span>{{ $fact }}</span>
+                    @endforeach
+                </p>
             @endif
-        </p>
-
-        @if($facts)
-            <p class="uh-listing-facts uh-numeric">
-                @foreach($facts as $fact)
-                    <span>{{ $fact }}</span>
-                @endforeach
-            </p>
-        @endif
+        </div>
 
         <div class="uh-listing-foot">
-            <p class="uh-listing-price uh-numeric">{{ $headline }}</p>
             @include('public.partials.card-actions', [
                 'url' => $url,
                 'title' => $property->title,

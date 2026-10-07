@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Amenity;
 use App\Models\CmsBlock;
 use App\Models\Faq;
 use App\Models\LocationArea;
@@ -58,10 +59,13 @@ class HomeController extends Controller
             ->get();
 
         $featured = $this->listingsFor('featured', $purposes, fn (Builder $query) => $query->where('is_featured', true));
+        $featuredAmenityIds = $featured->flatten()->flatMap(fn (Property $property): array => $property->amenity_ids ?? [])->unique()->values();
+        $featuredAmenities = Amenity::query()->active()->whereIn('id', $featuredAmenityIds->all())->get()->keyBy('id');
         $featuredIds = $featured->flatten()->pluck('id');
         $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query->whereNotIn('id', $featuredIds->all() ?: [0]));
 
         $listings = $featured->flatten()->concat($latest->flatten());
+        $types = $this->withCoverImages($types, 'property_type_id', $listings, $purposes);
         $uploadedHeroImages = CmsBlock::imagesFor('hero');
         $heroImageSource = $uploadedHeroImages->isEmpty() ? $listings->first(fn (Property $property) => $property->featuredImage() !== null) : null;
         $heroImages = $uploadedHeroImages->isNotEmpty() ? $uploadedHeroImages : collect([$heroImageSource?->featuredImage()])->filter()->values();
@@ -80,8 +84,8 @@ class HomeController extends Controller
             'hero' => $hero,
             'about' => CmsBlock::contentFor('about'),
             'trending' => $this->trendingListings($purposes),
-            'featuredSale' => $featured->get('sale', collect()),
-            'featuredRent' => $featured->get('rent', collect()),
+            'featured' => $this->interleave($featured->get('sale', collect()), $featured->get('rent', collect())),
+            'featuredAmenities' => $featuredAmenities,
             'latestSale' => $latest->get('sale', collect()),
             'latestRent' => $latest->get('rent', collect()),
             'types' => $types,
@@ -117,6 +121,24 @@ class HomeController extends Controller
 
             return [$purpose => $models];
         });
+    }
+
+    /**
+     * Alternate sale and rent listings so one carousel shows both without a purpose toggle.
+     *
+     * @param  Collection<int, Property>  $first
+     * @param  Collection<int, Property>  $second
+     * @return Collection<int, Property>
+     */
+    private function interleave(Collection $first, Collection $second): Collection
+    {
+        $mixed = collect();
+
+        foreach (range(0, max($first->count(), $second->count())) as $position) {
+            $mixed->push($first->get($position), $second->get($position));
+        }
+
+        return $mixed->filter()->values();
     }
 
     /**

@@ -2,198 +2,367 @@
 @section('title', 'Dashboard')
 
 @php
+    use Carbon\Carbon;
+
+    $today = Carbon::now()->format('l, F jS Y');
+
+    // Build stat cards from real data only
     $stats = [];
     if ($seesLeads) {
-        $stats[] = ['label' => 'New leads', 'value' => $leadStats['new'], 'icon' => 'inbox', 'url' => route('admin.leads.index', ['status' => 'new']), 'action' => 'Open new leads'];
-        $stats[] = ['label' => 'Overdue follow-ups', 'value' => $leadStats['overdue'], 'icon' => 'clock', 'url' => route('admin.follow-ups.index'), 'action' => 'Open follow-ups', 'alert' => $leadStats['overdue'] > 0];
-        $stats[] = ['label' => 'Upcoming visits', 'value' => $leadStats['visits'], 'icon' => 'calendar', 'url' => route('admin.visits.index', ['view' => 'upcoming']), 'action' => 'Open visits'];
-    }
-    if ($canReview) {
-        $stats[] = ['label' => 'Awaiting review', 'value' => $pendingReview, 'icon' => 'check-circle', 'url' => route('admin.review.index'), 'action' => 'Open review queue'];
+        $stats[] = [
+            'label'  => 'New Leads',
+            'value'  => number_format($leadStats['new']),
+            'icon'   => 'inbox',
+            'url'    => route('admin.leads.index', ['status' => 'new']),
+            'sub'    => 'vs last 30 days',
+            'accent' => true,
+        ];
+        $stats[] = [
+            'label' => 'Leads (30 days)',
+            'value' => number_format($leadStats['received30']),
+            'icon'  => 'calendar',
+            'url'   => route('admin.leads.index'),
+            'sub'   => 'received this month',
+        ];
+        $stats[] = [
+            'label' => 'Overdue Follow-ups',
+            'value' => number_format($leadStats['overdue']),
+            'icon'  => 'clock',
+            'url'   => route('admin.follow-ups.index'),
+            'sub'   => 'need action now',
+            'alert' => $leadStats['overdue'] > 0,
+        ];
+        $stats[] = [
+            'label' => 'Upcoming Visits',
+            'value' => number_format($leadStats['visits']),
+            'icon'  => 'check-circle',
+            'url'   => route('admin.visits.index', ['view' => 'upcoming']),
+            'sub'   => 'scheduled site visits',
+        ];
     } elseif ($seesInventory) {
-        $stats[] = ['label' => 'Draft listings', 'value' => $drafts, 'icon' => 'document', 'url' => route('admin.properties.index', ['status' => 'draft']), 'action' => 'Open drafts'];
+        $totalInventory = $inventory->sum();
+        $stats[] = [
+            'label'  => 'Published Listings',
+            'value'  => number_format($totalInventory),
+            'icon'   => 'home',
+            'url'    => route('admin.properties.index'),
+            'sub'    => 'live properties',
+            'accent' => true,
+        ];
+        $stats[] = [
+            'label' => 'Draft Listings',
+            'value' => number_format($drafts),
+            'icon'  => 'document',
+            'url'   => route('admin.properties.index', ['status' => 'draft']),
+            'sub'   => 'awaiting publish',
+        ];
+        if ($canReview) {
+            $stats[] = [
+                'label' => 'Awaiting Review',
+                'value' => number_format($pendingReview),
+                'icon'  => 'check-circle',
+                'url'   => route('admin.review.index'),
+                'sub'   => 'pending approval',
+                'alert' => $pendingReview > 0,
+            ];
+        }
+        $stats[] = [
+            'label' => 'Expiring Reservations',
+            'value' => number_format($expiringReservations->count()),
+            'icon'  => 'clock',
+            'url'   => route('admin.properties.index', ['availability' => 'reserved']),
+            'sub'   => 'within 3 days',
+            'alert' => $expiringReservations->isNotEmpty(),
+        ];
     }
+
+    // Pipeline chart data from real stageCounts
     $pipelineMax = max([(int) $stageCounts->max(), 1]);
-    $sourceMax = max([(int) $sourceCounts->max(), 1]);
+
+    // Bar chart: last 6 months of received leads per month
+    $chartMonths = [];
+    $chartReceived = [];
+    $chartWon = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = now()->subMonths($i);
+        $chartMonths[] = $month->format('M');
+        $chartReceived[] = $seesLeads
+            ? \App\Models\Lead::query()->visibleTo(auth()->user())
+                ->whereBetween('created_at', [$month->copy()->startOfMonth(), $month->copy()->endOfMonth()])
+                ->count()
+            : 0;
+        $chartWon[] = $seesLeads
+            ? \App\Models\Lead::query()->visibleTo(auth()->user())
+                ->where('status', 'won')
+                ->whereBetween('updated_at', [$month->copy()->startOfMonth(), $month->copy()->endOfMonth()])
+                ->count()
+            : 0;
+    }
+    $chartMax = max([max($chartReceived), max($chartWon), 1]);
+
+    // Inventory breakdown for right panel
+    $availabilityLabels = \App\Models\Property::AVAILABILITY_LABELS ?? [];
 @endphp
 
 @section('content')
-    <x-ui.page-header compact title="Dashboard" description="What needs a decision today. Figures come straight from the live data.">
-        <x-slot:eyebrow>Desk</x-slot:eyebrow>
-        <x-slot:actions>
+<div class="dd-inner-panel">
+<div class="dd-dashboard">
+
+    {{-- Page Header --}}
+    <div class="dd-page-header">
+        <div>
+            <h1 class="dd-page-title">Dashboard</h1>
+            <p class="dd-page-date">{{ $today }}</p>
+        </div>
+        <div class="dd-header-actions">
             @if($seesLeads)
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.leads.index', ['view' => 'open']) }}">Open leads</a>
+                <a class="dd-btn-outline" href="{{ route('admin.leads.index', ['view' => 'open']) }}">Open leads</a>
             @endif
             @if($seesInventory && auth()->user()->hasPermission('property.create'))
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.properties.create') }}">
-                    <x-icon name="plus" class="size-4" />
-                    New property
+                <a class="dd-btn-primary" href="{{ route('admin.properties.create') }}">
+                    <x-icon name="plus" class="size-4" /> New Property
                 </a>
             @endif
-        </x-slot:actions>
-    </x-ui.page-header>
-
-    @if($seesLeads || $seesInventory)
-        <x-ui.admin-related label="Jump to">
-            @if($seesLeads)
-                <a href="{{ route('admin.leads.index') }}">Leads</a>
-                <a href="{{ route('admin.follow-ups.index') }}">Follow-ups</a>
-                <a href="{{ route('admin.visits.index') }}">Site visits</a>
-            @endif
-            @if($seesInventory)
-                <a href="{{ route('admin.properties.index') }}">Properties</a>
-                <a href="{{ route('admin.projects.index') }}">Projects</a>
-            @endif
-            @if($canReview)
-                <a href="{{ route('admin.review.index') }}">Review queue</a>
-            @endif
-        </x-ui.admin-related>
-    @endif
-
-    @if($stats !== [])
-        <div class="uh-admin-kpis">
-            @foreach($stats as $stat)
-                <div class="uh-admin-kpi">
-                    <div class="uh-admin-kpi-top">
-                        <p class="text-[0.6875rem] font-medium tracking-wide text-[var(--color-muted)]">{{ $stat['label'] }}</p>
-                        <span @class(['uh-admin-kpi-icon', 'is-alert' => $stat['alert'] ?? false])>
-                            <x-icon :name="$stat['icon']" class="size-4" />
-                        </span>
-                    </div>
-                    <p @class(['uh-numeric mt-3 text-[2rem] font-semibold leading-none tracking-tight', 'text-[var(--color-danger)]' => $stat['alert'] ?? false])>{{ number_format($stat['value']) }}</p>
-                    <a class="uh-link mt-auto pt-4 text-xs font-medium no-underline" href="{{ $stat['url'] }}">{{ $stat['action'] }}</a>
-                </div>
-            @endforeach
         </div>
-    @endif
-
-    <div class="mt-6 grid gap-4 lg:grid-cols-3">
-        @if($seesLeads)
-            <section class="uh-panel" aria-labelledby="pipeline-heading">
-                <h2 id="pipeline-heading" class="uh-h4">Pipeline</h2>
-                <dl class="mt-4 space-y-2.5 text-sm">
-                    @foreach(\App\Models\Lead::STATUS_LABELS as $status => $label)
-                        @php($count = $stageCounts[$status] ?? 0)
-                        <div>
-                            <div class="flex justify-between gap-3">
-                                <dt><a class="uh-link-quiet" href="{{ route('admin.leads.index', ['status' => $status]) }}">{{ $label }}</a></dt>
-                                <dd class="uh-numeric font-semibold">{{ number_format($count) }}</dd>
-                            </div>
-                            <div class="uh-admin-bar mt-1.5" aria-hidden="true">
-                                <div class="uh-admin-bar-track">
-                                    <div class="uh-admin-bar-fill" style="width: {{ $pipelineMax > 0 ? round(($count / $pipelineMax) * 100) : 0 }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </dl>
-            </section>
-
-            <section class="uh-panel" aria-labelledby="month-heading">
-                <h2 id="month-heading" class="uh-h4">Last 30 days</h2>
-                <dl class="mt-4 grid grid-cols-3 gap-2">
-                    <div class="uh-admin-stat">
-                        <dt class="text-xs text-[var(--color-muted)]">Received</dt>
-                        <dd class="uh-numeric mt-1 text-xl font-semibold">{{ number_format($leadStats['received30']) }}</dd>
-                    </div>
-                    <div class="uh-admin-stat">
-                        <dt class="text-xs text-[var(--color-muted)]">Won</dt>
-                        <dd class="uh-numeric mt-1 text-xl font-semibold">{{ number_format($leadStats['won30']) }}</dd>
-                    </div>
-                    <div class="uh-admin-stat">
-                        <dt class="text-xs text-[var(--color-muted)]">Lost</dt>
-                        <dd class="uh-numeric mt-1 text-xl font-semibold">{{ number_format($leadStats['lost30']) }}</dd>
-                    </div>
-                </dl>
-                @if($sourceCounts->isNotEmpty())
-                    <p class="mt-5 text-[0.6875rem] font-medium tracking-wide text-[var(--color-muted)]">By source</p>
-                    <dl class="mt-3 space-y-2.5 text-sm">
-                        @foreach($sourceCounts as $channel => $total)
-                            <div>
-                                <div class="flex justify-between gap-3">
-                                    <dt>{{ $channel === 'direct' ? 'Direct or unknown' : $channel }}</dt>
-                                    <dd class="uh-numeric">{{ number_format($total) }}</dd>
-                                </div>
-                                <div class="uh-admin-bar mt-1.5" aria-hidden="true">
-                                    <div class="uh-admin-bar-track">
-                                        <div class="uh-admin-bar-fill" style="width: {{ $sourceMax > 0 ? round(($total / $sourceMax) * 100) : 0 }}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </dl>
-                @endif
-            </section>
-        @endif
-
-        @if($seesInventory)
-            <section class="uh-panel" aria-labelledby="inventory-heading">
-                <h2 id="inventory-heading" class="uh-h4">Published inventory</h2>
-                <dl class="mt-4 space-y-2.5 text-sm">
-                    @foreach(\App\Models\Property::AVAILABILITY_LABELS as $availability => $label)
-                        <div class="flex justify-between gap-3">
-                            <dt><a class="uh-link-quiet" href="{{ route('admin.properties.index', ['availability' => $availability]) }}">{{ $label }}</a></dt>
-                            <dd class="uh-numeric font-semibold">{{ number_format($inventory[$availability] ?? 0) }}</dd>
-                        </div>
-                    @endforeach
-                </dl>
-                @if($expiringReservations->isNotEmpty())
-                    <p class="mt-5 text-[0.6875rem] font-medium tracking-wide text-[var(--color-muted)]">Reservations ending within 3 days</p>
-                    <ul class="mt-2 space-y-1 text-sm">
-                        @foreach($expiringReservations as $reserved)
-                            <li><a class="uh-link" href="{{ route('admin.properties.edit', $reserved) }}">{{ $reserved->reference ?? $reserved->title }}</a> <span class="text-xs text-[var(--color-muted)]">· {{ \App\Support\DisplayTimezone::format($reserved->reservation_expires_at) }}</span></li>
-                        @endforeach
-                    </ul>
-                @endif
-            </section>
-        @endif
     </div>
 
-    @if($seesLeads)
-        <section class="mt-8" aria-labelledby="recent-leads">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <h2 id="recent-leads" class="uh-h3">Recent leads</h2>
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.leads.index') }}">All leads</a>
-            </div>
+    {{-- Main Grid --}}
+    <div class="dd-main-grid">
 
-            @if($recentLeads->isNotEmpty())
-                <div class="uh-panel-flush mt-4 overflow-hidden">
-                    <div class="uh-table-scroll">
-                        <table class="uh-table">
-                            <caption class="sr-only">The eight most recent leads you can see</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Interested in</th>
-                                    <th scope="col">Stage</th>
-                                    <th scope="col">Assigned</th>
-                                    <th scope="col">Received</th>
-                                    <th scope="col"><span class="sr-only">Actions</span></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentLeads as $lead)
-                                    <tr>
-                                        <td class="font-medium">
-                                            <a class="uh-link-quiet" href="{{ route('admin.leads.show', $lead) }}">{{ $lead->name }}</a>
-                                            <span class="mt-0.5 block text-xs font-normal text-[var(--color-muted)]" dir="ltr">{{ $lead->phone }}</span>
-                                        </td>
-                                        <td class="min-w-44 max-w-56 truncate">{{ $lead->property?->title ?? $lead->project?->name ?? $lead->typeLabel() }}</td>
-                                        <td><x-ui.status :status="$lead->status" /></td>
-                                        <td class="whitespace-nowrap">{{ $lead->assignee?->name ?? 'Unassigned' }}</td>
-                                        <td class="whitespace-nowrap text-xs text-[var(--color-muted)]">{{ \App\Support\DisplayTimezone::format($lead->created_at) }}</td>
-                                        <td class="uh-admin-row-actions">
-                                            <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.show', $lead) }}">Open</a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+        {{-- Left Column --}}
+        <div class="dd-left-col">
+
+            {{-- Stat Cards 2×2 --}}
+            @if(count($stats))
+            <div class="dd-stat-grid">
+                @foreach($stats as $i => $stat)
+                <a href="{{ $stat['url'] }}" @class(['dd-stat-card', 'dd-stat-accent' => !empty($stat['accent']), 'dd-stat-alert' => !empty($stat['alert'])])>
+                    <div class="dd-stat-top">
+                        <span @class(['dd-stat-icon', 'dd-stat-icon-white' => !empty($stat['accent']), 'dd-stat-icon-alert' => !empty($stat['alert']) && empty($stat['accent'])])>
+                            <x-icon :name="$stat['icon']" class="size-5" />
+                        </span>
+                    </div>
+                    <div class="dd-stat-label">{{ $stat['label'] }}</div>
+                    <div class="dd-stat-value">{{ $stat['value'] }}</div>
+                    <div class="dd-stat-sub">{{ $stat['sub'] }}</div>
+                </a>
+                @endforeach
+            </div>
+            @endif
+
+            {{-- Lead Pipeline / Inventory Summary --}}
+            @if($seesLeads && $stageCounts->isNotEmpty())
+            <div class="dd-card">
+                <div class="dd-chart-header">
+                    <div>
+                        <div class="dd-card-title">Lead Pipeline</div>
+                        <div class="dd-card-subtitle">Current leads by stage</div>
                     </div>
                 </div>
-            @else
-                <x-ui.empty class="mt-4" icon="inbox" title="No leads yet" description="Enquiries submitted on the public site land here straight away." />
+                <dl class="dd-pipeline-list">
+                    @foreach(\App\Models\Lead::STATUS_LABELS as $status => $label)
+                        @php $count = $stageCounts[$status] ?? 0; @endphp
+                        <div class="dd-pipeline-row">
+                            <dt>
+                                <a class="dd-pipeline-link" href="{{ route('admin.leads.index', ['status' => $status]) }}">{{ $label }}</a>
+                            </dt>
+                            <dd class="dd-pipeline-count">{{ number_format($count) }}</dd>
+                            <div class="dd-pipeline-bar-wrap">
+                                <div class="dd-pipeline-bar" style="width: {{ $pipelineMax > 0 ? round(($count / $pipelineMax) * 100) : 0 }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </dl>
+            </div>
+            @elseif($seesInventory && $inventory->isNotEmpty())
+            <div class="dd-card">
+                <div class="dd-chart-header">
+                    <div>
+                        <div class="dd-card-title">Published Inventory</div>
+                        <div class="dd-card-subtitle">Live listings by availability</div>
+                    </div>
+                </div>
+                <dl class="dd-pipeline-list">
+                    @foreach($availabilityLabels as $availability => $label)
+                        @php $count = $inventory[$availability] ?? 0; @endphp
+                        <div class="dd-pipeline-row">
+                            <dt>
+                                <a class="dd-pipeline-link" href="{{ route('admin.properties.index', ['availability' => $availability]) }}">{{ $label }}</a>
+                            </dt>
+                            <dd class="dd-pipeline-count">{{ number_format($count) }}</dd>
+                            <div class="dd-pipeline-bar-wrap">
+                                <div class="dd-pipeline-bar" style="width: {{ $inventory->sum() > 0 ? round(($count / $inventory->sum()) * 100) : 0 }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </dl>
+            </div>
             @endif
-        </section>
+
+            {{-- Bar Chart: Activity over last 6 months --}}
+            @if($seesLeads)
+            <div class="dd-card dd-chart-card">
+                <div class="dd-chart-header">
+                    <div>
+                        <div class="dd-card-title">Lead Activity</div>
+                        <div class="dd-card-subtitle">Received vs won — last 6 months</div>
+                    </div>
+                </div>
+                <div class="dd-chart-legend">
+                    <span class="dd-legend-item dd-legend-gray">Received</span>
+                    <span class="dd-legend-item dd-legend-blue">Won</span>
+                </div>
+                <div class="dd-chart-wrap">
+                    <svg viewBox="0 0 520 210" class="dd-bar-chart" preserveAspectRatio="xMidYMid meet">
+                        @php
+                            $chartH = 160; $chartBase = 185;
+                            $barW = 16; $gap = 12; $startX = 45;
+                            $yLabels = [0, 25, 50, 75, 100];
+                        @endphp
+                        @foreach($yLabels as $yLabel)
+                            @php $yPos = $chartBase - ($yLabel / 100) * $chartH; @endphp
+                            <text x="36" y="{{ $yPos + 4 }}" class="dd-chart-label" text-anchor="end">{{ $yLabel }}%</text>
+                            <line x1="42" y1="{{ $yPos }}" x2="510" y2="{{ $yPos }}" class="dd-chart-grid"/>
+                        @endforeach
+
+                        @foreach($chartMonths as $mi => $month)
+                            @php
+                                $x = $startX + $mi * (($barW * 2) + $gap + 10);
+                                $rH = $chartMax > 0 ? ($chartReceived[$mi] / $chartMax) * $chartH : 1;
+                                $wH = $chartMax > 0 ? ($chartWon[$mi] / $chartMax) * $chartH : 1;
+                                $rH = max($rH, 3);
+                                $wH = max($wH, 3);
+                            @endphp
+                            <rect x="{{ $x }}" y="{{ $chartBase - $rH }}" width="{{ $barW }}" height="{{ $rH }}" rx="4" class="dd-bar-seen"/>
+                            <rect x="{{ $x + $barW + 4 }}" y="{{ $chartBase - $wH }}" width="{{ $barW }}" height="{{ $wH }}" rx="4" class="dd-bar-sales"/>
+                            <text x="{{ $x + $barW }}" y="{{ $chartBase + 16 }}" class="dd-chart-label" text-anchor="middle">{{ $month }}</text>
+                        @endforeach
+                    </svg>
+                </div>
+            </div>
+            @endif
+
+        </div>{{-- end left --}}
+
+        {{-- Right Column --}}
+        <div class="dd-right-col">
+
+            {{-- Lead Stats Summary --}}
+            @if($seesLeads)
+            <div class="dd-card">
+                <div class="dd-chart-header">
+                    <div>
+                        <div class="dd-card-title">Last 30 Days</div>
+                        <div class="dd-card-subtitle">Lead performance summary</div>
+                    </div>
+                </div>
+                <div class="dd-stats-row">
+                    <div class="dd-mini-stat">
+                        <div class="dd-mini-stat-value">{{ number_format($leadStats['received30']) }}</div>
+                        <div class="dd-mini-stat-label">Received</div>
+                    </div>
+                    <div class="dd-mini-stat">
+                        <div class="dd-mini-stat-value dd-mini-stat-green">{{ number_format($leadStats['won30']) }}</div>
+                        <div class="dd-mini-stat-label">Won</div>
+                    </div>
+                    <div class="dd-mini-stat">
+                        <div class="dd-mini-stat-value dd-mini-stat-red">{{ number_format($leadStats['lost30']) }}</div>
+                        <div class="dd-mini-stat-label">Lost</div>
+                    </div>
+                </div>
+
+                @if($sourceCounts->isNotEmpty())
+                <div class="dd-card-section-label">By source</div>
+                <dl class="dd-pipeline-list mt-2">
+                    @foreach($sourceCounts as $channel => $total)
+                    <div class="dd-pipeline-row">
+                        <dt><span class="dd-pipeline-link">{{ $channel === 'direct' ? 'Direct / unknown' : $channel }}</span></dt>
+                        <dd class="dd-pipeline-count">{{ number_format($total) }}</dd>
+                        <div class="dd-pipeline-bar-wrap">
+                            <div class="dd-pipeline-bar" style="width: {{ $sourceCounts->max() > 0 ? round(($total / $sourceCounts->max()) * 100) : 0 }}%"></div>
+                        </div>
+                    </div>
+                    @endforeach
+                </dl>
+                @endif
+            </div>
+            @endif
+
+            {{-- Expiring Reservations --}}
+            @if($seesInventory && $expiringReservations->isNotEmpty())
+            <div class="dd-card">
+                <div class="dd-chart-header">
+                    <div>
+                        <div class="dd-card-title">Expiring Reservations</div>
+                        <div class="dd-card-subtitle">Ending within 3 days</div>
+                    </div>
+                </div>
+                <ul class="dd-reservation-list">
+                    @foreach($expiringReservations as $reserved)
+                    <li class="dd-reservation-row">
+                        <a class="dd-reservation-name" href="{{ route('admin.properties.edit', $reserved) }}">
+                            {{ $reserved->reference ?? $reserved->title }}
+                        </a>
+                        <span class="dd-reservation-date">{{ \App\Support\DisplayTimezone::format($reserved->reservation_expires_at) }}</span>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            {{-- Empty state for right column --}}
+            @if(!$seesLeads && !$seesInventory)
+            <div class="dd-card">
+                <x-ui.empty icon="dashboard" title="Nothing to show" description="You don't have access to leads or inventory." />
+            </div>
+            @endif
+
+        </div>{{-- end right --}}
+    </div>{{-- end main grid --}}
+
+    {{-- Recent Leads Table --}}
+    @if($seesLeads && $recentLeads->isNotEmpty())
+    <div class="dd-card dd-table-card">
+        <div class="dd-chart-header">
+            <div class="dd-card-title">Recent Leads</div>
+            <a class="dd-btn-outline" href="{{ route('admin.leads.index') }}">All leads</a>
+        </div>
+        <div class="uh-table-scroll mt-4">
+            <table class="uh-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Interested in</th>
+                        <th scope="col">Stage</th>
+                        <th scope="col">Assigned</th>
+                        <th scope="col">Received</th>
+                        <th scope="col"><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentLeads as $lead)
+                    <tr>
+                        <td class="font-medium">
+                            <a class="uh-link-quiet" href="{{ route('admin.leads.show', $lead) }}">{{ $lead->name }}</a>
+                            <span class="mt-0.5 block text-xs font-normal text-[var(--color-muted)]" dir="ltr">{{ $lead->phone }}</span>
+                        </td>
+                        <td class="min-w-44 max-w-56 truncate">{{ $lead->property?->title ?? $lead->project?->name ?? $lead->typeLabel() }}</td>
+                        <td><x-ui.status :status="$lead->status" /></td>
+                        <td class="whitespace-nowrap">{{ $lead->assignee?->name ?? 'Unassigned' }}</td>
+                        <td class="whitespace-nowrap text-xs text-[var(--color-muted)]">{{ \App\Support\DisplayTimezone::format($lead->created_at) }}</td>
+                        <td class="uh-admin-row-actions">
+                            <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.show', $lead) }}">Open</a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @elseif($seesLeads)
+        <x-ui.empty class="mt-4" icon="inbox" title="No leads yet" description="Enquiries submitted on the public site land here." />
     @endif
+
+</div>{{-- end dd-dashboard --}}
+</div>{{-- end dd-inner-panel --}}
 @endsection

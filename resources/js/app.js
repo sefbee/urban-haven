@@ -305,14 +305,27 @@ Alpine.data('uhHomeTabs', (initial = 'sale') => ({
 }));
 
 /**
- * Homepage featured carousel: one centred listing with its neighbours receding either side.
- * Wraps in both directions; swipe, arrow keys and clicking a neighbour all move it.
+ * Homepage featured carousel: one centred listing with its neighbours turned away in 3D.
+ * Wraps in both directions; swipe, arrow keys and clicking a neighbour all move it. Hovering a
+ * listing previews its second photo when available; listing selection never advances on a timer.
  */
 Alpine.data('uhShowcase', (count = 0) => ({
     count,
     active: 0,
+    hovered: null,
     dragging: false,
     dragX: 0,
+    photoOn(index, photoIndex, total) {
+        return photoIndex === (this.hovered === index && total > 1 ? 1 : 0);
+    },
+    hoverCard(index, total) {
+        this.hovered = total > 1 ? index : null;
+    },
+    leaveCard(index) {
+        if (this.hovered === index) {
+            this.hovered = null;
+        }
+    },
     slot(index) {
         if (this.count < 2) {
             return 'active';
@@ -337,6 +350,7 @@ Alpine.data('uhShowcase', (count = 0) => ({
     },
     go(index) {
         this.active = (index + this.count) % this.count;
+        this.hovered = null;
     },
     next() {
         this.go(this.active + 1);
