@@ -51,11 +51,9 @@
 
     <div class="uh-container">
         <div class="uh-section-foot">
-            <a class="uh-arrow-link" href="{{ route('properties.index') }}"
-               :href="@js(route('properties.index')) + '?listing_type=' + tab">
+            <x-ui.pill-link :href="route('properties.index')" x-bind:href="{{ Js::from(route('properties.index')) }} + '?listing_type=' + tab">
                 <span x-text="tab === 'rent' ? @js(__('See every property for rent')) : @js(__('See every property for sale'))">{{ __('See every property') }}</span>
-                <x-icon name="arrow-right" class="size-3.5" />
-            </a>
+            </x-ui.pill-link>
         </div>
     </div>
 </section>

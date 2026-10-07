@@ -7,6 +7,16 @@
     $priceGroups = $listing === 'rent'
         ? config('urbanhaven.price_bands.rent.options', [])
         : config('urbanhaven.price_bands.sale.options', []);
+    $typeOptions = $types->map(fn ($propertyType): array => [
+        'id' => (string) $propertyType->id,
+        'label' => $propertyType->label,
+        'category' => $propertyType->category,
+    ])->values();
+    $typeLabels = [
+        'any' => __('Property Type'),
+        'typesMore' => __(':first +:count'),
+        'categories' => \App\Models\PropertyType::categoryLabels(),
+    ];
 @endphp
 
 <div class="uh-filter-bar">
@@ -64,12 +74,27 @@
                 </select>
             </div>
 
-            <x-ui.select name="property_type_id" :label="__('Property Type')" sr-label data-uh-select data-uh-select-clear="true">
-                <option value="">{{ __('Property Type') }}</option>
-                @foreach($types as $type)
-                    <option value="{{ $type->id }}" @selected(($filters['property_type_id'] ?? '') == $type->id)>{{ $type->label }}</option>
-                @endforeach
-            </x-ui.select>
+            <div class="uh-type-field"
+                 x-data="uhTypePicker({ types: @js($typeOptions), category: @js($filters['category'] ?? ''), picked: @js($filters['property_type_ids'] ?? []), labels: @js($typeLabels) })"
+                 @keydown.escape="close(true)" @click.outside="close()">
+                <button type="button" class="uh-select uh-type-trigger" x-ref="trigger" @click="toggle()"
+                        aria-controls="filter-type-panel" :aria-expanded="open.toString()" aria-expanded="false"
+                        :class="{ 'is-set': summary !== @js($typeLabels['any']) }">
+                    <span class="sr-only">{{ __('Property Type') }}:</span>
+                    <span class="uh-type-summary" x-text="summary">{{ $typeLabels['any'] }}</span>
+                </button>
+                <input type="hidden" name="category" :value="category" :disabled="category === ''">
+                <template x-for="id in pickedTypes" :key="'picked' + id">
+                    <input type="hidden" name="property_type_ids[]" :value="id">
+                </template>
+                <div id="filter-type-panel" class="uh-type-popover" x-show="open" x-cloak x-transition.opacity.duration.150ms>
+                    @include('public.partials.type-picker')
+                    <div class="uh-search-panel-foot">
+                        <button type="button" class="uh-search-reset" @click="clearTypes()">{{ __('Reset') }}</button>
+                        <button type="submit" class="uh-search-apply">{{ __('Apply') }}</button>
+                    </div>
+                </div>
+            </div>
 
             <button type="button" class="uh-btn-secondary" @click="toggleFilters()"
                     :aria-expanded="filtersOpen.toString()" aria-controls="more-filters">

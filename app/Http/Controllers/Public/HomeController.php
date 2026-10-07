@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\CmsBlock;
+use App\Models\Faq;
 use App\Models\LocationArea;
+use App\Models\Post;
 use App\Models\Property;
+use App\Models\PropertyMetricDaily;
 use App\Models\PropertyType;
 use App\Models\Setting;
 use App\Support\SeoMeta;
@@ -21,6 +24,14 @@ class HomeController extends Controller
 
     private const CACHE_SECONDS = 600;
 
+    private const TRENDING_LIMIT = 6;
+
+    private const TRENDING_DAYS = 30;
+
+    private const ARTICLE_LIMIT = 3;
+
+    private const FAQ_LIMIT = 5;
+
     /**
      * @var list<string>
      */
@@ -34,6 +45,9 @@ class HomeController extends Controller
         $types = PropertyType::query()
             ->active()
             ->withCount(['properties' => fn (Builder $query) => $this->liveListings($query, $purposes)])
+            ->withCount(collect($purposes)->mapWithKeys(fn (string $purpose): array => [
+                'properties as '.$purpose.'_listings_count' => fn (Builder $query) => $this->liveListings($query, [$purpose]),
+            ])->all())
             ->orderBy('label')
             ->get();
 
@@ -51,12 +65,9 @@ class HomeController extends Controller
         $uploadedHeroImages = CmsBlock::imagesFor('hero');
         $heroImageSource = $uploadedHeroImages->isEmpty() ? $listings->first(fn (Property $property) => $property->featuredImage() !== null) : null;
         $heroImages = $uploadedHeroImages->isNotEmpty() ? $uploadedHeroImages : collect([$heroImageSource?->featuredImage()])->filter()->values();
-        $typeCards = $this->withCoverImages(
-            $types->where('properties_count', '>', 0)->values(),
-            'property_type_id',
-            $listings,
-            $purposes,
-        );
+        $typeGroups = collect(PropertyType::CATEGORIES)
+            ->mapWithKeys(fn (string $category): array => [$category => $types->where('category', $category)->values()])
+            ->filter(fn (Collection $group): bool => $group->isNotEmpty());
         $listedAreas = $this->withCoverImages(
             $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take(12)->values(),
             'location_area_id',
@@ -68,14 +79,16 @@ class HomeController extends Controller
             'purposes' => $purposes,
             'hero' => $hero,
             'about' => CmsBlock::contentFor('about'),
+            'trending' => $this->trendingListings($purposes),
             'featuredSale' => $featured->get('sale', collect()),
             'featuredRent' => $featured->get('rent', collect()),
             'latestSale' => $latest->get('sale', collect()),
             'latestRent' => $latest->get('rent', collect()),
             'types' => $types,
-            'typeCards' => $typeCards,
+            'typeGroups' => $typeGroups,
             'areas' => $listedAreas,
-            'hasWhatsapp' => filled(Setting::get('whatsapp')),
+            'faqs' => Faq::cachedVisible()->take(self::FAQ_LIMIT)->values(),
+            'articles' => Post::query()->published()->with(['category', 'media', 'publicationState'])->latest('id')->limit(self::ARTICLE_LIMIT)->get(),
             'heroImages' => $heroImages,
             'heroListing' => $heroImageSource,
             'liveListingCount' => $this->liveListings(Property::query(), $purposes)->count(),
@@ -104,6 +117,36 @@ class HomeController extends Controller
 
             return [$purpose => $models];
         });
+    }
+
+    /**
+     * Most viewed live listings over the recent window; listings without views fall back to
+     * display priority so the section is never empty on a quiet site.
+     *
+     * @param  list<string>  $purposes
+     * @return Collection<int, Property>
+     */
+    private function trendingListings(array $purposes): Collection
+    {
+        $ids = TaggedCache::remember(['homepage', 'properties'], 'home:trending:'.implode(',', $purposes), self::CACHE_SECONDS, fn (): array => $this->liveListings(Property::query(), $purposes)
+            ->leftJoinSub(
+                PropertyMetricDaily::query()
+                    ->selectRaw('property_id, sum(views) as recent_views')
+                    ->where('date', '>=', now()->subDays(self::TRENDING_DAYS)->toDateString())
+                    ->groupBy('property_id'),
+                'recent_metrics',
+                'recent_metrics.property_id',
+                '=',
+                'properties.id',
+            )
+            ->orderByRaw('coalesce(recent_metrics.recent_views, 0) desc')
+            ->orderByRaw('display_priority is null, display_priority asc')
+            ->orderByDesc('properties.id')
+            ->limit(self::TRENDING_LIMIT)
+            ->pluck('properties.id')
+            ->all());
+
+        return Property::query()->with($this->listingRelations)->whereKey($ids)->get()->sortBy(fn (Property $property) => array_search($property->id, $ids, true))->values();
     }
 
     /**

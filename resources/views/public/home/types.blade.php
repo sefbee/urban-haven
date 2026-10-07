@@ -1,51 +1,68 @@
-<section id="home-types" class="uh-section uh-band-paper scroll-mt-20" x-data="{ active: 0 }" aria-labelledby="types-title">
-    <div class="uh-container">
-        <div class="uh-types">
-            <h2 id="types-title" class="uh-h2 uh-types-title" data-reveal>{{ __('Explore by Property Type') }}</h2>
-            <p class="uh-lede uh-types-lede" data-reveal>{{ __('Start with the kind of space you have in mind.') }}</p>
+@php
+    $categoryLabels = \App\Models\PropertyType::categoryLabels();
+    $firstCategory = $typeGroups->keys()->first();
+    $typeIcons = [
+        'apartment' => 'building',
+        'penthouse' => 'building',
+        'residential-building' => 'building',
+        'commercial-building' => 'building',
+        'duplex' => 'home',
+        'house' => 'home',
+        'townhouse' => 'home',
+        'plot' => 'area',
+        'commercial-plot' => 'area',
+        'land' => 'area',
+        'single-room' => 'bed',
+        'sublet-room' => 'bed',
+        'hotel' => 'bed',
+        'hostel' => 'users',
+        'co-working' => 'users',
+        'office' => 'dashboard',
+        'shop' => 'tag',
+        'showroom' => 'car',
+        'restaurant' => 'sofa',
+        'warehouse' => 'inbox',
+        'factory' => 'settings',
+    ];
+@endphp
 
-            <ul class="uh-types-list">
-                @foreach($typeCards as $type)
-                    @php
-                        $image = $type->coverSource?->featuredImage();
-                    @endphp
-                    <li data-reveal style="--uh-i: {{ $loop->index }}">
-                        <a href="{{ route('properties.index', ['property_type_id' => $type->id]) }}"
-                           class="uh-types-row"
-                           :class="active === {{ $loop->index }} ? 'is-active' : ''"
-                           @mouseenter="active = {{ $loop->index }}" @focus="active = {{ $loop->index }}">
-                            @if($image)
-                                <span class="uh-types-thumb" aria-hidden="true">
-                                    <img src="{{ $image->url(768) }}" sizes="(min-width: 1024px) 0px, 96px"
-                                         alt="" loading="lazy" decoding="async"
-                                         class="uh-shape" data-shape="{{ $type->key }}">
-                                </span>
-                            @endif
-                            <span class="uh-types-name">{{ $type->label }}</span>
-                            <span class="uh-types-count">
-                                {{ trans_choice(':count available|:count available', $type->properties_count, ['count' => $type->properties_count]) }}
+<section id="home-types" class="uh-section scroll-mt-20" x-data="{ category: @js($firstCategory) }" aria-labelledby="types-title">
+    <div class="uh-container">
+        <header class="uh-section-head" data-reveal>
+            <h2 id="types-title" class="uh-h2">{{ __('Explore by Property Type') }}</h2>
+            <p class="uh-lede">{{ __('Start with the kind of space you have in mind.') }}</p>
+        </header>
+
+        <div class="uh-type-tiles-bar" data-reveal>
+            @if($typeGroups->count() > 1)
+                <div class="uh-seg" role="group" aria-label="{{ __('Main property type') }}">
+                    @foreach($typeGroups->keys() as $category)
+                        <button type="button" class="uh-seg-btn" @click="category = @js($category)"
+                                :aria-pressed="(category === @js($category)).toString()" aria-pressed="{{ $category === $firstCategory ? 'true' : 'false' }}">
+                            {{ $categoryLabels[$category] ?? $category }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
+            <x-ui.pill-link :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
+                {{ __('View all') }}
+            </x-ui.pill-link>
+        </div>
+
+        @foreach($typeGroups as $category => $group)
+            <ul class="uh-type-tiles" x-show="category === @js($category)" @if($category !== $firstCategory) style="display: none" @endif
+                aria-label="{{ $categoryLabels[$category] ?? $category }}">
+                @foreach($group as $type)
+                    <li data-reveal style="--uh-i: {{ $loop->index % 5 }}">
+                        <a class="uh-type-tile" href="{{ route('properties.index', ['property_type_ids' => [$type->id]]) }}">
+                            <span class="uh-type-tile-icon" aria-hidden="true">
+                                <x-icon :name="$typeIcons[$type->key] ?? 'building'" class="size-5" />
                             </span>
+                            <span class="uh-type-tile-name">{{ $type->label }}</span>
                         </a>
                     </li>
                 @endforeach
             </ul>
-
-            <div class="uh-types-preview" aria-hidden="true">
-                @foreach($typeCards as $type)
-                    @php
-                        $image = $type->coverSource?->featuredImage();
-                    @endphp
-                    @if($image)
-                        <img src="{{ $image->url(1280) }}"
-                             srcset="{{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
-                             sizes="(min-width: 1024px) 40vw, 0px"
-                             alt="" loading="lazy" decoding="async"
-                             data-shape="{{ $type->key }}"
-                             :class="{ 'is-active': active === {{ $loop->index }} }"
-                             @class(['uh-shape', 'is-active' => $loop->first])>
-                    @endif
-                @endforeach
-            </div>
-        </div>
+        @endforeach
     </div>
 </section>

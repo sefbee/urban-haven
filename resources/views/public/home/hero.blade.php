@@ -26,10 +26,9 @@
     <div class="uh-cover-inner">
         <h1 id="hero-title" class="sr-only">{{ $heroTitle }}</h1>
         @include('public.home.find')
-        <a class="uh-cover-link" href="{{ route('properties.index') }}" data-track="home_cta_click" data-track-cta="cover">
+        <x-ui.pill-link variant="light" :href="route('properties.index')" data-track="home_cta_click" data-track-cta="cover">
             {{ __('Explore properties') }}
-            <x-icon name="arrow-right" class="size-3.5" />
-        </a>
+        </x-ui.pill-link>
     </div>
 
     @if($heroImages->count() > 1)

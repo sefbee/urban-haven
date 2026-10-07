@@ -4,6 +4,7 @@ namespace App\Services\Search;
 
 use App\Contracts\SearchService as SearchServiceContract;
 use App\Models\Property;
+use App\Models\PropertyType;
 use App\Models\Setting;
 use App\Support\SearchBands;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -72,8 +73,15 @@ class SearchService implements SearchServiceContract
         if (! empty($filters['listing_type'])) {
             $query->where('listing_type', $filters['listing_type']);
         }
-        if (! empty($filters['property_type_id'])) {
-            $query->where('property_type_id', $filters['property_type_id']);
+        $typeIds = array_values(array_unique(array_filter(array_map('intval', [
+            ...(array) ($filters['property_type_ids'] ?? []),
+            $filters['property_type_id'] ?? 0,
+        ]))));
+        if ($typeIds !== []) {
+            $query->whereIn('property_type_id', $typeIds);
+        }
+        if (! empty($filters['category'])) {
+            $query->whereIn('property_type_id', PropertyType::query()->select('id')->where('category', $filters['category']));
         }
         $areaIds = array_values(array_filter(array_map('intval', (array) ($filters['location_area_ids'] ?? []))));
         if ($areaIds === [] && ! empty($filters['location_area_id'])) {

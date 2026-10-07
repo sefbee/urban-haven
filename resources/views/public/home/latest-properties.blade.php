@@ -29,11 +29,9 @@
         @endforeach
 
         <div class="uh-section-foot">
-            <a class="uh-arrow-link" href="{{ route('properties.index', ['sort' => 'newest']) }}"
-               :href="@js(route('properties.index')) + '?sort=newest&listing_type=' + tab">
+            <x-ui.pill-link :href="route('properties.index', ['sort' => 'newest'])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?sort=newest&listing_type=' + tab">
                 {{ __('See everything new') }}
-                <x-icon name="arrow-right" class="size-3.5" />
-            </a>
+            </x-ui.pill-link>
         </div>
     </div>
 </section>

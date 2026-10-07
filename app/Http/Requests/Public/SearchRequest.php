@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Public;
 
 use App\Models\Property;
+use App\Models\PropertyType;
 use App\Models\Setting;
 use App\Support\SearchBands;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
@@ -26,7 +27,10 @@ class SearchRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:120'],
             'listing_type' => ['nullable', Rule::in(Setting::enabledPurposes())],
+            'category' => ['nullable', Rule::in(PropertyType::CATEGORIES)],
             'property_type_id' => ['nullable', 'integer', 'exists:property_types,id'],
+            'property_type_ids' => ['nullable', 'array', 'max:40'],
+            'property_type_ids.*' => ['integer', 'distinct', 'exists:property_types,id'],
             'location_area_id' => ['nullable', 'integer', 'exists:location_areas,id'],
             'location_area_ids' => ['nullable', 'array', 'max:8'],
             'location_area_ids.*' => ['integer', 'distinct', 'exists:location_areas,id'],

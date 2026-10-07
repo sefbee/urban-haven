@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RolesPermissionsSeeder::class,
             ReferenceDataSeeder::class,
             CatalogSeeder::class,
+            FaqSeeder::class,
         ]);
     }
 }

@@ -17,10 +17,14 @@ class PropertyTypeController extends Controller
     {
         $this->authorize('reference.manage');
 
+        $types = PropertyType::query()->withCount('properties')->orderBy('label')->get();
+
         return view('admin.catalogue.types', [
-            'types' => PropertyType::query()->orderBy('label')->get(),
+            'types' => $types,
+            'typesByCategory' => collect(PropertyType::categoryLabels())
+                ->map(fn (string $label, string $category) => $types->where('category', $category)->values()),
             'profiles' => PropertyType::PROFILES,
-            'categories' => PropertyType::CATEGORIES,
+            'categories' => PropertyType::categoryLabels(),
         ]);
     }
 
@@ -41,10 +45,11 @@ class PropertyTypeController extends Controller
                 'id' => $type->id,
                 'label' => $type->label,
                 'profile' => $type->field_profile,
+                'category' => $type->category,
             ], 201);
         }
 
-        return back()->with('status', 'Type added.');
+        return back()->with('status', $type->label.' added under '.$type->categoryLabel().'.');
     }
 
     public function update(Request $request, PropertyType $type): RedirectResponse

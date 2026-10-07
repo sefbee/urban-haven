@@ -137,7 +137,7 @@
                                     {{ __('Adjust filters') }}
                                 </button>
                             @else
-                                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Tell us what you need') }}</a>
+                                <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Tell us what you need') }}</x-ui.pill-link>
                             @endif
                         </x-ui.empty>
                     @endif

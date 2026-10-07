@@ -45,7 +45,7 @@
             <p class="uh-h3">{{ __('Contact Urban Haven Agent') }}</p>
             <p>{{ __('Every home on this site is Urban Haven inventory. Call, WhatsApp, or send a brief and the same desk will follow up.') }}</p>
             <div class="uh-next-links">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
                 @if($whatsappHref)
                     <a class="uh-btn-secondary uh-btn-sm" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="tools">
                         <x-icon name="whatsapp" class="size-4" />

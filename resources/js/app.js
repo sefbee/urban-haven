@@ -364,130 +364,103 @@ Alpine.data('uhShowcase', (count = 0) => ({
 }));
 
 /**
- * Homepage search card. The location field suggests known areas as you type and falls back to a
- * keyword search; the button says how many properties match before anyone submits.
+ * Property type picker state shared by the homepage search and the listing filters: an optional
+ * main type (residential or commercial) narrows a checklist of sub-types. Plain members only, so it
+ * can be spread into an Alpine component.
  */
-Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, budgets = {} } = {}) => ({
+const typePicker = ({ types = [], category = '', picked = [], labels = {} } = {}) => ({
+    typeOptions: types,
+    category: category ?? '',
+    pickedTypes: picked.map(String),
+    visibleTypes() {
+        return this.category ? this.typeOptions.filter((option) => option.category === this.category) : this.typeOptions;
+    },
+    setCategory(next) {
+        this.category = this.category === next ? '' : next;
+        if (this.category) {
+            this.pickedTypes = this.pickedTypes.filter((id) => this.typeOptions.find((option) => option.id === id)?.category === this.category);
+        }
+    },
+    clearTypes() {
+        this.category = '';
+        this.pickedTypes = [];
+    },
+    typeText() {
+        const names = this.pickedTypes.map((id) => this.typeOptions.find((option) => option.id === id)?.label).filter(Boolean);
+        if (names.length > 1) {
+            return (labels.typesMore ?? ':first +:count').replace(':first', names[0]).replace(':count', names.length - 1);
+        }
+
+        return names[0] ?? labels.categories?.[this.category] ?? '';
+    },
+});
+
+/**
+ * Listing filter bar property type dropdown.
+ */
+Alpine.data('uhTypePicker', (config = {}) => ({
+    ...typePicker(config),
+    open: false,
+    get summary() {
+        return this.typeText() || (config.labels?.any ?? '');
+    },
+    toggle() {
+        this.open = !this.open;
+    },
+    close(returnFocus = false) {
+        if (!this.open) {
+            return;
+        }
+        this.open = false;
+        if (returnFocus) {
+            this.$refs.trigger?.focus();
+        }
+    },
+}));
+
+/**
+ * Homepage search card. Location suggests areas, categories and listings as you type and falls
+ * back to a keyword search; categories link straight to results and leave the type field alone.
+ * Type and price open small panels. Choices clear by clicking them again.
+ */
+Alpine.data('uhHeroSearch', ({ initial = 'sale', suggestUrl = null, labels = {}, stops = {}, types = [] } = {}) => ({
+    ...typePicker({ types, labels }),
     purpose: initial,
+    open: null,
     query: '',
     area: '',
-    type: '',
-    beds: '',
+    home: '',
+    locationType: '',
     min: '',
     max: '',
+    minIndex: 0,
+    maxIndex: (stops[initial] ?? [0]).length - 1,
+    areas: [],
+    properties: [],
+    active: -1,
+    loading: false,
+    suggestTimer: null,
+    suggestRequest: 0,
     submitting: false,
-    matches: null,
-    counting: false,
-    countTimer: null,
-    countRequest: 0,
     init() {
-        ['purpose', 'area', 'type', 'beds', 'min', 'max'].forEach((key) => {
-            this.$watch(key, () => this.queueCount());
-        });
-        this.$watch('query', () => {
-            if (!this.area) {
-                this.queueCount();
-            }
-        });
         window.addEventListener('pageshow', () => {
             this.submitting = false;
-            this.$root.querySelectorAll('input[name], select[name]').forEach((field) => {
+            this.$root.querySelectorAll('input[name]').forEach((field) => {
                 field.disabled = false;
             });
         });
     },
-    get refined() {
-        return this.query.trim() !== '' || this.type !== '' || this.beds !== '' || this.hasMin || this.hasMax;
+    get stopList() {
+        return stops[this.purpose] ?? [0];
     },
-    get buttonLabel() {
-        if (this.matches === null) {
-            return labels.idle;
-        }
-        if (this.matches === 0) {
-            return labels.none;
-        }
-
-        return this.matches === 1 ? labels.one : labels.many.replace(':count', this.matches.toLocaleString());
+    get lastStop() {
+        return this.stopList.length - 1;
     },
-    pickLocation(select) {
-        const value = select.value;
-
-        if (value.startsWith('q:')) {
-            this.area = '';
-            this.query = value.slice(2);
-        } else if (value !== '') {
-            this.area = value;
-            this.query = select.selectedOptions[0]?.textContent.trim() ?? '';
-        } else {
-            this.area = '';
-            this.query = '';
-        }
+    get rangeFrom() {
+        return this.lastStop ? (this.minIndex / this.lastStop) * 100 : 0;
     },
-    syncSelects() {
-        this.$nextTick(() => window.dispatchEvent(new CustomEvent('uh:selects-sync')));
-    },
-    get minBudgets() {
-        const options = budgets[this.purpose] ?? [];
-
-        return this.max === '' ? options : options.filter((option) => option.value < Number(this.max));
-    },
-    get maxBudgets() {
-        const options = budgets[this.purpose] ?? [];
-
-        return this.min === '' ? options : options.filter((option) => option.value > Number(this.min));
-    },
-    reset() {
-        this.query = '';
-        this.area = '';
-        this.type = '';
-        this.beds = '';
-        this.min = '';
-        this.max = '';
-        this.matches = null;
-        if (this.$refs.location) {
-            this.$refs.location.value = '';
-        }
-        this.syncSelects();
-    },
-    queueCount() {
-        if (!countUrl) {
-            return;
-        }
-        clearTimeout(this.countTimer);
-        this.countTimer = setTimeout(() => this.count(), 280);
-    },
-    async count() {
-        const params = new URLSearchParams({ listing_type: this.purpose });
-        if (this.area) {
-            params.set('location_area_id', this.area);
-        } else if (this.query.trim()) {
-            params.set('q', this.query.trim());
-        }
-        if (this.type) params.set('property_type_id', this.type);
-        if (this.beds) params.set('min_beds', this.beds);
-        if (this.hasMin) params.set('min_price', this.min);
-        if (this.hasMax) params.set('max_price', this.max);
-
-        const request = ++this.countRequest;
-        this.counting = true;
-        try {
-            const response = await fetch(`${countUrl}?${params}`, { headers: { Accept: 'application/json' } });
-            if (!response.ok) {
-                throw new Error(String(response.status));
-            }
-            const payload = await response.json();
-            if (request === this.countRequest) {
-                this.matches = Number(payload.total ?? 0);
-            }
-        } catch {
-            if (request === this.countRequest) {
-                this.matches = null;
-            }
-        } finally {
-            if (request === this.countRequest) {
-                this.counting = false;
-            }
-        }
+    get rangeTo() {
+        return this.lastStop ? (this.maxIndex / this.lastStop) * 100 : 100;
     },
     get hasMin() {
         return this.min !== '' && Number(this.min) > 0;
@@ -495,14 +468,234 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', countUrl = null, labels = {}, b
     get hasMax() {
         return this.max !== '' && Number(this.max) > 0;
     },
-    setPurpose(next) {
-        this.purpose = next;
+    get typeSummary() {
+        return this.typeText() || labels.anyType;
+    },
+    get priceSummary() {
+        if (this.hasMin && this.hasMax) {
+            return `${this.money(this.min)} – ${this.money(this.max, false)}`;
+        }
+        if (this.hasMin) {
+            return labels.from.replace(':price', this.money(this.min));
+        }
+
+        return this.hasMax ? labels.upTo.replace(':price', this.money(this.max)) : labels.anyPrice;
+    },
+    get typeSuggestions() {
+        const term = this.query.trim().toLowerCase();
+        const matches = term
+            ? this.typeOptions.filter((option) => option.label.toLowerCase().includes(term))
+            : this.typeOptions.filter((option) => this.typeCount(option) > 0);
+
+        return [...matches].sort((a, b) => this.typeCount(b) - this.typeCount(a)).slice(0, 4);
+    },
+    get propertyOffset() {
+        return this.areas.length + this.typeSuggestions.length;
+    },
+    typeCount(option) {
+        return option.counts?.[this.purpose] ?? 0;
+    },
+    typeMeta(option) {
+        const count = this.typeCount(option);
+        if (!count) {
+            return '';
+        }
+
+        return count === 1 ? labels.oneHome : labels.homes.replace(':count', count.toLocaleString());
+    },
+    money(value, prefix = true) {
+        const amount = Number(value) || 0;
+        const trim = (number) => String(Number(number.toFixed(2)));
+        let text = amount.toLocaleString('en-IN');
+        if (amount >= 10_000_000) {
+            text = `${trim(amount / 10_000_000)} ${labels.crore}`;
+        } else if (amount >= 100_000) {
+            text = `${trim(amount / 100_000)} ${labels.lakh}`;
+        } else if (amount >= 1000) {
+            text = `${trim(amount / 1000)}K`;
+        }
+
+        return prefix ? `BDT ${text}` : text;
+    },
+    show(panel) {
+        this.open = panel;
+        if (panel === 'location' && !this.areas.length && !this.properties.length) {
+            this.suggest(0);
+        }
+    },
+    toggle(panel) {
+        this.open === panel ? this.close() : this.show(panel);
+    },
+    toggleLocation() {
+        if (this.open === 'location') {
+            this.close();
+            return;
+        }
+        this.show('location');
+        this.$root.querySelector('#find-location')?.focus();
+    },
+    close(returnFocus = false) {
+        const panel = this.open;
+        this.open = null;
+        this.active = -1;
+        if (returnFocus && panel && panel !== 'location') {
+            this.$root.querySelector(`[aria-controls="find-${panel}-panel"]`)?.focus();
+        }
+    },
+    typed() {
+        this.area = '';
+        this.home = '';
+        this.locationType = '';
+        this.active = -1;
+        this.open = 'location';
+        this.suggest();
+    },
+    suggest(delay = 200) {
+        if (!suggestUrl) {
+            return;
+        }
+        clearTimeout(this.suggestTimer);
+        this.suggestTimer = setTimeout(async () => {
+            const request = ++this.suggestRequest;
+            this.loading = true;
+            try {
+                const params = new URLSearchParams({ q: this.query.trim(), include: 'properties' });
+                const response = await fetch(`${suggestUrl}?${params}`, { headers: { Accept: 'application/json' } });
+                const payload = response.ok ? await response.json() : {};
+                if (request === this.suggestRequest) {
+                    this.areas = (payload.results ?? []).slice(0, 5);
+                    this.properties = payload.properties ?? [];
+                }
+            } catch {
+                if (request === this.suggestRequest) {
+                    this.areas = [];
+                    this.properties = [];
+                }
+            } finally {
+                if (request === this.suggestRequest) {
+                    this.loading = false;
+                }
+            }
+        }, delay);
+    },
+    move(step) {
+        const total = this.propertyOffset + this.properties.length;
+        if (this.open !== 'location') {
+            this.show('location');
+        }
+        if (!total) {
+            return;
+        }
+        this.active = (this.active + step + total) % total;
+    },
+    pickActive(event) {
+        if (this.open !== 'location' || this.active < 0) {
+            return;
+        }
+        event.preventDefault();
+        if (this.active < this.typeSuggestions.length) {
+            this.pickCategory(this.typeSuggestions[this.active]);
+        } else if (this.active < this.propertyOffset) {
+            this.pickArea(this.areas[this.active - this.typeSuggestions.length]);
+        } else {
+            const home = this.properties[this.active - this.propertyOffset];
+            if (home) {
+                this.pickHome(home);
+            }
+        }
+    },
+    clearLocation() {
+        this.area = '';
+        this.home = '';
+        this.locationType = '';
+        this.query = '';
+        this.active = -1;
+        this.suggest(0);
+        this.$root.querySelector('#find-location')?.focus();
+    },
+    pickArea(item) {
+        if (this.area === String(item.id)) {
+            this.clearLocation();
+
+            return;
+        }
+        this.area = String(item.id);
+        this.home = '';
+        this.locationType = '';
+        this.query = item.text;
+        this.close();
+        this.suggest(0);
+    },
+    pickHome(item) {
+        if (this.home === item.url) {
+            this.clearLocation();
+
+            return;
+        }
+        this.home = item.url;
+        this.area = '';
+        this.locationType = '';
+        this.query = item.title;
+        this.close();
+        this.suggest(0);
+    },
+    pickCategory(option) {
+        if (this.locationType === option.id) {
+            this.clearLocation();
+
+            return;
+        }
+        this.locationType = option.id;
+        this.area = '';
+        this.home = '';
+        this.query = option.label;
+        this.close();
+        this.suggest(0);
+    },
+    nearestStop(value, roundUp) {
+        const amount = Number(value) || 0;
+        const list = this.stopList;
+        if (roundUp) {
+            const index = list.findIndex((stop) => stop >= amount);
+
+            return index === -1 ? this.lastStop : index;
+        }
+        let index = 0;
+        list.forEach((stop, position) => {
+            if (stop <= amount) {
+                index = position;
+            }
+        });
+
+        return index;
+    },
+    slideMin() {
+        this.minIndex = Math.min(this.minIndex, this.maxIndex - 1);
+        this.min = this.minIndex === 0 ? '' : String(this.stopList[this.minIndex]);
+    },
+    slideMax() {
+        this.maxIndex = Math.max(this.maxIndex, this.minIndex + 1);
+        this.max = this.maxIndex === this.lastStop ? '' : String(this.stopList[this.maxIndex]);
+    },
+    typedMin() {
+        this.minIndex = this.hasMin ? Math.min(this.nearestStop(this.min, false), this.lastStop - 1) : 0;
+    },
+    typedMax() {
+        this.maxIndex = this.hasMax ? Math.max(this.nearestStop(this.max, true), 1) : this.lastStop;
+    },
+    resetPrice() {
         this.min = '';
         this.max = '';
-        this.syncSelects();
+        this.minIndex = 0;
+        this.maxIndex = this.lastStop;
+    },
+    setPurpose(next) {
+        this.purpose = next;
+        this.resetPrice();
     },
     submit(event) {
-        event.target.querySelectorAll('input[name], select[name]').forEach((field) => {
+        this.close();
+        event.target.querySelectorAll('input[name]').forEach((field) => {
             if (field.value === '') {
                 field.disabled = true;
             }

@@ -51,6 +51,14 @@ class PropertySearchController extends Controller
             ->values()
             ->all();
         unset($filters['location_area_id']);
+        $filters['property_type_ids'] = collect($filters['property_type_ids'] ?? [])
+            ->when(filled($filters['property_type_id'] ?? null), fn ($ids) => $ids->push($filters['property_type_id']))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        unset($filters['property_type_id']);
         $results = $search->search($filters, (int) $request->integer('page', 1), (int) ($filters['per_page'] ?? 12));
         $types = PropertyType::query()->active()->orderBy('label')->get();
         $areas = LocationArea::query()
@@ -61,7 +69,7 @@ class PropertySearchController extends Controller
         $amenities = Amenity::query()->active()->orderBy('label')->get();
         $indexableKeys = config('urbanhaven.seo.indexable_query_keys', ['listing_type', 'page']);
         $hasFilters = collect($request->query())->keys()->diff($indexableKeys)->isNotEmpty();
-        $selectedType = filled($filters['property_type_id'] ?? null) ? $types->firstWhere('id', (int) $filters['property_type_id']) : null;
+        $selectedTypes = $types->whereIn('id', $filters['property_type_ids'])->values();
 
         return [
             'properties' => $results,
@@ -73,12 +81,12 @@ class PropertySearchController extends Controller
             'cities' => LocationArea::query()->active()->distinct()->orderBy('city')->pluck('city'),
             'mapDataUrl' => route('properties.map', $request->query()),
             'purposes' => Setting::enabledPurposes(),
-            'showBedroomFilters' => $selectedType === null || $selectedType->hasResidentialFields(),
+            'showBedroomFilters' => $selectedTypes->isEmpty() || $selectedTypes->contains(fn (PropertyType $type): bool => $type->hasResidentialFields()),
             'searchErrors' => session('errors')?->getBag('search'),
             'analyticsEvents' => [[
                 'event' => 'search',
                 'listing_type' => $filters['listing_type'] ?? 'any',
-                'property_type' => $selectedType?->key,
+                'property_type' => $selectedTypes->pluck('key')->implode(',') ?: ($filters['category'] ?? null),
                 'results' => $results->total(),
             ]],
             'activeFilters' => $this->activeFilters($filters, $areas, $types, $amenities, $routeName),
@@ -140,7 +148,7 @@ class PropertySearchController extends Controller
         $labels = [
             'q' => fn ($value) => __('Search: :term', ['term' => $value]),
             'listing_type' => fn ($value) => $value === 'rent' ? __('For rent') : __('For sale'),
-            'property_type_id' => fn ($value) => $types->firstWhere('id', (int) $value)?->label,
+            'category' => fn ($value) => PropertyType::categoryLabels()[$value] ?? null,
             'location_area_id' => fn ($value) => $areas->firstWhere('id', (int) $value)?->name,
             'city' => fn ($value) => (string) $value,
             'min_price' => fn ($value) => __('From :price', ['price' => MoneyFormatter::formatBdt($value)]),
@@ -202,6 +210,18 @@ class PropertySearchController extends Controller
                     $chips[] = [
                         'label' => (string) $amenities->firstWhere('id', (int) $amenityId)?->label,
                         'url' => route($routeName, array_filter(['amenities' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                    ];
+                }
+
+                continue;
+            }
+
+            if ($key === 'property_type_ids') {
+                foreach ((array) $value as $typeId) {
+                    $remaining = array_values(array_diff(array_map('intval', (array) $value), [(int) $typeId]));
+                    $chips[] = [
+                        'label' => (string) $types->firstWhere('id', (int) $typeId)?->label,
+                        'url' => route($routeName, array_filter(['property_type_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
                     ];
                 }
 

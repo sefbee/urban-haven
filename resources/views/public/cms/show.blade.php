@@ -133,7 +133,7 @@
                 <div class="uh-next-links">
                     <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
                     @if($page->slug !== 'contact')
-                        <a class="uh-arrow-link" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }} <x-icon name="arrow-right" class="size-3.5" /></a>
+                        <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
                     @endif
                 </div>
             </aside>

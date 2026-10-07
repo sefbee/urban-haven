@@ -5,10 +5,7 @@
             <p class="uh-why-body">
                 {{ $about['body'] ?? __('One place to find Urban Haven properties, with the details you need to decide. The same team that publishes each listing answers your questions and walks you through the door.') }}
             </p>
-            <a class="uh-arrow-link mt-8" href="{{ route('cms.show', 'about') }}">
-                {{ __('More about us') }}
-                <x-icon name="arrow-right" class="size-3.5" />
-            </a>
+            <x-ui.pill-link class="mt-8" :href="route('cms.show', 'about')">{{ __('More about us') }}</x-ui.pill-link>
         </div>
     </div>
 </section>

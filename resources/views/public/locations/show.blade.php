@@ -64,7 +64,7 @@
         @else
             <x-ui.empty icon="pin" :title="__('Nothing available in :area right now', ['area' => $area->name])"
                         :description="__('New properties are added regularly. Tell us what you need and we will let you know.')">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Tell us what you need') }}</a>
+                <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Tell us what you need') }}</x-ui.pill-link>
             </x-ui.empty>
         @endif
     </div>

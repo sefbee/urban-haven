@@ -15,9 +15,9 @@
                     <x-ui.input name="key" id="quick-type-key" label="Key" required placeholder="apartment" dir="ltr"
                                 hint="Lowercase, no spaces. Used internally." />
                     <x-ui.input name="label" id="quick-type-label" label="Label" required placeholder="Apartment" />
-                    <x-ui.select name="category" id="quick-type-category" label="Category">
-                        @foreach(\App\Models\PropertyType::CATEGORIES as $category)
-                            <option value="{{ $category }}">{{ ucfirst($category) }}</option>
+                    <x-ui.select name="category" id="quick-type-category" label="Main type">
+                        @foreach(\App\Models\PropertyType::categoryLabels() as $category => $categoryLabel)
+                            <option value="{{ $category }}">{{ $categoryLabel }}</option>
                         @endforeach
                     </x-ui.select>
                     <x-ui.select name="field_profile" id="quick-type-profile" label="Fields shown" hint="Plots hide bedrooms, bathrooms, balconies and floor.">

@@ -18,6 +18,7 @@
         'chevron-left' => '<path d="m15 5-7 7 7 7"/>',
         'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
         'arrow-right' => '<path d="M4 12h16"/><path d="m14 6 6 6-6 6"/>',
+        'arrow-up-right' => '<path d="M7 17 17 7"/><path d="M8 7h9v9"/>',
         'heart' => '<path d="M12 20s-7-4.4-7-9.6A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 7 3.4C19 15.6 12 20 12 20Z"/>',
         'heart-solid' => '<path fill="currentColor" stroke="none" d="M12 21s-8-4.8-8-10.2A4.9 4.9 0 0 1 12 6.2 4.9 4.9 0 0 1 20 10.8C20 16.2 12 21 12 21Z"/>',
         'check' => '<path d="m5 13 4 4L19 7"/>',

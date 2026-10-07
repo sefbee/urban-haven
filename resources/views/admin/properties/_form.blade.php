@@ -70,10 +70,17 @@
             <section class="uh-panel">
                 <h2 class="uh-h4">Classification</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <x-ui.select name="property_type_id" label="Property type" required x-model="typeId" quick-add="type">
+                    <x-ui.select name="property_type_id" label="Property type" required x-model="typeId" quick-add="type"
+                                 hint="Grouped by main type: Residential or Commercial.">
                         <option value="">Choose a type</option>
-                        @foreach($types as $type)
-                            <option value="{{ $type->id }}" @selected(old('property_type_id', $property->property_type_id) == $type->id)>{{ $type->label }}</option>
+                        @foreach(\App\Models\PropertyType::categoryLabels() as $category => $categoryLabel)
+                            @if($types->where('category', $category)->isNotEmpty())
+                                <optgroup label="{{ $categoryLabel }}">
+                                    @foreach($types->where('category', $category) as $type)
+                                        <option value="{{ $type->id }}" @selected(old('property_type_id', $property->property_type_id) == $type->id)>{{ $type->label }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
                         @endforeach
                     </x-ui.select>
                     <x-ui.select name="location_area_id" label="Area" required quick-add="area">

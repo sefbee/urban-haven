@@ -6,18 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Faq;
 use App\Support\SeoMeta;
 use App\Support\StructuredData;
-use App\Support\TaggedCache;
 use Illuminate\View\View;
 
 class FaqController extends Controller
 {
     public function index(): View
     {
-        $faqs = Faq::hydrate(TaggedCache::remember(['cms'], 'faqs.visible.rows', 3600, fn (): array => Faq::query()
-            ->visible()
-            ->get()
-            ->map(fn (Faq $faq): array => $faq->getAttributes())
-            ->all()));
+        $faqs = Faq::cachedVisible();
 
         return view('public.faq', [
             'groups' => $faqs->groupBy('group'),

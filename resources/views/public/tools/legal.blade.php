@@ -34,7 +34,7 @@
                         {{ __('Call Now') }}
                     </a>
                 @endif
-                <a class="uh-btn-secondary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Inquire Now') }}</a>
+                <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Inquire Now') }}</x-ui.pill-link>
                 <a class="uh-arrow-link" href="{{ route('properties.index') }}">{{ __('Browse homes') }} <x-icon name="arrow-right" class="size-3.5" /></a>
             </div>
         </aside>

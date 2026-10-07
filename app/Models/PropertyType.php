@@ -16,9 +16,32 @@ class PropertyType extends Model
 
     public const PROFILES = [self::PROFILE_APARTMENT, self::PROFILE_PLOT, self::PROFILE_COMMERCIAL];
 
-    public const CATEGORIES = ['residential', 'commercial', 'land'];
+    public const CATEGORY_RESIDENTIAL = 'residential';
+
+    public const CATEGORY_COMMERCIAL = 'commercial';
+
+    /**
+     * The two main types. Every property type is a sub-type of one of them.
+     */
+    public const CATEGORIES = [self::CATEGORY_RESIDENTIAL, self::CATEGORY_COMMERCIAL];
 
     protected $fillable = ['key', 'label', 'category', 'field_profile', 'is_active'];
+
+    /**
+     * @return array<string, string>
+     */
+    public static function categoryLabels(): array
+    {
+        return [
+            self::CATEGORY_RESIDENTIAL => __('Residential'),
+            self::CATEGORY_COMMERCIAL => __('Commercial'),
+        ];
+    }
+
+    public function categoryLabel(): string
+    {
+        return self::categoryLabels()[$this->category] ?? ucfirst((string) $this->category);
+    }
 
     protected function casts(): array
     {

@@ -57,6 +57,30 @@ class CataloguePagesTest extends TestCase
         $this->assertDatabaseHas('amenities', ['key' => 'rooftop', 'label' => 'Rooftop']);
     }
 
+    public function test_sub_types_are_listed_under_the_two_main_types(): void
+    {
+        $editor = User::factory()->create();
+        $this->assignRole($editor, Role::CONTENT_EDITOR);
+        PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'category' => 'residential', 'field_profile' => 'apartment', 'is_active' => true]);
+        PropertyType::query()->create(['key' => 'office', 'label' => 'Office', 'category' => 'commercial', 'field_profile' => 'commercial', 'is_active' => true]);
+
+        $this->actingAs($editor)
+            ->get(route('admin.property-types.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['Residential', 'Apartment', 'Commercial', 'Office']);
+
+        $this->actingAs($editor)
+            ->post(route('admin.property-types.store'), [
+                'key' => 'farm',
+                'label' => 'Farm',
+                'category' => 'land',
+                'field_profile' => 'plot',
+            ])
+            ->assertSessionHasErrors('category');
+
+        $this->assertDatabaseMissing('property_types', ['key' => 'farm']);
+    }
+
     public function test_staff_can_create_catalogue_items_as_json_for_quick_add(): void
     {
         $editor = User::factory()->create();

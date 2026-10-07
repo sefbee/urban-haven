@@ -95,30 +95,6 @@ const identityFor = (point) => {
 
 const MARK = '#d93025';
 
-/**
- * Short pin labels: "BDT 42,000,000" becomes "4.2 Cr", "BDT 85,000 /month" becomes "85K/mo".
- */
-const pinLabel = (price) => {
-    const amount = Number(String(price ?? '').replace(/[^0-9.]/g, ''));
-
-    if (!amount) {
-        return '';
-    }
-
-    const trim = (value) => String(Number(value.toFixed(2)));
-    const rent = /month/i.test(price) ? '/mo' : '';
-
-    if (amount >= 10_000_000) {
-        return `${trim(amount / 10_000_000)} Cr${rent}`;
-    }
-
-    if (amount >= 100_000) {
-        return `${trim(amount / 100_000)} L${rent}`;
-    }
-
-    return amount >= 1000 ? `${trim(amount / 1000)}K${rent}` : `${amount}${rent}`;
-};
-
 const HOUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2 2.8 11a1 1 0 0 0 1.3 1.5l.9-.8V20a1 1 0 0 0 1 1h4v-5.5h4V21h4a1 1 0 0 0 1-1v-8.3l.9.8a1 1 0 0 0 1.3-1.5Z"/></svg>';
 
 const homeIcon = (L) => L.divIcon({
@@ -129,12 +105,11 @@ const homeIcon = (L) => L.divIcon({
 });
 
 const pinFor = (L, point, stacked) => {
-    const label = pinLabel(point.price);
     const purpose = /month/i.test(String(point.price ?? '')) ? 'is-rent' : 'is-sale';
 
     return L.divIcon({
-        className: `uh-pin ${purpose}${label ? '' : ' is-solo'}`,
-        html: `<span class="uh-pin-tag"><span class="uh-pin-mark">${HOUSE}</span>${label ? `<span class="uh-pin-price">${escapeHtml(label)}</span>` : ''}</span>`,
+        className: `uh-pin ${purpose} is-solo`,
+        html: `<span class="uh-pin-tag"><span class="uh-pin-mark">${HOUSE}</span></span>`,
         iconSize: [0, 0],
         iconAnchor: [0, stacked * 38],
     });

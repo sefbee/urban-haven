@@ -4,9 +4,12 @@ namespace Tests\Feature\Public;
 
 use App\Models\Amenity;
 use App\Models\CmsPage;
+use App\Models\Faq;
 use App\Models\LocationArea;
+use App\Models\Post;
 use App\Models\Project;
 use App\Models\Property;
+use App\Models\PropertyMetricDaily;
 use App\Models\PropertyType;
 use App\Models\PublicationState;
 use App\Models\Setting;
@@ -151,6 +154,58 @@ class PropertyDiscoveryTest extends TestCase
         $this->getJson(route('search.locations', ['q' => '%']))->assertOk()->assertJsonCount(0, 'results');
     }
 
+    public function test_home_search_suggestions_include_matching_live_properties_on_request(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $gulshan = LocationArea::query()->create(['name' => 'Gulshan', 'city' => 'Dhaka', 'is_active' => true]);
+        $match = $this->publishProperty('Lake view duplex', ['location_area_id' => $gulshan->id]);
+        $this->publishProperty('Corner office floor');
+        $this->publishProperty('Lake view sold flat', ['availability' => 'sold']);
+
+        $this->getJson(route('search.locations', ['q' => 'gul']))->assertOk()->assertJsonMissingPath('properties');
+
+        $this->getJson(route('search.locations', ['q' => 'lake view', 'include' => 'properties']))
+            ->assertOk()
+            ->assertJsonCount(1, 'properties')
+            ->assertJsonPath('properties.0.title', 'Lake view duplex')
+            ->assertJsonPath('properties.0.url', route('properties.show', $match->slug))
+            ->assertJsonPath('properties.0.place', 'Gulshan, Dhaka');
+
+        $this->getJson(route('search.locations', ['include' => 'everything']))->assertUnprocessable();
+    }
+
+    public function test_search_narrows_by_main_type_and_several_sub_types(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $apartment = PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'category' => 'residential', 'is_active' => true]);
+        $duplex = PropertyType::query()->create(['key' => 'duplex', 'label' => 'Duplex', 'category' => 'residential', 'is_active' => true]);
+        $office = PropertyType::query()->create(['key' => 'office', 'label' => 'Office', 'category' => 'commercial', 'field_profile' => 'commercial', 'is_active' => true]);
+        $this->publishProperty('Garden apartment', ['property_type_id' => $apartment->id]);
+        $this->publishProperty('Corner duplex', ['property_type_id' => $duplex->id]);
+        $this->publishProperty('Glass office floor', ['property_type_id' => $office->id]);
+
+        $this->get(route('properties.index', ['category' => 'commercial']))
+            ->assertOk()
+            ->assertSee('Glass office floor')
+            ->assertDontSee('Garden apartment')
+            ->assertDontSee('Corner duplex');
+
+        $this->get(route('properties.index', ['property_type_ids' => [$apartment->id, $duplex->id]]))
+            ->assertOk()
+            ->assertSee('Garden apartment')
+            ->assertSee('Corner duplex')
+            ->assertDontSee('Glass office floor');
+
+        $this->get(route('properties.index', ['property_type_id' => $duplex->id]))
+            ->assertOk()
+            ->assertSee('Corner duplex')
+            ->assertDontSee('Garden apartment');
+
+        $this->getJson(route('properties.count', ['category' => 'residential']))->assertOk()->assertJsonPath('total', 2);
+        $this->getJson(route('properties.count', ['category' => 'commercial', 'property_type_ids' => [$apartment->id]]))->assertOk()->assertJsonPath('total', 0);
+        $this->getJson(route('properties.count', ['category' => 'land']))->assertUnprocessable();
+    }
+
     public function test_property_page_switches_between_photos_video_and_map(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
@@ -233,7 +288,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('We sell and rent our own properties in Dhaka.');
     }
 
-    public function test_home_hero_offers_sale_rent_search_and_trust_strip(): void
+    public function test_home_hero_offers_sale_rent_search_without_statement_section(): void
     {
         $this->get('/')
             ->assertOk()
@@ -241,17 +296,32 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('Rent')
             ->assertSee('Location')
             ->assertSee('Property type')
-            ->assertSee('Bedrooms')
             ->assertSee('Price range')
+            ->assertDontSee('Bedrooms')
+            ->assertSee('Popular categories')
             ->assertSee('Explore properties')
-            ->assertSee('Listed directly by Urban Haven')
-            ->assertSee('Book a site visit online')
+            ->assertDontSee('No marketplace. No unknown sellers.')
             ->assertSee('Why Urban Haven?')
             ->assertDontSee('10,000+')
             ->assertDontSee('Post Property');
     }
 
-    public function test_home_arranges_types_featured_latest_and_locations(): void
+    public function test_home_hero_counts_category_suggestions_per_purpose(): void
+    {
+        $apartment = PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'is_active' => true]);
+        $office = PropertyType::query()->create(['key' => 'office', 'label' => 'Office', 'is_active' => true]);
+        $this->publishProperty('Sale apartment one', ['property_type_id' => $apartment->id]);
+        $this->publishProperty('Sale apartment two', ['property_type_id' => $apartment->id]);
+        $this->publishProperty('Rented office', ['property_type_id' => $office->id, 'listing_type' => 'rent', 'price_basis' => 'monthly_rent']);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertViewHas('types', fn ($types): bool => $types->firstWhere('id', $apartment->id)->sale_listings_count === 2
+                && $types->firstWhere('id', $apartment->id)->rent_listings_count === 0
+                && $types->firstWhere('id', $office->id)->rent_listings_count === 1);
+    }
+
+    public function test_home_arranges_sections_in_order(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
         Setting::set('phone', '+8801711000000', 'contact');
@@ -294,22 +364,27 @@ class PropertyDiscoveryTest extends TestCase
         ]);
         $project->publicationState->update(['status' => PublicationState::PUBLISHED]);
 
+        $post = Post::factory()->create(['title' => 'How to inspect a flat before buying']);
+        $post->publicationState->update(['status' => PublicationState::PUBLISHED, 'published_at' => now()]);
+
         $this->get('/')
             ->assertOk()
             ->assertSeeInOrder([
                 'Explore properties',
-                'Listed directly by Urban Haven',
-                'Explore by Property Type',
+                'Trending Properties',
                 'Featured Properties',
                 'Gulshan featured sale',
                 'Quiet featured rental',
+                'Explore Properties by Location',
+                'Explore by Property Type',
                 'Latest Properties',
                 'Banani latest sale',
                 'Newest rental floor',
-                'Explore Properties by Location',
                 'Why Urban Haven?',
-                'Not sure where to start?',
+                'Latest Articles & Blog',
+                'How to inspect a flat before buying',
             ])
+            ->assertDontSee('Not sure where to start?')
             ->assertDontSee('Explore Urban Haven')
             ->assertSee('Apartment')
             ->assertSee('Explore this home')
@@ -323,6 +398,52 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('View Project')
             ->assertDontSee('Completed Projects')
             ->assertDontSee('Post Property');
+    }
+
+    public function test_home_trending_ranks_listings_by_recent_views(): void
+    {
+        $quiet = $this->publishProperty('Quiet listing');
+        $popular = $this->publishProperty('Popular listing');
+        $stale = $this->publishProperty('Once popular listing');
+        PropertyMetricDaily::query()->insert([
+            ['property_id' => $popular->id, 'date' => now()->toDateString(), 'views' => 40, 'cta_clicks' => 0],
+            ['property_id' => $quiet->id, 'date' => now()->subDays(2)->toDateString(), 'views' => 5, 'cta_clicks' => 0],
+            ['property_id' => $stale->id, 'date' => now()->subDays(45)->toDateString(), 'views' => 900, 'cta_clicks' => 0],
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertViewHas('trending', fn ($trending): bool => $trending->pluck('id')->all() === [$popular->id, $quiet->id, $stale->id]);
+    }
+
+    public function test_home_types_are_grouped_under_main_type_tabs(): void
+    {
+        PropertyType::query()->create(['key' => 'apartment', 'label' => 'Apartment', 'category' => PropertyType::CATEGORY_RESIDENTIAL, 'is_active' => true]);
+        PropertyType::query()->create(['key' => 'office', 'label' => 'Office', 'category' => PropertyType::CATEGORY_COMMERCIAL, 'is_active' => true]);
+        PropertyType::query()->create(['key' => 'hidden-type', 'label' => 'Retired type', 'category' => PropertyType::CATEGORY_COMMERCIAL, 'is_active' => false]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertViewHas('typeGroups', fn ($groups): bool => $groups->keys()->all() === [PropertyType::CATEGORY_RESIDENTIAL, PropertyType::CATEGORY_COMMERCIAL]
+                && $groups[PropertyType::CATEGORY_COMMERCIAL]->pluck('label')->all() === ['Office'])
+            ->assertSeeInOrder(['Explore by Property Type', 'Residential', 'Commercial', 'View all', 'Apartment', 'Office'])
+            ->assertSee(route('properties.index', ['category' => PropertyType::CATEGORY_RESIDENTIAL]), false)
+            ->assertDontSee('Retired type');
+    }
+
+    public function test_home_previews_the_first_visible_faqs(): void
+    {
+        foreach (range(1, 6) as $number) {
+            Faq::query()->create(['question' => "Question number {$number}?", 'answer' => "<p>Answer {$number}.</p>", 'group' => 'General', 'sort_order' => $number, 'is_visible' => true]);
+        }
+        Faq::query()->create(['question' => 'Hidden question?', 'answer' => '<p>Hidden.</p>', 'group' => 'General', 'sort_order' => 0, 'is_visible' => false]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSeeInOrder(['asked questions.', 'Get in touch', 'Question number 1?', 'Question number 5?', 'View all'])
+            ->assertSee(route('faq'), false)
+            ->assertDontSee('Question number 6?')
+            ->assertDontSee('Hidden question?');
     }
 
     public function test_home_hides_featured_and_latest_sections_when_those_collections_are_empty(): void

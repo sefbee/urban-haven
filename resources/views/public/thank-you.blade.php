@@ -27,7 +27,7 @@
                     <h1 class="uh-h1 uh-page-title">{{ __('Nothing to confirm') }}</h1>
                     <p class="uh-lede">{{ __('This page confirms an enquiry right after you send it. If you meant to contact us, use the form on any property or the contact page.') }}</p>
                     <div class="uh-confirm-actions">
-                        <a class="uh-btn-primary" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                        <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
                         <a class="uh-btn-secondary" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
                     </div>
                 @endif

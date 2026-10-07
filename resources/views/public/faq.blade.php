@@ -29,7 +29,7 @@
         @empty
             <x-ui.empty icon="info" :title="__('No questions published yet')"
                         :description="__('Ask us directly and our team will reply.')">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
             </x-ui.empty>
         @endforelse
 
@@ -37,7 +37,7 @@
             <aside class="uh-next">
                 <p class="uh-h3">{{ __('Still have a question? Ask our team directly.') }}</p>
                 <div class="uh-next-links">
-                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('cms.show', 'contact') }}">{{ __('Contact us') }}</a>
+                    <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
                 </div>
             </aside>
         @endif
