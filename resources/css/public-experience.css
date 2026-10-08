@@ -17,21 +17,35 @@ body.uh-home {
     --color-dominant-text: #1e293b;
     --color-secondary-text: #ffffff;
     --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+    --color-page-background: var(--color-dominant);
+    --color-card-surface: var(--color-dominant);
+    --color-body-text: var(--color-secondary);
+    --color-muted-text: color-mix(in srgb, var(--color-body-text) 58%, white);
+    --color-divider: color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant));
+    --color-hero-overlay: var(--color-secondary);
+    --color-hero-overlay-opacity: 0.3;
+    --color-slider-title: var(--color-body-text);
+    --color-slider-subtitle: var(--color-muted-text);
+    --color-carousel-arrow: var(--color-accent);
+    --color-carousel-dot: var(--color-accent);
+    --color-mobile-nav-background: var(--color-dominant);
+    --color-mobile-active-highlight: var(--color-accent);
+    --color-notification-badge: var(--color-accent);
 
-    --uh-white: var(--color-dominant);
-    --uh-paper: var(--color-dominant);
-    --uh-paper-2: color-mix(in srgb, var(--color-dominant) 88%, var(--color-secondary));
+    --uh-white: var(--color-card-surface);
+    --uh-paper: var(--color-card-surface);
+    --uh-paper-2: color-mix(in srgb, var(--color-card-surface) 88%, var(--color-secondary));
     --uh-night: var(--color-secondary);
-    --uh-ink: var(--color-secondary);
-    --uh-ink-soft: color-mix(in srgb, var(--color-secondary) 78%, white);
-    --uh-muted: color-mix(in srgb, var(--color-secondary) 58%, white);
-    --uh-faint: color-mix(in srgb, var(--color-secondary) 38%, white);
+    --uh-ink: var(--color-body-text);
+    --uh-ink-soft: color-mix(in srgb, var(--color-body-text) 78%, white);
+    --uh-muted: var(--color-muted-text);
+    --uh-faint: color-mix(in srgb, var(--color-muted-text) 68%, white);
     --uh-on-night: var(--color-secondary-text);
     --uh-on-night-muted: color-mix(in srgb, var(--color-secondary-text) 72%, transparent);
     --uh-accent: var(--color-accent);
     --uh-accent-ring: color-mix(in srgb, var(--color-accent) 18%, transparent);
-    --uh-line: color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant));
-    --uh-line-strong: color-mix(in srgb, var(--color-secondary) 22%, var(--color-dominant));
+    --uh-line: var(--color-divider);
+    --uh-line-strong: color-mix(in srgb, var(--color-divider) 65%, var(--color-secondary));
 
     /* Geometry */
     --uh-radius-sm: 6px;
@@ -85,7 +99,7 @@ body.uh-home {
     --color-muted: var(--uh-muted);
 
     overflow-x: clip;
-    background: var(--uh-white);
+    background: var(--color-page-background);
     color: var(--uh-ink);
     font-family: var(--font-sans);
     font-size: 1rem;
@@ -1213,6 +1227,14 @@ body.uh-home {
     }
 
     .uh-bar-count {
+        display: inline-grid;
+        min-width: 1.25rem;
+        min-height: 1.25rem;
+        place-items: center;
+        padding: 0 0.25rem;
+        border-radius: var(--uh-pill);
+        background: var(--color-notification-badge);
+        color: var(--color-secondary-text);
         font-size: 0.75rem;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
@@ -1268,7 +1290,7 @@ body.uh-home {
         display: flex;
         flex-direction: column;
         overflow-y: auto;
-        background: var(--uh-white);
+        background: var(--color-mobile-nav-background);
         color: var(--uh-ink);
     }
 
@@ -1295,11 +1317,11 @@ body.uh-home {
     }
 
     .uh-menu-list a[aria-current='page'] {
-        color: var(--uh-muted);
+        color: var(--color-mobile-active-highlight);
     }
 
     .uh-menu-count {
-        color: var(--uh-accent);
+        color: var(--color-mobile-active-highlight);
         font-size: 1rem;
         font-variant-numeric: tabular-nums;
     }
@@ -1613,18 +1635,18 @@ body.uh-home {
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 999px;
-        background: rgb(29 29 31 / 0.25);
+        background: color-mix(in srgb, var(--color-carousel-dot) 30%, transparent);
         content: '';
         transition: width var(--uh-dur-2) var(--uh-ease), background-color var(--uh-dur-1) var(--uh-ease);
     }
 
     .uh-cover-dot:hover::before {
-        background: rgb(29 29 31 / 0.5);
+        background: color-mix(in srgb, var(--color-carousel-dot) 65%, transparent);
     }
 
     .uh-cover-dot.is-on::before {
         width: 1.25rem;
-        background: var(--uh-ink);
+        background: var(--color-carousel-dot);
     }
 
     .uh-cover-veil {
@@ -1632,30 +1654,9 @@ body.uh-home {
         inset: 0;
         z-index: -1;
         background:
-            linear-gradient(
-                to bottom,
-                rgb(255 255 255 / 0) 55%,
-                rgb(255 255 255 / 0.12) 68%,
-                rgb(255 255 255 / 0.48) 82%,
-                rgb(255 255 255 / 0.88) 94%,
-                var(--uh-white) 100%
-            ),
-            linear-gradient(to bottom, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0) 18%),
-            rgb(0 0 0 / 0.12);
-    }
-
-    body.uh-home:has(.uh-home-housing-section) .uh-cover-veil {
-        background:
-            linear-gradient(
-                to bottom,
-                rgb(240 247 242 / 0) 55%,
-                rgb(240 247 242 / 0.12) 68%,
-                rgb(240 247 242 / 0.48) 82%,
-                rgb(240 247 242 / 0.88) 94%,
-                #f0f7f2 100%
-            ),
-            linear-gradient(to bottom, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0) 18%),
-            rgb(0 0 0 / 0.12);
+            linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--color-page-background) 48%, transparent) 82%, var(--color-page-background) 100%),
+            linear-gradient(to bottom, color-mix(in srgb, var(--color-hero-overlay) calc(var(--color-hero-overlay-opacity) * 100%), transparent), transparent 35%),
+            color-mix(in srgb, var(--color-hero-overlay) calc(var(--color-hero-overlay-opacity) * 45%), transparent);
     }
 
     .uh-cover-inner {
@@ -2845,9 +2846,9 @@ body.uh-home {
 
     .uh-showcase-card {
         overflow: visible;
-        border: 4px solid #ffffff;
+        border: 4px solid var(--color-card-surface);
         border-radius: 1.5rem;
-        background: #f4f4f4;
+        background: var(--color-card-surface);
     }
 
     .uh-showcase-media {
@@ -2863,7 +2864,7 @@ body.uh-home {
         position: absolute;
         inset: 0;
         z-index: 1;
-        background: linear-gradient(to bottom, transparent 35%, rgb(255 255 255 / 0.96) 100%);
+        background: linear-gradient(to bottom, transparent 35%, color-mix(in srgb, var(--color-hero-overlay) calc(var(--color-hero-overlay-opacity) * 100%), transparent) 100%);
         content: '';
         opacity: 0;
         pointer-events: none;
@@ -2916,7 +2917,7 @@ body.uh-home {
         gap: 0.25rem;
         padding: 0.375rem 1.25rem 0.375rem;
         border-radius: 0 0 1.25rem 1.25rem;
-        background: #f4f4f4;
+        background: var(--color-card-surface);
     }
 
     .uh-showcase-main {
@@ -2967,6 +2968,11 @@ body.uh-home {
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
+        color: var(--color-slider-title);
+    }
+
+    .uh-showcase-description {
+        color: var(--color-slider-subtitle);
     }
 
     .uh-showcase-price {
@@ -3250,12 +3256,12 @@ body.uh-home {
         width: 0.3125rem;
         height: 0.3125rem;
         border-radius: var(--uh-pill);
-        background: rgb(255 255 255 / 0.55);
+        background: color-mix(in srgb, var(--color-carousel-dot) 55%, transparent);
         transition: background-color 300ms var(--uh-ease);
     }
 
     .uh-showcase-dots span.is-on {
-        background: #ffffff;
+        background: var(--color-carousel-dot);
     }
 
     .uh-showcase-arrow {
@@ -3267,8 +3273,8 @@ body.uh-home {
         width: 2rem;
         height: 2rem;
         border-radius: var(--uh-pill);
-        background: #000000;
-        color: #ffffff;
+        background: var(--color-carousel-arrow);
+        color: var(--color-secondary-text);
         transform: translate(-50%, -50%);
         transition: transform var(--uh-dur-1) var(--uh-ease), background-color var(--uh-dur-1) var(--uh-ease);
     }
@@ -3278,7 +3284,7 @@ body.uh-home {
     }
 
     .uh-showcase-arrow:hover {
-        background: var(--uh-ink-soft);
+        background: color-mix(in srgb, var(--color-carousel-arrow) 82%, var(--color-secondary));
         transform: translate(-50%, -50%) scale(1.06);
     }
 
@@ -9744,9 +9750,9 @@ body.uh-home {
 
     .uh-showcase-list-item .uh-showcase-card {
         overflow: hidden;
-        border: 4px solid #ffffff;
+        border: 4px solid var(--color-card-surface);
         border-radius: 1.5rem;
-        background: #f4f4f4;
+        background: var(--color-card-surface);
         box-shadow: 0 0 0 1px rgb(0 0 0 / 0.04), 0 14px 36px -24px rgb(29 29 31 / 0.28);
     }
 
@@ -9761,7 +9767,7 @@ body.uh-home {
         min-height: 0;
         padding: 0.375rem 1.25rem 0.375rem;
         border-radius: 0 0 1.25rem 1.25rem;
-        background: #f4f4f4;
+        background: var(--color-card-surface);
     }
 
     .uh-showcase-list-item .uh-showcase-dots {

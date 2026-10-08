@@ -1027,6 +1027,109 @@ Alpine.data('uhForm', () => ({
     },
 }));
 
+Alpine.data('uhThemeEditor', (initialTheme = {}) => ({
+    theme: JSON.parse(JSON.stringify(initialTheme)),
+    expanded: { surfaces_text: false, hero_slider: false, mobile_nav: false },
+    saving: false,
+    error: '',
+    success: '',
+    errors: {},
+    setBrand(key, value) {
+        this.theme.brand[key] = value.toLowerCase();
+        this.clearMessages();
+    },
+    setAdvanced(group, key, value) {
+        this.theme.advanced[group][key] = value.toLowerCase();
+        this.clearMessages();
+    },
+    pickerColor(value, fallback) {
+        return /^#[0-9a-f]{6}$/i.test(value || '') ? value : fallback;
+    },
+    pickerFallback(group, key) {
+        const brand = this.theme.brand;
+        const fallbacks = {
+            surfaces_text: { page_background: 'dominant', card_surface: 'dominant', primary_text: 'secondary', muted_text: 'secondary', border: 'dominant' },
+            hero_slider: { overlay_color: 'secondary', slider_title: 'secondary', slider_subtitle: 'secondary', carousel_arrow: 'accent', carousel_dot: 'accent' },
+            mobile_nav: { drawer_background: 'dominant', active_tab_highlight: 'accent', badge_fill: 'accent' },
+        };
+        const keyColors = {
+        };
+
+        return keyColors[`${group}.${key}`] || brand[fallbacks[group]?.[key] || 'dominant'];
+    },
+    fieldError(key) {
+        return this.errors[key]?.[0] || '';
+    },
+    clearMessages() {
+        this.error = '';
+        this.success = '';
+        this.errors = {};
+    },
+    resetGroup(group) {
+        Object.keys(this.theme.advanced[group]).forEach((key) => {
+            this.theme.advanced[group][key] = '';
+        });
+        this.clearMessages();
+    },
+    previewVariables() {
+        const brand = this.theme.brand;
+        const groups = this.theme.advanced;
+        const surfaces = groups.surfaces_text;
+        const hero = groups.hero_slider;
+        const mobile = groups.mobile_nav;
+
+        return {
+            '--color-dominant': brand.dominant,
+            '--color-secondary': brand.secondary,
+            '--color-accent': brand.accent,
+            '--color-page-background': surfaces.page_background || brand.dominant,
+            '--color-card-surface': surfaces.card_surface || brand.dominant,
+            '--color-body-text': surfaces.primary_text || brand.secondary,
+            '--color-muted-text': surfaces.muted_text || 'color-mix(in srgb, var(--color-body-text) 58%, white)',
+            '--color-divider': surfaces.border || 'color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant))',
+            '--color-hero-overlay': hero.overlay_color || brand.secondary,
+            '--color-hero-overlay-opacity': hero.overlay_opacity === '' ? '0.3' : hero.overlay_opacity,
+            '--color-slider-title': hero.slider_title || 'var(--color-body-text)',
+            '--color-slider-subtitle': hero.slider_subtitle || 'var(--color-muted-text)',
+            '--color-carousel-arrow': hero.carousel_arrow || brand.accent,
+            '--color-carousel-dot': hero.carousel_dot || brand.accent,
+            '--color-mobile-nav-background': mobile.drawer_background || brand.dominant,
+            '--color-mobile-active-highlight': mobile.active_tab_highlight || brand.accent,
+            '--color-notification-badge': mobile.badge_fill || brand.accent,
+        };
+    },
+    async save() {
+        this.saving = true;
+        this.clearMessages();
+
+        try {
+            const response = await fetch(this.$root.action, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.$root.querySelector('[name="_token"]')?.value || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ theme: this.theme }),
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                this.errors = payload.errors || {};
+                this.error = payload.message || 'Could not save colors. Check the fields and try again.';
+                return;
+            }
+
+            window.location.reload();
+        } catch {
+            this.error = 'Could not save colors. Check your connection and try again.';
+        } finally {
+            this.saving = false;
+        }
+    },
+}));
+
 /**
  * Property editor: hides residential fields for plot-type listings and the price for on-request listings.
  */

@@ -33,22 +33,8 @@
     $footerCopyright = \App\Models\Setting::get('footer_copyright');
     $socialProfiles = \App\Support\SocialProfiles::active();
 
-    $savedSettings = \App\Models\Setting::allValues();
-    $themeColour = fn (string $key, string $fallback): string => is_string($savedSettings[$key] ?? null)
-        && preg_match('/^#[0-9a-fA-F]{6}$/', $savedSettings[$key])
-            ? strtolower($savedSettings[$key])
-            : $fallback;
-    $themeDominant = $themeColour('theme_surface', '#f3f0ea');
-    $themeSecondary = $themeColour('theme_dark', '#0d1110');
-    $themeAccent = $themeColour('theme_primary', '#1a3328');
-    $themeVariables = [
-        '--color-dominant' => $themeDominant,
-        '--color-secondary' => $themeSecondary,
-        '--color-accent' => $themeAccent,
-        '--color-dominant-text' => '#1e293b',
-        '--color-secondary-text' => '#ffffff',
-        '--color-accent-hover' => 'color-mix(in srgb, var(--color-accent) 85%, black)',
-    ];
+    $themeVariables = \App\Support\ThemeColors::cssVariables();
+    $themeDominant = $themeVariables['--color-dominant'];
 
     $chatWhatsapp = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp'), \App\Models\Setting::get('floating_chat_message'));
     $chatMessenger = \App\Models\Setting::get('messenger_url');

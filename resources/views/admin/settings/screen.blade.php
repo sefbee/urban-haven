@@ -63,7 +63,9 @@
         </section>
     @endif
 
-    <div @class(['dd-settings-layout', 'has-aside' => $screen === 'theme'])>
+    @if($screen === 'theme')
+        @include('admin.settings.theme')
+    @else
         <form method="POST" action="{{ route('admin.settings.update') }}" class="min-w-0" x-data="uhForm" @submit="submit"
               @if($hasImages) enctype="multipart/form-data" @endif data-unsaved-guard>
             @csrf
@@ -79,23 +81,7 @@
                 </button>
             </div>
         </form>
-
-        @if($screen === 'theme')
-            <aside class="dd-theme-preview" x-data="{ tick: 0, read(key) { return document.querySelector(`[data-theme-key=${key}]`)?.value || '' } }" @input.window="tick++" aria-label="Colour preview">
-                <h2 class="uh-h4">Preview</h2>
-                <div class="dd-theme-sample mt-4" :style="tick, `--color-dominant:${read('theme_surface')};--color-secondary:${read('theme_dark')};--color-accent:${read('theme_primary')};--color-dominant-text:#1e293b;--color-secondary-text:#fff;--color-accent-hover:color-mix(in srgb, var(--color-accent) 85%, black)`">
-                    <div class="dd-theme-bar" style="background:var(--color-secondary);color:var(--color-secondary-text)">
-                        <span class="font-semibold">{{ $values['company_name'] ?? 'Urban Haven' }}</span>
-                    </div>
-                    <div class="p-4" style="background:var(--color-dominant);color:var(--color-dominant-text)">
-                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--color-accent)">Featured</p>
-                        <p class="mt-1 text-lg font-bold">Considered places to live</p>
-                        <span class="mt-3 inline-flex rounded-full px-4 py-2 text-xs font-semibold" style="background:var(--color-accent);color:var(--color-secondary-text)">Explore properties</span>
-                    </div>
-                </div>
-            </aside>
-        @endif
-    </div>
+    @endif
 
     @if($screen === 'contact')
         <form method="POST" action="{{ route('admin.settings.social') }}" class="uh-panel mt-6" x-data="uhForm" @submit="submit" data-unsaved-guard

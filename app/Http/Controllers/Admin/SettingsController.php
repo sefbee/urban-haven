@@ -10,6 +10,8 @@ use App\Support\PhoneNumber;
 use App\Support\SettingsSchema;
 use App\Support\SocialProfiles;
 use App\Support\TaggedCache;
+use App\Support\ThemeColors;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -32,7 +34,7 @@ class SettingsController extends Controller
 
     public function theme(): View
     {
-        return $this->screen('theme');
+        return $this->screen('theme', ['themeColors' => ThemeColors::current()]);
     }
 
     public function contact(): View
@@ -177,6 +179,52 @@ class SettingsController extends Controller
         }
 
         return back()->with('status', $changed === [] ? 'No changes to save.' : 'Settings saved.');
+    }
+
+    public function updateTheme(Request $request, AuditLogger $auditLogger): JsonResponse
+    {
+        abort_unless($this->userCanManage(), 403);
+
+        $rules = [
+            'theme' => ['required', 'array:brand,advanced'],
+            'theme.brand' => ['required', 'array:dominant,secondary,accent'],
+            'theme.brand.dominant' => ['required', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.brand.secondary' => ['required', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.brand.accent' => ['required', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced' => ['sometimes', 'array:surfaces_text,hero_slider,mobile_nav'],
+            'theme.advanced.surfaces_text' => ['sometimes', 'array:page_background,card_surface,primary_text,muted_text,border'],
+            'theme.advanced.surfaces_text.page_background' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.surfaces_text.card_surface' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.surfaces_text.primary_text' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.surfaces_text.muted_text' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.surfaces_text.border' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.hero_slider' => ['sometimes', 'array:overlay_color,overlay_opacity,slider_title,slider_subtitle,carousel_arrow,carousel_dot'],
+            'theme.advanced.hero_slider.overlay_color' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.hero_slider.overlay_opacity' => ['nullable', 'numeric', 'between:0,1'],
+            'theme.advanced.hero_slider.slider_title' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.hero_slider.slider_subtitle' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.hero_slider.carousel_arrow' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.hero_slider.carousel_dot' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.mobile_nav' => ['sometimes', 'array:drawer_background,active_tab_highlight,badge_fill'],
+            'theme.advanced.mobile_nav.drawer_background' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.mobile_nav.active_tab_highlight' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+            'theme.advanced.mobile_nav.badge_fill' => ['nullable', 'string', SettingsSchema::HEX_COLOUR],
+        ];
+
+        $validated = $request->validate($rules);
+        $theme = ThemeColors::normalize($validated['theme']);
+        $current = ThemeColors::current();
+
+        if ($current !== $theme) {
+            Setting::set('theme_colors', ThemeColors::forStorage($theme), 'theme', 'json');
+            $auditLogger->record($request->user()->id, 'settings.updated', Setting::class, null, null, ['keys' => ['theme_colors']], $request->ip());
+            TaggedCache::flush(['homepage', 'properties', 'search', 'projects', 'sitemap']);
+        }
+
+        return response()->json([
+            'message' => $current === $theme ? 'No changes to save.' : 'Colors saved.',
+            'theme' => $theme,
+        ]);
     }
 
     public function updateSocial(Request $request, AuditLogger $auditLogger): RedirectResponse

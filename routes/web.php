@@ -79,6 +79,9 @@ Route::get('/thank-you', [LeadController::class, 'thankYou'])->name('thank-you')
 Route::post('/track', TrackingController::class)->middleware('throttle:tracking')->name('track');
 Route::get('/media/{media}/download', MediaDownloadController::class)->middleware('throttle:public-json')->name('media.download');
 Route::post('/locale', [LocaleController::class, 'switch'])->name('locale.switch');
+Route::middleware(['auth', 'staff.active', 'staff.mfa'])
+    ->post('/api/admin/settings/theme', [SettingsController::class, 'updateTheme'])
+    ->name('api.admin.settings.theme');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemaps/{section}.xml', [SitemapController::class, 'section'])->whereIn('section', SitemapController::SECTIONS)->name('sitemap.section');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
