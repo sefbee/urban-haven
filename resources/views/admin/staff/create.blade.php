@@ -2,8 +2,7 @@
 @section('title', 'Add staff')
 
 @section('content')
-    <x-ui.page-header compact title="Add a staff account"
-                      description="The new member signs in with this email and the temporary password you set here.">
+    <x-ui.page-header compact title="Add a staff account">
         <x-slot:eyebrow>Administration</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.staff.index') }}">

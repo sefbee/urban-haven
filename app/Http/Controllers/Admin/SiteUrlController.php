@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
 use App\Models\LocationArea;
+use App\Models\MenuItem;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Property;
@@ -30,6 +31,7 @@ class SiteUrlController extends Controller
         $groups = [
             'Fixed pages' => collect(PageSeo::PAGES)->map(fn (array $page, string $route): array => [
                 'label' => $page['label'],
+                'type' => 'Static page',
                 'path' => $page['path'],
                 'live' => true,
                 'seo' => filled($pageSeo[$route]['meta_title']) || filled($pageSeo[$route]['meta_description']),
@@ -39,15 +41,25 @@ class SiteUrlController extends Controller
             'Pages' => CmsPage::query()->with(['publicationState', 'seoOverride'])->orderBy('title')->limit(self::LIMIT)->get()
                 ->map(fn (CmsPage $page): array => [
                     'label' => $page->title,
+                    'type' => $page->template === 'default'
+                        ? 'Custom CMS page'
+                        : 'Dynamic module · '.str($page->template)->headline(),
                     'path' => '/'.$page->slug,
                     'live' => $page->isPublished(),
+                    'status' => match ($page->editorialStatus()) {
+                        'published' => 'Live',
+                        'unpublished' => 'Hidden',
+                        default => 'Draft',
+                    },
                     'seo' => $hasSeo($page->seoOverride),
                     'edit' => route('admin.cms.edit', $page),
+                    'delete' => request()->user()->can('delete', $page) ? route('admin.cms.destroy', $page) : null,
                 ])->all(),
 
             'Properties' => Property::query()->with(['publicationState', 'seoOverride'])->latest('updated_at')->limit(self::LIMIT)->get(['id', 'title', 'slug', 'updated_at'])
                 ->map(fn (Property $property): array => [
                     'label' => $property->title,
+                    'type' => 'Property module',
                     'path' => '/properties/'.$property->slug,
                     'live' => $property->isPublished(),
                     'seo' => $hasSeo($property->seoOverride),
@@ -57,6 +69,7 @@ class SiteUrlController extends Controller
             'Areas' => LocationArea::query()->with('seoOverride')->orderBy('name')->limit(self::LIMIT)->get()
                 ->map(fn (LocationArea $area): array => [
                     'label' => $area->label(),
+                    'type' => 'Area module',
                     'path' => '/locations/'.$area->slug,
                     'live' => $area->hasLandingPage(),
                     'seo' => $hasSeo($area->seoOverride),
@@ -66,6 +79,7 @@ class SiteUrlController extends Controller
             'Articles' => Post::query()->with(['publicationState', 'seoOverride'])->latest('updated_at')->limit(self::LIMIT)->get(['id', 'title', 'slug', 'updated_at'])
                 ->map(fn (Post $post): array => [
                     'label' => $post->title,
+                    'type' => 'Article module',
                     'path' => '/articles/'.$post->slug,
                     'live' => $post->isPublished(),
                     'seo' => $hasSeo($post->seoOverride),
@@ -75,6 +89,7 @@ class SiteUrlController extends Controller
             'Article categories' => PostCategory::query()->with('seoOverride')->orderBy('name')->get()
                 ->map(fn (PostCategory $category): array => [
                     'label' => $category->name,
+                    'type' => 'Article category',
                     'path' => '/articles?category='.$category->slug,
                     'live' => true,
                     'seo' => $hasSeo($category->seoOverride),
@@ -84,6 +99,10 @@ class SiteUrlController extends Controller
 
         return view('admin.site-urls', [
             'groups' => array_filter($groups),
+            'canCreatePages' => $request->user()->hasPermission('cms.create'),
+            'canManageMenus' => $request->user()->hasPermission('cms.publish'),
+            'menuLocations' => MenuItem::LOCATIONS,
+            'menuParents' => MenuItem::query()->whereNull('parent_id')->orderBy('sort_order')->orderBy('label')->get(['id', 'location', 'label']),
         ]);
     }
 }

@@ -74,7 +74,8 @@
                 @if(filled($project->description))
                     <section class="uh-panel" aria-labelledby="project-overview-title">
                         <h2 id="project-overview-title" class="uh-h2">{{ __('About this development') }}</h2>
-                        <div class="uh-prose mt-5">{!! \Stevebauman\Purify\Facades\Purify::clean(nl2br(e($project->description))) !!}</div>
+                        @php($description = (string) $project->description)
+                        <div class="uh-prose mt-5">{!! strip_tags($description) === $description ? nl2br(e($description)) : \Stevebauman\Purify\Facades\Purify::clean($description) !!}</div>
                     </section>
                 @endif
 
@@ -107,7 +108,10 @@
                     <section class="uh-panel mt-5" aria-labelledby="project-details-title">
                         <h2 id="project-details-title" class="uh-h2">{{ __('Project details') }}</h2>
                         @if($project->trust_label)<p class="mt-4 font-semibold">{{ $project->trust_label }}</p>@endif
-                        @if($project->handover_info)<p class="mt-3 text-muted">{{ $project->handover_info }}</p>@endif
+                        @if($project->handover_info)
+                            @php($handoverInfo = (string) $project->handover_info)
+                            <div class="uh-prose mt-3 text-muted">{!! strip_tags($handoverInfo) === $handoverInfo ? nl2br(e($handoverInfo)) : \Stevebauman\Purify\Facades\Purify::clean($handoverInfo) !!}</div>
+                        @endif
                     </section>
                 @endif
 

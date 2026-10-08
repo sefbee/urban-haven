@@ -2,8 +2,7 @@
 @section('title', 'Custom pages')
 
 @section('content')
-    <x-ui.page-header compact title="Custom pages"
-                      description="Standalone pages and the editable blocks used across the public site.">
+    <x-ui.page-header compact title="Custom pages">
         <x-slot:eyebrow>Website pages</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.home-sections.index') }}">

@@ -7,11 +7,10 @@
 
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
-        <x-ui.page-header compact title="Property types"
-                          description="Every listing has one of two main types, Residential or Commercial, and a sub-type under it such as apartment, plot or office. The field profile decides which details a listing asks for.">
+        <x-ui.page-header compact title="Property types">
             <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
-                <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
+                <button type="button" class="uh-btn-primary uh-btn-sm dd-type-add-button" @click="open('create')">
                     <x-icon name="plus" class="size-4" />
                     Add sub-type
                 </button>
@@ -21,22 +20,22 @@
         @include('admin.catalogue._related')
 
         @if($types->isNotEmpty())
-            <div class="space-y-6">
+            <div class="grid min-w-0 gap-4 lg:grid-cols-2">
                 @foreach($typesByCategory as $category => $categoryTypes)
-                    <section class="uh-panel-flush overflow-hidden" aria-labelledby="types-{{ $category }}">
+                    <section class="uh-panel-flush min-w-0 overflow-hidden" aria-labelledby="types-{{ $category }}">
                         <div class="flex items-center justify-between gap-3 border-b border-[var(--color-line)] px-4 py-3">
                             <h2 id="types-{{ $category }}" class="text-sm font-semibold">
                                 {{ $categories[$category] }}
                                 <span class="ml-1 font-normal text-[var(--color-muted)]">{{ $categoryTypes->count() }} {{ Str::plural('sub-type', $categoryTypes->count()) }}</span>
                             </h2>
-                            <button type="button" class="uh-btn-ghost uh-btn-sm" @click="open('create-{{ $category }}')">
+                            <button type="button" class="uh-btn-primary uh-btn-sm dd-type-add-button" @click="open('create-{{ $category }}')">
                                 <x-icon name="plus" class="size-3.5" />
                                 Add to {{ $categories[$category] }}
                             </button>
                         </div>
                         @if($categoryTypes->isNotEmpty())
                             <div class="uh-table-scroll">
-                                <table class="uh-table">
+                                <table class="uh-table dd-types-table">
                                     <caption class="sr-only">{{ $categories[$category] }} sub-types</caption>
                                     <thead>
                                         <tr>
@@ -51,7 +50,7 @@
                                     <tbody>
                                         @foreach($categoryTypes as $type)
                                             <tr>
-                                                <td class="min-w-40 font-medium">{{ $type->label }}</td>
+                                                <td class="min-w-0 font-medium">{{ $type->label }}</td>
                                                 <td class="text-xs text-[var(--color-muted)]" dir="ltr">{{ $type->key }}</td>
                                                 <td class="text-xs text-[var(--color-muted)]">{{ ucfirst($type->field_profile) }}</td>
                                                 <td class="text-sm tabular-nums">{{ $type->properties_count }}</td>
@@ -62,15 +61,17 @@
                                                         <x-ui.badge tone="outline">Inactive</x-ui.badge>
                                                     @endif
                                                 </td>
-                                                <td class="uh-admin-row-actions">
-                                                    <button type="button" class="uh-btn-ghost uh-btn-sm" @click="open('edit-{{ $type->id }}')">Edit</button>
-                                                    @if($type->is_active)
-                                                        <form method="POST" action="{{ route('admin.property-types.deactivate', $type) }}"
-                                                              x-data="uhConfirm('Deactivate {{ $type->label }}?')">
-                                                            @csrf
-                                                            <button type="submit" class="uh-btn-ghost uh-btn-sm text-[var(--color-danger)]" @click="confirm($event)">Deactivate</button>
-                                                        </form>
-                                                    @endif
+                                                <td>
+                                                    <div class="uh-admin-row-actions">
+                                                        <button type="button" class="uh-btn-ghost uh-btn-sm" @click="open('edit-{{ $type->id }}')">Edit</button>
+                                                        @if($type->is_active)
+                                                            <form method="POST" action="{{ route('admin.property-types.deactivate', $type) }}"
+                                                                  x-data="uhConfirm('Deactivate {{ $type->label }}?')">
+                                                                @csrf
+                                                                <button type="submit" class="uh-btn-ghost uh-btn-sm text-[var(--color-danger)]" @click="confirm($event)">Deactivate</button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach

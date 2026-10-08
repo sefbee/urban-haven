@@ -16,7 +16,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact :title="$title" :description="$description">
+    <x-ui.page-header compact :title="$title">
         <x-slot:eyebrow>Website settings</x-slot:eyebrow>
     </x-ui.page-header>
 
@@ -81,17 +81,16 @@
         </form>
 
         @if($screen === 'theme')
-            <aside class="dd-theme-preview" x-data="{ read(key) { return document.querySelector(`[data-theme-key=${key}]`)?.value || '' } }" aria-label="Colour preview">
+            <aside class="dd-theme-preview" x-data="{ tick: 0, read(key) { return document.querySelector(`[data-theme-key=${key}]`)?.value || '' } }" @input.window="tick++" aria-label="Colour preview">
                 <h2 class="uh-h4">Preview</h2>
-                <p class="mt-1 text-xs text-[var(--color-muted)]">Updates as you pick colours. The public site uses these once the new design is switched on.</p>
-                <div class="dd-theme-sample mt-4" x-data="{ tick: 0 }" @input.window="tick++">
-                    <div class="dd-theme-bar" :style="tick, `background:${read('theme_dark')}`">
-                        <span class="font-semibold" :style="tick, `color:${read('theme_surface')}`">{{ $values['company_name'] ?? 'Urban Haven' }}</span>
+                <div class="dd-theme-sample mt-4" :style="tick, `--color-dominant:${read('theme_surface')};--color-secondary:${read('theme_dark')};--color-accent:${read('theme_primary')};--color-dominant-text:#1e293b;--color-secondary-text:#fff;--color-accent-hover:color-mix(in srgb, var(--color-accent) 85%, black)`">
+                    <div class="dd-theme-bar" style="background:var(--color-secondary);color:var(--color-secondary-text)">
+                        <span class="font-semibold">{{ $values['company_name'] ?? 'Urban Haven' }}</span>
                     </div>
-                    <div class="p-4" :style="tick, `background:${read('theme_surface')}`">
-                        <p class="text-xs font-semibold uppercase tracking-wide" :style="tick, `color:${read('theme_accent')}`">Featured</p>
-                        <p class="mt-1 text-lg font-bold" :style="tick, `color:${read('theme_dark')}`">Considered places to live</p>
-                        <span class="mt-3 inline-flex rounded-full px-4 py-2 text-xs font-semibold text-white" :style="tick, `background:${read('theme_primary')}`">Explore properties</span>
+                    <div class="p-4" style="background:var(--color-dominant);color:var(--color-dominant-text)">
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--color-accent)">Featured</p>
+                        <p class="mt-1 text-lg font-bold">Considered places to live</p>
+                        <span class="mt-3 inline-flex rounded-full px-4 py-2 text-xs font-semibold" style="background:var(--color-accent);color:var(--color-secondary-text)">Explore properties</span>
                     </div>
                 </div>
             </aside>
@@ -116,7 +115,6 @@
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 id="social-heading" class="uh-h4">Social profiles</h2>
-                        <p class="mt-1 text-sm text-[var(--color-muted)]">Shown in the site footer and shared with Google as your official profiles. Switch one off to hide it without deleting.</p>
                     </div>
                     <button type="button" class="uh-btn-outline uh-btn-sm" @click="profiles.push({ platform: 'facebook', label: '', url: '', active: true, new_tab: true })" x-show="profiles.length < max">
                         <x-icon name="plus" class="size-4" /> Add profile

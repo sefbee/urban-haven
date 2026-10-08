@@ -2,8 +2,7 @@
 @section('title', 'Add unit')
 
 @section('content')
-    <x-ui.page-header compact title="Add a unit"
-                      :description="'Units let one listing cover several apartments with their own prices and availability.'">
+    <x-ui.page-header compact title="Add a unit">
         <x-slot:eyebrow>Content library · {{ $property->title }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.edit', $property) }}">

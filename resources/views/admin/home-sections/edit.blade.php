@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact :title="$definition['label']" :description="$definition['summary']">
+    <x-ui.page-header compact :title="$definition['label']">
         <x-slot:eyebrow>Home page · Section {{ $position }} of {{ $total }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.home-sections.index') }}">
@@ -110,13 +110,9 @@
                                            @if($field['required'] ?? false) required @endif>
                                 @endif
                                 @if(! empty($field['hint']))
-                                    <p class="uh-hint">{{ $field['hint'] }}</p>
                                 @elseif($field['type'] === 'number')
-                                    <p class="uh-hint">Between {{ $field['min'] }} and {{ $field['max'] }}.</p>
                                 @elseif(($field['required'] ?? false) || blank($field['default'] ?? null))
-                                    <p class="uh-hint">Up to {{ $field['max'] }} characters.</p>
                                 @else
-                                    <p class="uh-hint">Up to {{ $field['max'] }} characters. Leave empty to use “{{ \Illuminate\Support\Str::limit((string) $field['default'], 60) }}”.</p>
                                 @endif
                                 @if($error)<p class="uh-error">{{ $error }}</p>@endif
                             </div>
@@ -185,7 +181,6 @@
             @isset($definition['source'])
                 <section class="uh-panel">
                     <h2 class="uh-h4">What fills this section</h2>
-                    <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $definition['summary'] }}</p>
                     <a href="{{ route($definition['source']['route']) }}" class="uh-btn-outline uh-btn-sm mt-3">
                         {{ $definition['source']['label'] }} <x-icon name="arrow-right" class="size-4" />
                     </a>

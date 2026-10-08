@@ -1,6 +1,6 @@
 <section class="uh-section uh-band-paper uh-home-editorial" aria-labelledby="articles-title">
     <div class="uh-container">
-        <div class="uh-home-editorial-grid">
+        <div @class(['uh-home-editorial-grid', 'has-videos' => $propertyVideos->isNotEmpty()])>
             <div class="uh-home-news">
                 <header class="uh-home-editorial-head" data-reveal>
                     <h2 id="articles-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>

@@ -7,8 +7,7 @@
 
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
-        <x-ui.page-header compact title="Frequently asked questions"
-                          :description="$canPublish ? 'Visible questions appear on the public FAQ page and in search results as structured data.' : 'New questions stay hidden until a publisher makes them visible.'">
+        <x-ui.page-header compact title="Frequently asked questions">
             <x-slot:eyebrow>Website pages</x-slot:eyebrow>
             <x-slot:actions>
                 <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">

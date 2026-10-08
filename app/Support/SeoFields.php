@@ -33,6 +33,7 @@ final class SeoFields
         'seo_focus_keyword' => 'focus_keyword',
         'seo_meta_title' => 'meta_title',
         'seo_meta_description' => 'meta_description',
+        'seo_og_image_path' => 'og_image_path',
         'seo_gsc_code' => 'gsc_code',
         'seo_noindex' => 'noindex',
     ];
@@ -46,6 +47,7 @@ final class SeoFields
             'seo_focus_keyword' => ['nullable', 'string', 'max:80'],
             'seo_meta_title' => ['nullable', 'string', 'max:'.self::TITLE_MAX],
             'seo_meta_description' => ['nullable', 'string', 'max:'.self::DESCRIPTION_MAX],
+            'seo_og_image_path' => ['nullable', 'url', 'max:2048', 'regex:/^https:\/\//i'],
             'seo_gsc_code' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9_\-]+$/'],
             'seo_noindex' => ['sometimes', 'boolean'],
         ];

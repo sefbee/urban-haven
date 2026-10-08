@@ -34,14 +34,21 @@
     $socialProfiles = \App\Support\SocialProfiles::active();
 
     $savedSettings = \App\Models\Setting::allValues();
-    $themeVariables = array_filter([
-        '--uh-accent' => $savedSettings['theme_accent'] ?? null,
-        '--uh-night' => $savedSettings['theme_dark'] ?? null,
-        '--uh-paper' => $savedSettings['theme_surface'] ?? null,
-        '--color-forest' => $savedSettings['theme_primary'] ?? null,
-        '--color-emerald' => $savedSettings['theme_primary'] ?? null,
-        '--uh-primary' => $savedSettings['theme_primary'] ?? null,
-    ], fn ($value) => is_string($value) && preg_match('/^#[0-9a-fA-F]{6}$/', $value));
+    $themeColour = fn (string $key, string $fallback): string => is_string($savedSettings[$key] ?? null)
+        && preg_match('/^#[0-9a-fA-F]{6}$/', $savedSettings[$key])
+            ? strtolower($savedSettings[$key])
+            : $fallback;
+    $themeDominant = $themeColour('theme_surface', '#f3f0ea');
+    $themeSecondary = $themeColour('theme_dark', '#0d1110');
+    $themeAccent = $themeColour('theme_primary', '#1a3328');
+    $themeVariables = [
+        '--color-dominant' => $themeDominant,
+        '--color-secondary' => $themeSecondary,
+        '--color-accent' => $themeAccent,
+        '--color-dominant-text' => '#1e293b',
+        '--color-secondary-text' => '#ffffff',
+        '--color-accent-hover' => 'color-mix(in srgb, var(--color-accent) 85%, black)',
+    ];
 
     $chatWhatsapp = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp'), \App\Models\Setting::get('floating_chat_message'));
     $chatMessenger = \App\Models\Setting::get('messenger_url');
@@ -86,7 +93,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="{{ $themeDominant }}">
         @if($favicon)
             <link rel="icon" href="{{ $favicon }}">
             <link rel="apple-touch-icon" href="{{ $favicon }}">
@@ -135,7 +142,7 @@
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @if($themeVariables)
-            <style>body.uh-home{ {{ $themeStyle }} }</style>
+            <style>:root,body.uh-home{ {{ $themeStyle }} }</style>
         @endif
         @stack('head')
     </head>

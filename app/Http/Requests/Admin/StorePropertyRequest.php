@@ -9,6 +9,7 @@ use App\Support\SeoFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Stevebauman\Purify\Facades\Purify;
 
 class StorePropertyRequest extends FormRequest
 {
@@ -20,6 +21,10 @@ class StorePropertyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $merge = [];
+
+        if (is_string($this->input('description'))) {
+            $merge['description'] = Purify::clean($this->input('description'));
+        }
 
         if (! $this->filled('price_basis') && $this->filled('listing_type')) {
             $merge['price_basis'] = $this->input('listing_type') === 'rent' ? 'monthly_rent' : 'total_sale';

@@ -7,8 +7,7 @@
 
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
-        <x-ui.page-header compact title="Article categories"
-                          description="Group articles by topic. Each category has its own address and search engine settings for its article list.">
+        <x-ui.page-header compact title="Article categories">
             <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
                 <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">

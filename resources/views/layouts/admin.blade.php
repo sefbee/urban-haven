@@ -51,7 +51,7 @@
           @keydown.escape="drawer ? close() : closeMobile()">
         <a class="uh-skip" href="#main">Skip to content</a>
 
-        <div class="dd-app-shell">
+        <div class="dd-app-shell flex h-screen w-full overflow-hidden">
             <div class="uh-admin-backdrop" x-show="mobile" x-cloak @click="closeMobile()" aria-hidden="true"></div>
 
             <aside id="admin-nav" class="dd-sidebar" :class="{ 'is-open': mobile }" aria-label="Staff navigation">
@@ -117,7 +117,7 @@
                 </div>
             </aside>
 
-            <div class="dd-shell">
+            <div class="dd-shell flex min-h-0 min-w-0 flex-1 flex-col">
                 <header class="dd-header">
                     <div class="dd-header-start">
                         <button type="button" class="dd-header-icon-btn dd-mobile-toggle" @click="openMobile()"
@@ -180,7 +180,7 @@
                     </div>
                 </header>
 
-                <main id="main" class="dd-content">
+                <main id="main" class="dd-content min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
                     @foreach($systemWarnings as $warning)
                         <x-ui.alert tone="warn" class="mb-3">{{ $warning }}</x-ui.alert>
                     @endforeach

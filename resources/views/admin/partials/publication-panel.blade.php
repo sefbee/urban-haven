@@ -12,7 +12,6 @@
             </ul>
         </div>
     @else
-        <p class="mt-3 text-xs text-[var(--color-muted)]">All publishing requirements are met.</p>
     @endif
 
     @if($model->publicationState?->review_note && $status === \App\Models\PublicationState::DRAFT)
@@ -53,7 +52,6 @@
                 </form>
             @endif
         @else
-            <p class="text-xs text-[var(--color-muted)]">A publisher approves and publishes {{ $noun }}s.</p>
         @endcan
     </div>
 </section>

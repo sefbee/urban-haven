@@ -7,8 +7,7 @@
 
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
-        <x-ui.page-header compact title="Amenities"
-                          description="Features buyers filter by, such as lift, parking or a generator. Deactivating one hides it from filters without touching existing listings.">
+        <x-ui.page-header compact title="Amenities">
             <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
                 <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
@@ -85,7 +84,6 @@
                 <div class="uh-field">
                     <label class="uh-label" for="amenity-icon">Icon image <span class="uh-label-optional">optional</span></label>
                     <input class="uh-input" type="file" id="amenity-icon" name="icon" accept="image/png,image/jpeg,image/webp">
-                    <p class="uh-hint">PNG, JPEG or WebP, up to 2 MB and 512 × 512 pixels.</p>
                     @error('icon')<p class="uh-error">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" class="uh-btn-primary uh-btn-block">
@@ -109,7 +107,6 @@
                             <img class="mb-3 size-14 rounded border border-[var(--color-line)] bg-white p-2 object-contain" src="{{ $amenity->iconUrl() }}" alt="Current {{ $amenity->label }} icon">
                         @endif
                         <input class="uh-input" type="file" id="amenity-icon-{{ $amenity->id }}" name="icon" accept="image/png,image/jpeg,image/webp">
-                        <p class="uh-hint">Upload to replace the current icon. PNG, JPEG or WebP, up to 2 MB and 512 × 512 pixels.</p>
                         @error('icon')<p class="uh-error">{{ $message }}</p>@enderror
                         @if($amenity->icon_path)
                             <label class="uh-check mt-2 text-sm"><input type="checkbox" name="remove_icon" value="1"> <span>Remove current icon</span></label>

@@ -19,7 +19,7 @@ final class SettingsSchema
      */
     public const SCREENS = [
         'general' => ['title' => 'Branding', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
-        'theme' => ['title' => 'Theme & colours', 'description' => 'The brand colours the website is built from. Start with the three main colours.', 'groups' => ['theme']],
+        'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using a 60/30/10 balance: dominant surfaces, secondary structure and one accent.', 'groups' => ['theme']],
         'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles and the floating chat button.', 'groups' => ['contact', 'chrome', 'floating']],
         'enquiries' => ['title' => 'Enquiries & email', 'description' => 'Where enquiries are sent, consent wording, reminders and how long closed leads are kept.', 'groups' => ['leads']],
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],
@@ -82,10 +82,9 @@ final class SettingsSchema
             'admin_login_message' => ['group' => 'admin_login', 'cast' => 'string', 'label' => 'Supporting line', 'input' => 'textarea', 'rules' => ['nullable', 'string', 'max:240'], 'help' => 'For example who to contact when someone cannot sign in.'],
             'admin_login_image' => ['group' => 'admin_login', 'cast' => 'string', 'label' => 'Side image', 'input' => 'image', 'rules' => ['nullable', 'string', 'max:255'], 'help' => 'A photo shown beside the sign-in form on larger screens. At least 1200 × 800 px.'],
 
-            'theme_primary' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Primary brand colour', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#1a3328', 'help' => 'Buttons, links and highlights.'],
-            'theme_dark' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Dark background', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#0d1110', 'help' => 'Hero, header and footer panels.'],
-            'theme_accent' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Accent colour', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#a68456', 'help' => 'Small labels, badges and decorative lines.'],
-            'theme_surface' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Page background', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#f3f0ea', 'help' => 'The main background of every page.'],
+            'theme_surface' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Dominant · 60% — canvas and surfaces', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#f3f0ea', 'help' => 'Page backgrounds, cards and other large light surfaces.'],
+            'theme_dark' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Secondary · 30% — structure and contrast', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#0d1110', 'help' => 'Hero areas, headers, footers and primary text.'],
+            'theme_primary' => ['group' => 'theme', 'cast' => 'string', 'label' => 'Accent · 10% — actions and focus', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#1a3328', 'help' => 'Primary buttons, links, active states and focus highlights.'],
 
             'phone' => ['group' => 'contact', 'cast' => 'string', 'label' => 'Public phone number', 'input' => 'tel', 'rules' => ['required', 'string', new PhoneNumberRule]],
             'whatsapp' => ['group' => 'contact', 'cast' => 'string', 'label' => 'WhatsApp number', 'input' => 'tel', 'rules' => ['nullable', 'string', new PhoneNumberRule], 'help' => 'Leave blank to hide WhatsApp buttons.'],
@@ -121,6 +120,7 @@ final class SettingsSchema
             'analytics_gtm_id' => ['group' => 'analytics', 'cast' => 'string', 'label' => 'Google Tag Manager container ID', 'input' => 'text', 'rules' => ['nullable', 'regex:/^GTM-[A-Z0-9]{4,10}$/'], 'placeholder' => 'GTM-XXXXXXX', 'help' => 'Leave blank to use the server value, if any.'],
             'analytics_ga4_id' => ['group' => 'analytics', 'cast' => 'string', 'label' => 'Google Analytics 4 measurement ID', 'input' => 'text', 'rules' => ['nullable', 'regex:/^G-[A-Z0-9]{4,12}$/'], 'placeholder' => 'G-XXXXXXXXXX'],
             'analytics_meta_pixel_id' => ['group' => 'analytics', 'cast' => 'string', 'label' => 'Meta (Facebook) Pixel ID', 'input' => 'text', 'rules' => ['nullable', 'regex:/^[0-9]{6,20}$/'], 'placeholder' => '123456789012345'],
+            'facebook_app_id' => ['group' => 'analytics', 'cast' => 'string', 'label' => 'Facebook App ID', 'input' => 'text', 'rules' => ['nullable', 'regex:/^[0-9]{6,20}$/'], 'placeholder' => '123456789012345', 'help' => 'Enables the Messenger share option in public share menus.'],
             'analytics_google_ads_id' => ['group' => 'analytics', 'cast' => 'string', 'label' => 'Google Ads conversion ID', 'input' => 'text', 'rules' => ['nullable', 'regex:/^AW-[0-9]{6,14}$/'], 'placeholder' => 'AW-123456789', 'help' => 'Not needed when Google Ads is set up inside Tag Manager.'],
 
             'consent_banner_enabled' => ['group' => 'consent', 'cast' => 'bool', 'label' => 'Ask visitors before loading tracking', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true, 'help' => 'Switch off only if you are sure no consent is required; tracking then loads for every visitor.'],

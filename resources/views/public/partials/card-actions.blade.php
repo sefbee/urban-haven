@@ -40,11 +40,7 @@
                 <x-icon name="whatsapp" class="size-4" />
             </a>
         @endif
-        <button type="button" class="{{ $iconClass }}"
-                x-data="uhShare({{ \Illuminate\Support\Js::from($url) }}, {{ \Illuminate\Support\Js::from($title) }})"
-                @click="share()" aria-label="{{ __('Share') }}">
-            <x-icon name="share" class="size-4" />
-        </button>
+        <x-share-menu :url="$url" :title="$title" :button-class="$iconClass" />
         </div>
     @endif
 

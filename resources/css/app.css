@@ -899,29 +899,29 @@ body.uh-auth {
     --font-sans: 'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
     font-family: var(--font-sans);
 
-    --color-ink: #1a1d23;
-    --color-forest: #3b5bdb;
-    --color-moss: #2f4ac7;
-    --color-fern: #4c6ef5;
-    --color-emerald: #3b5bdb;
-    --color-emerald-bright: #4c6ef5;
-    --color-gold: #3b5bdb;
-    --color-gold-ink: #2f4ac7;
-    --color-gold-soft: #eef2ff;
-    --color-sand: #f1f3f9;
-    --color-cream: #f6f8fc;
+    --color-ink: #0f172a;
+    --color-forest: #0f172a;
+    --color-moss: #1e293b;
+    --color-fern: #334155;
+    --color-emerald: #0f172a;
+    --color-emerald-bright: #1e293b;
+    --color-gold: #0f172a;
+    --color-gold-ink: #1e293b;
+    --color-gold-soft: #e2e8f0;
+    --color-sand: #f1f5f9;
+    --color-cream: #f8fafc;
     --color-paper: #ffffff;
-    --color-line: #e8ecf4;
-    --color-line-strong: #d8dde8;
-    --color-muted: #6b7280;
-    --color-success: #12b76a;
-    --color-success-bg: #e6faf0;
+    --color-line: #e2e8f0;
+    --color-line-strong: #cbd5e1;
+    --color-muted: #64748b;
+    --color-success: #166534;
+    --color-success-bg: #f0fdf4;
     --color-warn: #f79009;
     --color-warn-bg: #fef6e7;
     --color-danger: #f04438;
     --color-danger-bg: #fef3f2;
-    --color-info: #3b5bdb;
-    --color-info-bg: #eef2ff;
+    --color-info: #1e293b;
+    --color-info-bg: #f1f5f9;
 
     --shadow-uh-sm: 0 1px 3px rgb(26 29 35 / 0.06);
     --shadow-uh: 0 8px 24px -8px rgb(26 29 35 / 0.14);
@@ -940,21 +940,21 @@ body.uh-admin {
     --admin-sidebar: 15.5rem;
     --admin-sidebar-collapsed: 4.25rem;
     --admin-header: 3.5rem;
-    --admin-canvas: #f0f2f8;
+    --admin-canvas: #f8fafc;
     --admin-surface: #ffffff;
-    --admin-surface-muted: #f6f8fc;
+    --admin-surface-muted: #f8fafc;
     --admin-sidebar-bg: #ffffff;
     --admin-sidebar-line: #eef1f8;
-    --admin-accent: #3b5bdb;
-    --admin-accent-hover: #2f4ac7;
-    --admin-accent-soft: #eef2ff;
-    --admin-accent-glow: #4c6ef5;
-    --admin-warm: #3b5bdb;
-    --admin-line: #e8ecf4;
-    --admin-line-strong: #d8dde8;
-    --admin-ink: #1a1d23;
-    --admin-muted: #6b7280;
-    --admin-faint: #9ca3af;
+    --admin-accent: #0f172a;
+    --admin-accent-hover: #1e293b;
+    --admin-accent-soft: #f1f5f9;
+    --admin-accent-glow: #1e293b;
+    --admin-warm: #0f172a;
+    --admin-line: #e2e8f0;
+    --admin-line-strong: #cbd5e1;
+    --admin-ink: #0f172a;
+    --admin-muted: #64748b;
+    --admin-faint: #94a3b8;
     --admin-radius: 0.625rem;
     --admin-radius-lg: 0.875rem;
     --admin-workspace: none;
@@ -1804,6 +1804,61 @@ body.uh-admin .uh-drawer {
     white-space: nowrap;
 }
 
+body.uh-admin .dd-type-add-button {
+    border-radius: 9999px;
+    background: var(--admin-accent);
+    color: #fff;
+}
+
+body.uh-admin .dd-type-add-button:hover {
+    background: var(--admin-accent-hover);
+}
+
+body.uh-admin .uh-table-scroll .dd-types-table {
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 0.75rem;
+}
+
+body.uh-admin .dd-types-table th,
+body.uh-admin .dd-types-table td {
+    padding: 0.55rem 0.45rem;
+}
+
+body.uh-admin .dd-types-table th:nth-child(1),
+body.uh-admin .dd-types-table td:nth-child(1) { width: 21%; }
+body.uh-admin .dd-types-table th:nth-child(2),
+body.uh-admin .dd-types-table td:nth-child(2) { width: 20%; }
+body.uh-admin .dd-types-table th:nth-child(3),
+body.uh-admin .dd-types-table td:nth-child(3) { width: 16%; }
+body.uh-admin .dd-types-table th:nth-child(4),
+body.uh-admin .dd-types-table td:nth-child(4) { width: 7%; }
+body.uh-admin .dd-types-table th:nth-child(5),
+body.uh-admin .dd-types-table td:nth-child(5) { width: 11%; }
+body.uh-admin .dd-types-table th:nth-child(6),
+body.uh-admin .dd-types-table td:nth-child(6) { width: 25%; }
+
+body.uh-admin .dd-types-table tbody td:not(:last-child) {
+    overflow-wrap: anywhere;
+}
+
+body.uh-admin .dd-types-table .uh-admin-row-actions {
+    flex-wrap: nowrap;
+    gap: 0.15rem;
+}
+
+body.uh-admin .dd-types-table .uh-admin-row-actions form {
+    display: flex;
+    flex: 0 1 auto;
+    margin: 0;
+}
+
+body.uh-admin .dd-types-table .uh-admin-row-actions .uh-btn-sm {
+    min-height: 1.75rem;
+    padding-inline: 0.3rem;
+    font-size: 0.6875rem;
+}
+
 .uh-admin-clickrow {
     cursor: pointer;
 }
@@ -2591,17 +2646,17 @@ body.uh-auth {
     --dd-sidebar: 15rem;
     --dd-sidebar-collapsed: 4rem;
     --dd-header-h: 3.75rem;
-    --dd-blue: #3b5bdb;
-    --dd-blue-light: #4c6ef5;
-    --dd-canvas: #e8eaf2;
-    --dd-surface: #f4f5f8;
+    --dd-blue: #0f172a;
+    --dd-blue-light: #1e293b;
+    --dd-canvas: #f8fafc;
+    --dd-surface: #f1f5f9;
     --dd-white: #ffffff;
     --dd-ink: #1a1d23;
     --dd-muted: #6b7280;
     --dd-faint: #9ca3af;
-    --dd-line: #e5e7ef;
-    --dd-green: #12b76a;
-    --dd-green-bg: #e6faf0;
+    --dd-line: #e2e8f0;
+    --dd-green: #166534;
+    --dd-green-bg: #f0fdf4;
     --dd-red: #f04438;
     --dd-red-bg: #fef3f2;
     --dd-radius: 0.875rem;
@@ -2613,7 +2668,11 @@ body.uh-auth {
 /* App shell */
 .dd-app-shell {
     display: flex;
-    min-height: 100vh;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     background: var(--dd-canvas);
 }
 
@@ -2820,7 +2879,8 @@ body.uh-auth {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
     min-width: 0;
     margin-left: var(--dd-sidebar);
     transition: margin-left 200ms ease;
@@ -2941,8 +3001,15 @@ body.uh-auth {
 /* ── Content ─────────────────────────────────────────── */
 .dd-content {
     flex: 1;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     padding: 0.75rem 1rem 2rem;
     background: var(--dd-canvas);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
 }
 
 /* Ensure the whole shell has canvas bg — handled in .dd-shell above */
@@ -5245,7 +5312,10 @@ body.uh-admin.uh-admin-collapsed .dd-nav-group:first-child {
 ============================================================================= */
 
 body.uh-admin .dd-content > :not([class*="max-w-"]) {
-    max-width: 1280px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: min(100%, 80rem);
+    margin-inline: auto;
 }
 
 body.uh-admin .uh-pagehead {
@@ -5881,4 +5951,193 @@ body.uh-admin .uh-pagehead + .uh-admin-related {
     min-width: 0;
     gap: 1rem;
     align-content: start;
+}
+
+/* Keep every admin screen usable when the workspace narrows. */
+body.uh-admin .dd-content {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+body.uh-admin .dd-content > *,
+body.uh-admin .dd-content .grid > *,
+body.uh-admin .dd-content .flex > * {
+    min-width: 0;
+}
+
+body.uh-admin .dd-content img,
+body.uh-admin .dd-content video,
+body.uh-admin .dd-content iframe {
+    max-width: 100%;
+}
+
+@media (max-width: 767px) {
+    body.uh-admin .dd-content {
+        padding: 0.65rem 0.65rem 1.5rem;
+    }
+
+    body.uh-admin .dd-content .dd-inner-panel {
+        padding: 0.85rem;
+        border-radius: 0.9rem;
+    }
+
+    body.uh-admin .uh-pagehead {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.9rem;
+    }
+
+    body.uh-admin .uh-pagehead-actions {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    body.uh-admin .dd-steps {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: thin;
+        white-space: nowrap;
+    }
+
+    body.uh-admin .uh-admin-compose,
+    body.uh-admin .uh-admin-compose.is-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.uh-admin .uh-admin-stack > .uh-panel,
+    body.uh-admin .uh-admin-compose-side > .uh-panel {
+        padding: 1rem;
+    }
+
+    body.uh-admin .uh-admin-dock {
+        bottom: 0.35rem;
+        gap: 0.45rem;
+        padding: 0.55rem;
+    }
+
+    body.uh-admin .dd-form-footer,
+    body.uh-admin .dd-card-head,
+    body.uh-admin .uh-admin-related {
+        flex-wrap: wrap;
+    }
+
+    body.uh-admin .dd-table-wrap,
+    body.uh-admin .uh-table-scroll,
+    body.uh-admin .overflow-x-auto {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+    }
+
+    body.uh-admin .uh-rte-toolbar {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+    }
+
+    body.uh-admin .dd-header {
+        gap: 0.35rem;
+        padding-inline: 0.65rem;
+    }
+
+    body.uh-admin .dd-header-start,
+    body.uh-admin .dd-header-end {
+        min-width: 0;
+        gap: 0.15rem;
+    }
+}
+
+body.uh-admin {
+    --dd-nav-bg: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    --dd-nav-glow: radial-gradient(120% 40% at 0% 0%, rgb(148 163 184 / 0.12) 0%, transparent 70%);
+    --dd-nav-line: rgb(226 232 240 / 0.12);
+    --dd-nav-text: rgb(226 232 240 / 0.78);
+    --dd-nav-label: rgb(148 163 184 / 0.72);
+    --dd-nav-hover: rgb(226 232 240 / 0.08);
+    --dd-nav-tile: rgb(226 232 240 / 0.08);
+    --dd-nav-active: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+body.uh-admin .uh-btn-primary,
+body.uh-admin .uh-admin-link.is-active,
+body.uh-admin .dd-nav-link-active,
+body.uh-admin .dd-btn-primary,
+body.uh-admin .dd-brand-mark,
+body.uh-admin .uh-admin-brand-mark,
+body.uh-admin .uh-admin-avatar {
+    background: var(--admin-accent);
+}
+
+body.uh-admin .uh-btn-primary:hover,
+body.uh-admin .dd-btn-primary:hover {
+    background: var(--admin-accent-hover);
+}
+
+body.uh-admin .dd-pageseo-item.is-active,
+body.uh-admin .dd-urls-tabs button.is-active {
+    background: var(--admin-accent);
+    color: #fff;
+}
+
+.dd-urls-feedback {
+    position: fixed;
+    z-index: 100;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+    border: 1px solid var(--admin-line-strong);
+    border-radius: 0.65rem;
+    background: var(--admin-ink);
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-uh);
+}
+
+.dd-urls-modal-backdrop {
+    position: fixed;
+    z-index: 90;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    padding: 1rem;
+    background: rgb(15 23 42 / 0.48);
+}
+
+.dd-urls-modal {
+    width: min(100%, 30rem);
+    max-height: min(42rem, calc(100dvh - 2rem));
+    overflow-y: auto;
+    border: 1px solid var(--admin-line);
+    border-radius: 0.9rem;
+    background: var(--admin-surface);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-uh-lg);
+}
+
+@media (max-width: 639px) {
+    .dd-urls-toolbar {
+        align-items: stretch;
+    }
+
+    .dd-urls-search,
+    .dd-urls-tabs {
+        width: 100%;
+    }
+
+    .dd-urls-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        border-radius: 0.75rem;
+    }
+
+    .dd-urls-tabs button {
+        flex: 0 0 auto;
+    }
 }

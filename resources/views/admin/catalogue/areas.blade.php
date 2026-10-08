@@ -7,8 +7,7 @@
 
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
-        <x-ui.page-header compact title="Areas"
-                          description="Country, city and neighbourhood used on listings, search filters and area pages. Deactivating one hides it from filters without touching existing listings.">
+        <x-ui.page-header compact title="Areas">
             <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
                 <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
@@ -97,7 +96,7 @@
                 <x-ui.input name="country" id="area-country" label="Country" list="area-countries" :value="\App\Models\LocationArea::DEFAULT_COUNTRY" maxlength="80" required />
                 <x-ui.input name="city" id="area-city" label="City" list="area-cities" required maxlength="120" :value="$cities->first()"
                             hint="Pick an existing city or type a new one." />
-                <x-ui.input name="name" id="area-name" label="Area name" required maxlength="120" hint="The neighbourhood, e.g. the name buyers search for." />
+                <x-ui.input name="name" id="area-name" label="Area name" required maxlength="120" placeholder="e.g. Gulshan" />
                 <button type="submit" class="uh-btn-primary uh-btn-block">
                     <x-icon name="plus" class="size-3.5" />
                     Add area
@@ -114,8 +113,8 @@
                     <x-ui.input name="country" label="Country" list="area-countries" :value="$area->country" required maxlength="80" :id="'acountry-'.$area->id" />
                     <x-ui.input name="city" label="City" list="area-cities" :value="$area->city" required maxlength="120" :id="'ac-'.$area->id" />
                     <x-ui.input name="name" label="Area name" :value="$area->name" required maxlength="120" :id="'an-'.$area->id" />
-                    <x-ui.textarea name="intro" label="Area page introduction" rows="4" :value="$area->intro" optional :id="'ai-'.$area->id"
-                                   hint="Write a few useful sentences about the area. The public area page only goes live once this is filled in." />
+                    <x-ui.rich-text name="intro" label="Area page introduction" :value="$area->intro" optional :id="'ai-'.$area->id" min-height="8rem"
+                                    hint="Write a few useful sentences about the area. The public area page only goes live once this is filled in." />
                     <div class="grid grid-cols-2 gap-3">
                         <x-ui.input name="lat" label="Map latitude" type="number" step="0.0000001" :value="$area->lat" optional :id="'alat-'.$area->id" />
                         <x-ui.input name="lng" label="Map longitude" type="number" step="0.0000001" :value="$area->lng" optional :id="'alng-'.$area->id" />

@@ -35,7 +35,7 @@ final class SeoMeta
             ?: $fallbackDescription
             ?: Setting::get('seo_default_description');
 
-        $image = $override?->og_image_path;
+        $image = $override?->og_image_path ?: ($page['og_image_path'] ?? null);
         if (! $image && ($model instanceof Property || $model instanceof Project || $model instanceof Post)) {
             $image = $model->featuredImage()?->url(1280);
         }

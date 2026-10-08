@@ -117,12 +117,7 @@
                     <div class="uh-pd-actions">
                         <x-save-button :property="$property" variant="icon" />
                         <x-save-button :property="$property" list="compare" variant="icon" />
-                        <button type="button" class="uh-icon-action" x-data="uhShare({{ \Illuminate\Support\Js::from($shareUrl) }}, {{ \Illuminate\Support\Js::from($property->title) }})" @click="share()"
-                                :aria-label="copied ? @js(__('Link copied')) : @js(__('Share this property'))"
-                                :title="copied ? @js(__('Link copied')) : @js(__('Share'))">
-                            <x-icon name="share" class="size-4" x-show="!copied" />
-                            <x-icon name="check" class="size-4" x-show="copied" x-cloak />
-                        </button>
+                        <x-share-menu :url="$shareUrl" :title="$property->title" />
                     </div>
                     <div class="uh-pd-head-highlights" role="group" aria-label="{{ __('Property highlights') }}">
                         @if($property->is_featured)
@@ -222,7 +217,8 @@
                         <section id="description" class="uh-pd-card" aria-labelledby="about-heading">
                             <h2 id="about-heading" class="uh-pd-card-title">{{ __('Description') }}</h2>
                             @if(filled($property->description))
-                                <div class="uh-prose uh-pd-prose">{!! nl2br(e($property->description)) !!}</div>
+                                @php($description = (string) $property->description)
+                                <div class="uh-prose uh-pd-prose">{!! strip_tags($description) === $description ? nl2br(e($description)) : \Stevebauman\Purify\Facades\Purify::clean($description) !!}</div>
                             @endif
 
                             @if($anchors)

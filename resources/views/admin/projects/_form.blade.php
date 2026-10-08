@@ -5,8 +5,7 @@
     $steps = ['about' => 'About', 'where' => 'Where', 'describe' => 'Describe', 'facilities' => 'Facilities', 'media' => 'Media', 'seo' => 'SEO'];
 @endphp
 
-<x-ui.page-header compact :title="$model->name ?? 'New project'"
-                  :description="$model ? 'Changes are saved as a draft until you publish.' : 'A project groups several listings in one development.'">
+<x-ui.page-header compact :title="$model->name ?? 'New project'">
     <x-slot:eyebrow>Content library · {{ $model ? 'Edit project' : 'New project' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.projects.index') }}">
@@ -57,8 +56,8 @@
                 ])
                 <x-ui.input name="address" label="Street address" :value="$model->address ?? ''" optional maxlength="255" />
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="lat" label="Map pin latitude" type="number" step="0.0000001" dir="ltr" :value="$model->lat ?? ''" optional hint="Within Bangladesh, e.g. 23.7806" />
-                    <x-ui.input name="lng" label="Map pin longitude" type="number" step="0.0000001" dir="ltr" :value="$model->lng ?? ''" optional hint="Within Bangladesh, e.g. 90.4074" />
+                    <x-ui.input name="lat" label="Map pin latitude" type="number" step="0.0000001" dir="ltr" :value="$model->lat ?? ''" optional placeholder="23.7806" />
+                    <x-ui.input name="lng" label="Map pin longitude" type="number" step="0.0000001" dir="ltr" :value="$model->lng ?? ''" optional placeholder="90.4074" />
                 </div>
             </div>
         </section>
@@ -66,16 +65,16 @@
         <section class="uh-panel" id="step-describe">
             <h2 class="uh-h4">Describe it</h2>
             <div class="mt-4 space-y-4">
-                <x-ui.textarea name="description" label="Description" rows="6" :value="$model->description ?? ''" />
+                <x-ui.rich-text name="description" label="Description" :value="$model->description ?? ''" min-height="14rem" />
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-ui.input name="completion_date" label="Completion date" type="date" optional
                                 :value="$model?->completion_date?->format('Y-m-d')" />
                     <x-ui.input name="trust_label" label="Trust label" :value="$model->trust_label ?? ''" optional maxlength="255"
                                 hint="A verifiable fact only, e.g. “RAJUK approved plan”." />
                 </div>
-                <x-ui.textarea name="handover_info" label="Handover information" rows="3" optional
-                               :value="$model->handover_info ?? ''"
-                               hint="Shown as a notice on the project page." />
+                <x-ui.rich-text name="handover_info" label="Handover information" optional
+                                :value="$model->handover_info ?? ''" min-height="8rem"
+                                hint="Shown as a notice on the project page." />
             </div>
         </section>
 
@@ -126,7 +125,6 @@
                 </div>
             </div>
             @if($model)
-                <p class="mt-4 text-xs text-[var(--color-muted)]">Photographs and brochures are managed in the gallery below the form.</p>
             @endif
         </section>
 

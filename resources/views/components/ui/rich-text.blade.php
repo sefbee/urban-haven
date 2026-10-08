@@ -2,6 +2,7 @@
     'name',
     'label' => null,
     'hint' => null,
+    'showHint' => false,
     'optional' => false,
     'value' => null,
     'id' => null,
@@ -14,7 +15,7 @@
     $errorKey ??= str_replace(['[', ']'], ['.', ''], $name);
     $id ??= 'f-'.trim(preg_replace('/[^a-z0-9]+/i', '-', $name), '-');
     $invalid = $errors->has($errorKey);
-    $described = array_filter([$hint ? $id.'-hint' : null, $invalid ? $id.'-error' : null]);
+    $described = array_filter([$showHint && $hint ? $id.'-hint' : null, $invalid ? $id.'-error' : null]);
     $tools = [
         ['command' => 'h2', 'label' => 'Heading', 'text' => 'H2'],
         ['command' => 'h3', 'label' => 'Sub-heading', 'text' => 'H3'],
@@ -71,7 +72,7 @@
     </div>
     <textarea x-ref="input" name="{{ $name }}" class="hidden" aria-hidden="true" tabindex="-1">{{ old($errorKey, $value) }}</textarea>
 
-    @if($hint)
+    @if($showHint && $hint)
         <p class="uh-hint" id="{{ $id }}-hint">{{ $hint }}</p>
     @endif
 

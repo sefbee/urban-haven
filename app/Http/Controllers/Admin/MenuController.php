@@ -16,7 +16,7 @@ class MenuController extends Controller
 {
     public function __construct(private readonly AuditLogger $audit) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('publish', new CmsPage);
 
@@ -33,6 +33,11 @@ class MenuController extends Controller
                 ->values()
                 ->each(fn (MenuItem $item) => $item->setRelation('children', $children->get($item->id, collect())->values()))),
             'parents' => $items->whereNull('parent_id')->groupBy('location'),
+            'prefillLabel' => (string) $request->query('label', ''),
+            'prefillUrl' => (string) $request->query('url', ''),
+            'prefillLocation' => array_key_exists((string) $request->query('location'), MenuItem::LOCATIONS)
+                ? (string) $request->query('location')
+                : (string) array_key_first(MenuItem::LOCATIONS),
         ]);
     }
 

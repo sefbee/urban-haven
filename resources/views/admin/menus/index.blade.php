@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact title="Menu management" description="Links in the public header and footer. Add sub-links under a top-level link to build a dropdown. When a menu has no visible links the site uses its built-in navigation.">
+    <x-ui.page-header compact title="Menu management">
         <x-slot:eyebrow>Content library</x-slot:eyebrow>
     </x-ui.page-header>
 
@@ -52,7 +52,7 @@
         </div>
 
         <form method="POST" action="{{ route('admin.menus.store') }}" class="uh-panel space-y-3 lg:sticky lg:top-20"
-              x-data="{ location: @js(old('location', array_key_first($locations))), parents: @js($parentOptions) }">
+              x-data="{ location: @js(old('location', $prefillLocation)), parents: @js($parentOptions) }">
             @csrf
             <h2 class="uh-h4">Add a link</h2>
             <x-ui.select name="location" label="Menu" x-model="location">
@@ -70,8 +70,8 @@
                 </select>
                 @error('parent_id')<p class="uh-error">{{ $message }}</p>@enderror
             </div>
-            <x-ui.input name="label" label="Label" required maxlength="60" />
-            <x-ui.input name="url" label="Link" required maxlength="255" dir="ltr" placeholder="/properties?listing_type=sale" hint="An internal path starting with / or a full https:// address." />
+            <x-ui.input name="label" label="Label" :value="$prefillLabel" required maxlength="60" />
+            <x-ui.input name="url" label="Link" :value="$prefillUrl" required maxlength="255" dir="ltr" placeholder="/properties?listing_type=sale" hint="An internal path starting with / or a full https:// address." />
             <label class="uh-check"><input type="checkbox" name="opens_new_tab" value="1"> <span>Open in a new tab</span></label>
             <input type="hidden" name="is_visible" value="1">
             <button type="submit" class="uh-btn-primary uh-btn-sm uh-btn-block">Add link</button>

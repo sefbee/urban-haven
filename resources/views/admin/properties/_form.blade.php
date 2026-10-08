@@ -9,8 +9,7 @@
     $steps = ['what' => 'What', 'where' => 'Where', 'describe' => 'Describe', 'price' => 'Price', 'size' => 'Size', 'features' => 'Features', 'media' => 'Media', 'visibility' => 'Visibility', 'seo' => 'SEO'];
 @endphp
 
-<x-ui.page-header compact :title="$exists ? $property->title : 'New property'"
-                  :description="$exists ? 'Reference '.($property->reference ?? '—').'. Version '.$property->version.'.' : 'Work from top to bottom: what it is, where it is, then the details buyers compare.'">
+<x-ui.page-header compact :title="$exists ? $property->title : 'New property'">
     <x-slot:eyebrow>Content library · {{ $exists ? 'Edit property' : 'New property' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.index') }}">
@@ -95,10 +94,10 @@
                     <x-ui.input name="address" label="Street address" :value="$property->address" optional maxlength="255"
                                 hint="House, road and block. Shown publicly according to the address display setting." />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input name="lat" label="Map pin latitude" type="number" step="0.0000001" dir="ltr"
-                                    :value="$property->lat" optional hint="Within Bangladesh, e.g. 23.7806" />
-                        <x-ui.input name="lng" label="Map pin longitude" type="number" step="0.0000001" dir="ltr"
-                                    :value="$property->lng" optional hint="Within Bangladesh, e.g. 90.4074" />
+                    <x-ui.input name="lat" label="Map pin latitude" type="number" step="0.0000001" dir="ltr"
+                                    :value="$property->lat" optional placeholder="23.7806" />
+                    <x-ui.input name="lng" label="Map pin longitude" type="number" step="0.0000001" dir="ltr"
+                                    :value="$property->lng" optional placeholder="90.4074" />
                     </div>
                 </div>
             </section>
@@ -110,8 +109,8 @@
                     <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
                                 placeholder="e.g. 3-bed apartment with lake view in Gulshan 2"
                                 hint="What a buyer sees first. The web address is generated from it." />
-                    <x-ui.textarea name="description" label="Description" rows="6" :value="$property->description"
-                                   hint="Plain text. Line breaks are preserved on the public page." />
+                    <x-ui.rich-text name="description" label="Description" :value="$property->description" min-height="14rem"
+                                    hint="Format the listing description with headings, emphasis, lists, quotes and links." />
                     @if($canEditReference)
                         <x-ui.input name="reference" label="Reference" :value="$property->reference" optional maxlength="30" dir="ltr"
                                     hint="Letters, numbers and dashes. Leave blank to generate one automatically." />
@@ -214,7 +213,6 @@
                                 class="sm:col-span-2" hint="A verifiable fact only, e.g. “Registered deed available”." />
                 </div>
                 @if($exists)
-                    <p class="mt-4 text-xs text-[var(--color-muted)]">Photographs are managed in the gallery below the form.</p>
                 @endif
             </section>
 
@@ -285,7 +283,6 @@
                 <section class="uh-panel" aria-labelledby="availability-heading" x-data="{ value: @js($property->availability) }">
                     <h2 id="availability-heading" class="uh-h4">Availability</h2>
                     @if($property->availability === 'reserved' && $property->reservation_expires_at)
-                        <p class="mt-2 text-xs text-[var(--color-muted)]">Reserved until {{ $property->reservation_expires_at->timezone(config('urbanhaven.display_timezone'))->format('j M Y, g:i a') }}. It returns to available automatically.</p>
                     @endif
                     <form method="POST" action="{{ route('admin.properties.availability', $property) }}" class="mt-3 space-y-3">
                         @csrf
@@ -345,7 +342,6 @@
                         @endforeach
                     </ul>
                 @else
-                    <p class="mt-4 text-xs text-[var(--color-muted)]">Add units when a single listing covers several apartments with their own prices.</p>
                 @endif
             </section>
 

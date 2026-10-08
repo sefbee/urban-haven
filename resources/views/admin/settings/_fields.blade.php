@@ -24,7 +24,6 @@
                             <span class="dd-switch-track" aria-hidden="true"></span>
                             <span class="dd-switch-label">{{ $definition['label'] }}</span>
                         </label>
-                        @if(! empty($definition['help']))<p class="uh-hint ml-12">{{ $definition['help'] }}</p>@endif
                         @if($error)<p class="uh-error">{{ $error }}</p>@endif
                     </div>
                 @elseif($definition['input'] === 'image')
@@ -53,7 +52,6 @@
                                         <span>Remove</span>
                                     </label>
                                 @endif
-                                @if(! empty($definition['help']))<p class="uh-hint">{{ $definition['help'] }}</p>@endif
                             </div>
                         </div>
                         @if($error)<p class="uh-error">{{ $error }}</p>@endif
@@ -65,7 +63,6 @@
                             <input type="color" class="dd-color-swatch" :value="/^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'" @input="value = $event.target.value" aria-label="Pick {{ strtolower($definition['label']) }}">
                             <input id="{{ $fieldId }}" class="uh-input font-mono uppercase" name="settings[{{ $key }}]" x-model="value" maxlength="7" pattern="#[0-9a-fA-F]{6}" dir="ltr" data-theme-key="{{ $key }}">
                         </div>
-                        @if(! empty($definition['help']))<p class="uh-hint">{{ $definition['help'] }}</p>@endif
                         @if($error)<p class="uh-error">{{ $error }}</p>@endif
                     </div>
                 @else
@@ -90,7 +87,6 @@
                                    @isset($definition['placeholder']) placeholder="{{ $definition['placeholder'] }}" @endisset
                                    @if(in_array($definition['input'], ['tel', 'email', 'url'], true)) dir="ltr" @endif>
                         @endif
-                        @if(! empty($definition['help']))<p class="uh-hint">{{ $definition['help'] }}</p>@endif
                         @if($error)<p class="uh-error">{{ $error }}</p>@endif
                     </div>
                 @endif

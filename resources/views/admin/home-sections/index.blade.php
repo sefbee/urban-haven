@@ -7,8 +7,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact title="Home page"
-                      :description="'Every section of the public homepage, top to bottom. '.($canPublish ? 'Edit the wording, hide what you do not need and change the order.' : 'Your edits are saved as drafts until a publisher approves them.')">
+    <x-ui.page-header compact title="Home page">
         <x-slot:eyebrow>Website pages</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-outline uh-btn-sm" href="{{ route('home') }}" target="_blank" rel="noopener">

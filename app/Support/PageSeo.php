@@ -30,7 +30,7 @@ final class PageSeo
     ];
 
     /**
-     * @return array<string, array{focus_keyword: ?string, meta_title: ?string, meta_description: ?string, gsc_code: ?string, noindex: bool}>
+     * @return array<string, array{focus_keyword: ?string, meta_title: ?string, meta_description: ?string, og_image_path: ?string, gsc_code: ?string, noindex: bool}>
      */
     public static function all(): array
     {
@@ -45,6 +45,7 @@ final class PageSeo
                 'focus_keyword' => self::text($values['focus_keyword'] ?? null),
                 'meta_title' => self::text($values['meta_title'] ?? null),
                 'meta_description' => self::text($values['meta_description'] ?? null),
+                'og_image_path' => self::text($values['og_image_path'] ?? null),
                 'gsc_code' => self::text($values['gsc_code'] ?? null),
                 'noindex' => (bool) ($values['noindex'] ?? false),
             ];
@@ -57,7 +58,7 @@ final class PageSeo
      * Settings for the page being rendered, or null when it is not a fixed page or the URL
      * carries filters (a filtered search is a different page for search engines).
      *
-     * @return array{focus_keyword: ?string, meta_title: ?string, meta_description: ?string, gsc_code: ?string, noindex: bool}|null
+     * @return array{focus_keyword: ?string, meta_title: ?string, meta_description: ?string, og_image_path: ?string, gsc_code: ?string, noindex: bool}|null
      */
     public static function current(): ?array
     {

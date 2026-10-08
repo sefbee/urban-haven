@@ -9,8 +9,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact :title="$exists ? $post->title : 'New article'"
-                      :description="$canPublish ? 'Saved changes go live when the article is published.' : 'Changes to a live article wait for a publisher before they appear.'">
+    <x-ui.page-header compact :title="$exists ? $post->title : 'New article'">
         <x-slot:eyebrow>Content library · {{ $exists ? 'Edit article' : 'New article' }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.posts.index') }}"><x-icon name="chevron-left" class="size-4" /> All articles</a>
@@ -61,7 +60,6 @@
             @if($otherPosts->isNotEmpty())
                 <section class="uh-panel">
                     <h2 class="uh-h4">Related articles</h2>
-                    <p class="mt-1 text-xs text-[var(--color-muted)]">Pick up to 6. Others from the same category fill remaining slots.</p>
                     <div class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
                         @foreach($otherPosts as $other)
                             <label class="uh-check"><input type="checkbox" name="related_post_ids[]" value="{{ $other->id }}" @checked(in_array($other->id, $related, true))> <span>{{ $other->title }}</span></label>
@@ -110,7 +108,6 @@
                             </form>
                         @endif
                     @else
-                        <p class="mt-3 text-xs text-[var(--color-muted)]">A publisher makes articles live.</p>
                     @endif
                 </section>
 

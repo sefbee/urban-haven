@@ -7,8 +7,7 @@
 @endphp
 
 @section('content')
-    <x-ui.page-header compact title="Page SEO"
-                      description="Focus keyword, meta title, description and Search Console code for the website’s fixed pages. Properties, articles, pages, areas and categories have the same settings on their own edit screens.">
+    <x-ui.page-header compact title="Page SEO">
         <x-slot:eyebrow>Website pages</x-slot:eyebrow>
         <x-slot:actions>
             @if(auth()->user()->isOwnerAdmin())

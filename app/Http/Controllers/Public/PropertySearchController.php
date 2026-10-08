@@ -28,6 +28,10 @@ class PropertySearchController extends Controller
      */
     public function map(SearchRequest $request, SearchService $search): View
     {
+        if (Setting::get('address_display_mode', 'approximate') === 'hidden') {
+            return view('public.properties.index', $this->browseData($request, $search));
+        }
+
         $data = $this->browseData($request, $search, 'map');
         $data['seo'] = SeoMeta::for(null, __('Map of properties'), 'Browse Urban Haven apartments, duplexes, land and commercial space in Dhaka on a map.', [
             'noindex' => true,
@@ -80,6 +84,7 @@ class PropertySearchController extends Controller
             'amenities' => $amenities,
             'cities' => LocationArea::query()->active()->distinct()->orderBy('city')->pluck('city'),
             'mapDataUrl' => route('properties.map', $request->query()),
+            'mapAvailable' => Setting::get('address_display_mode', 'approximate') !== 'hidden',
             'purposes' => Setting::enabledPurposes(),
             'showBedroomFilters' => $selectedTypes->isEmpty() || $selectedTypes->contains(fn (PropertyType $type): bool => $type->hasResidentialFields()),
             'searchErrors' => session('errors')?->getBag('search'),

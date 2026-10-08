@@ -205,13 +205,16 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         }
     },
     toggleMapMode() {
-        const nextMode = {
-            split: 'full',
-            full: 'hidden',
-            hidden: 'split',
-        };
+        if (this.mapMode === 'full') {
+            const listUrl = new URL(this.$el.dataset.listUrl, window.location.origin);
+            listUrl.search = window.location.search;
+            listUrl.searchParams.delete('page');
+            window.location.assign(listUrl);
 
-        this.mapMode = nextMode[this.mapMode] ?? 'split';
+            return;
+        }
+
+        this.mapMode = 'full';
         this.$nextTick(() => {
             window.dispatchEvent(new Event('uh:refresh-maps'));
             window.setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300);
@@ -271,6 +274,7 @@ Alpine.data('uhSavedSearch', (url, title, labels) => ({
     items: [],
     notice: '',
     open: false,
+    noticeTimer: null,
     labels,
     init() {
         try {
@@ -297,15 +301,16 @@ Alpine.data('uhSavedSearch', (url, title, labels) => ({
     },
     toggle() {
         if (this.saved) {
-            this.open = !this.open;
-
-            return;
+            this.remove(url);
+        } else {
+            this.items = [{ url, title }, ...this.items].slice(0, 20);
+            this.notice = this.labels.saved;
+            this.persist();
         }
 
-        this.items = [{ url, title }, ...this.items].slice(0, 20);
-        this.notice = this.labels.saved;
-        this.persist();
         this.open = true;
+        window.clearTimeout(this.noticeTimer);
+        this.noticeTimer = window.setTimeout(() => this.open = false, 2400);
     },
     remove(searchUrl) {
         this.items = this.items.filter((item) => item.url !== searchUrl);
@@ -902,23 +907,74 @@ Alpine.data('uhEmi', (price = 0) => ({
 }));
 
 /**
- * Native share, with a copy fallback for browsers that do not support it.
+ * Social sharing destinations and copy-link feedback for public content.
  */
-Alpine.data('uhShare', (url, title) => ({
+Alpine.data('uhShare', (url, title, facebookAppId = null) => ({
+    open: false,
     copied: false,
-    async share() {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title, url });
-            } catch {
-                // The visitor dismissed the sheet.
-            }
-            return;
+    copyTimer: null,
+    get facebookHref() {
+        return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    },
+    get messengerHref() {
+        if (!facebookAppId) {
+            return '';
         }
 
+        const params = new URLSearchParams({ app_id: facebookAppId, link: url, redirect_uri: url });
+
+        return `https://www.facebook.com/dialog/send?${params.toString()}`;
+    },
+    get whatsappHref() {
+        return `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title} ${url}`.trim())}`;
+    },
+    get xHref() {
+        const params = new URLSearchParams({ url, text: title });
+
+        return `https://twitter.com/intent/tweet?${params.toString()}`;
+    },
+    get emailHref() {
+        const params = new URLSearchParams({ subject: title, body: url });
+
+        return `mailto:?${params.toString()}`;
+    },
+    async copyLink() {
         try {
-            await navigator.clipboard.writeText(url);
+            let copied = false;
+
+            if (navigator.clipboard?.writeText && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    copied = true;
+                } catch {
+                    copied = false;
+                }
+            }
+
+            if (!copied) {
+                const field = document.createElement('textarea');
+                field.value = url;
+                field.setAttribute('readonly', '');
+                field.style.position = 'fixed';
+                field.style.opacity = '0';
+                document.body.append(field);
+                field.select();
+                try {
+                    copied = document.execCommand('copy');
+                } finally {
+                    field.remove();
+                }
+
+                if (!copied) {
+                    throw new Error('Clipboard copy failed.');
+                }
+            }
+
             this.copied = true;
+            window.clearTimeout(this.copyTimer);
+            this.copyTimer = window.setTimeout(() => {
+                this.copied = false;
+            }, 1800);
         } catch {
             this.copied = false;
         }

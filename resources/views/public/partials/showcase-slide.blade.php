@@ -151,12 +151,8 @@
                             <x-icon name="mail" class="size-5" />
                         </a>
                     @endif
-                    <button type="button" class="uh-showcase-action-icon"
-                            x-data="uhShare({{ \Illuminate\Support\Js::from($url) }}, {{ \Illuminate\Support\Js::from($property->title) }})"
-                            @click.stop="share()" @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif
-                            aria-label="{{ __('Share') }}">
-                        <x-icon name="share" class="size-5" />
-                    </button>
+                    <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5"
+                                  @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif />
                 </div>
                 <div class="uh-showcase-link-actions">
                     <button type="button" class="uh-showcase-quick-view"

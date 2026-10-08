@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Stevebauman\Purify\Facades\Purify;
 
 class LocationAreaController extends Controller
 {
@@ -72,12 +73,14 @@ class LocationAreaController extends Controller
             'city' => ['required', 'string', 'max:120'],
             'name' => ['required', 'string', 'max:120'],
             'slug' => SeoFields::slugRules('location_areas', $area),
-            'intro' => ['nullable', 'string', 'max:2000'],
+            'intro' => ['nullable', 'string', 'max:10000'],
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:'.$bounds['south'].','.$bounds['north']],
             'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:'.$bounds['west'].','.$bounds['east']],
             'is_active' => ['sometimes', 'boolean'],
             ...SeoFields::rules(),
         ]);
+
+        $validated['intro'] = Purify::clean((string) ($validated['intro'] ?? ''));
 
         DB::transaction(function () use ($area, $validated, $request, $redirects): void {
             $oldSlug = $area->slug;

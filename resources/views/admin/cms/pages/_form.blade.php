@@ -2,7 +2,7 @@
     $model = $page ?? null;
     $canPublish ??= auth()->user()->hasPermission('cms.publish');
     $draft = fn (string $field) => $model ? ($model->pending_changes[$field] ?? $model->{$field}) : null;
-    $templateLabels = ['default' => 'Standard page', 'about' => 'About page', 'contact' => 'Contact page with enquiry form', 'campaign' => 'Campaign landing page with enquiry form'];
+    $templateLabels = ['default' => 'Custom CMS page', 'about' => 'Dynamic module · About page', 'contact' => 'Dynamic module · Contact page', 'campaign' => 'Dynamic module · Campaign landing page'];
     $aboutValues = \App\Support\AboutPageContent::resolve((array) ($draft('layout_content') ?? []));
     $aboutFields = [
         'hero_eyebrow' => ['Small label', 'text', 80], 'hero_title' => ['Main headline', 'text', 120], 'hero_intro' => ['Intro line', 'textarea', 300],
@@ -19,8 +19,7 @@
     ];
 @endphp
 
-<x-ui.page-header compact :title="$model->title ?? 'New page'"
-                  :description="$model ? ($canPublish ? 'Saved changes go live when the page is published.' : 'Changes to a live page wait for a publisher before they appear.') : 'Give the page a title and body. The web address is generated from the title unless you set one.'">
+<x-ui.page-header compact :title="$model->title ?? 'New page'">
     <x-slot:eyebrow>Website pages · {{ $model ? 'Edit page' : 'New page' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.cms.index') }}">
@@ -55,7 +54,7 @@
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
                 <x-ui.input name="title" label="Title" :value="$draft('title')" :autofocus="! $model" required maxlength="255"
                             hint="The page title and search result title. The web address is generated from it." />
-                <x-ui.select name="template" label="Layout" x-on:change="$dispatch('cms-template-change', $event.target.value)">
+                <x-ui.select name="template" label="Page type" x-on:change="$dispatch('cms-template-change', $event.target.value)">
                     @foreach($templates as $template)
                         <option value="{{ $template }}" @selected(old('template', $draft('template') ?? 'default') === $template)>{{ $templateLabels[$template] ?? ucfirst($template) }}</option>
                     @endforeach
@@ -66,7 +65,6 @@
             <fieldset class="uh-panel" x-data="{ show: @js(old('template', $draft('template') ?? 'default') === 'about') }"
                       x-on:cms-template-change.window="show = $event.detail === 'about'" x-show="show" x-cloak :disabled="!show">
                 <h2 class="uh-h4">About page content</h2>
-                <p class="mt-2 text-sm text-[var(--color-muted)]">Edit the wording in each part of the existing About page layout.</p>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
                     @foreach($aboutFields as $field => [$label, $type, $max])
                         <div @class(['uh-field', 'sm:col-span-2' => $type === 'textarea'])>
@@ -123,7 +121,6 @@
             <section class="uh-panel">
                 <h2 class="uh-h4">Publication</h2>
                 <p class="mt-2"><x-ui.status :status="$model->editorialStatus()" /></p>
-                <p class="mt-3 text-xs leading-relaxed text-[var(--color-muted)]">Address: <span dir="ltr">/{{ $model->slug }}</span></p>
                 @if($canPublish)
                     @if(! $model->isPublished() || $model->hasPendingChanges())
                         <form method="POST" action="{{ route('admin.cms.publish', $model) }}" class="mt-4">
@@ -138,14 +135,12 @@
                         </form>
                     @endif
                 @else
-                    <p class="mt-3 text-xs text-[var(--color-muted)]">A publisher makes pages live.</p>
                 @endif
             </section>
 
             @can('delete', $model)
                 <section class="uh-panel">
                     <h2 class="uh-h4">Delete</h2>
-                    <p class="mt-2 text-xs leading-relaxed text-[var(--color-muted)]">Deleting removes the page and its URL. Add a redirect first if the page has been shared.</p>
                     <form method="POST" action="{{ route('admin.cms.destroy', $model) }}" class="mt-4"
                           x-data="uhConfirm('Delete “{{ $model->title }}”? This cannot be undone.')">
                         @csrf

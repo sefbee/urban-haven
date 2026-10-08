@@ -10,27 +10,28 @@
 @layer components {
 
 body.uh-home {
-    /* Surfaces */
-    --uh-white: #ffffff;
-    --uh-paper: #f5f5f7;
-    --uh-paper-2: #ebebef;
-    --uh-night: #1d1d1f;
+    /* 60/30/10 brand roles, overridden from saved settings in the public layout. */
+    --color-dominant: #f3f0ea;
+    --color-secondary: #0d1110;
+    --color-accent: #1a3328;
+    --color-dominant-text: #1e293b;
+    --color-secondary-text: #ffffff;
+    --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
 
-    /* Text */
-    --uh-ink: #1d1d1f;
-    --uh-ink-soft: #424245;
-    --uh-muted: #6e6e73;
-    --uh-faint: #86868b;
-    --uh-on-night: #f5f5f7;
-    --uh-on-night-muted: rgb(245 245 247 / 0.72);
-
-    /* Lines */
-    --uh-line: #e5e5ea;
-    --uh-line-strong: #d2d2d7;
-
-    /* The one accent */
-    --uh-accent: #7f6237;
-    --uh-accent-ring: rgb(127 98 55 / 0.18);
+    --uh-white: var(--color-dominant);
+    --uh-paper: var(--color-dominant);
+    --uh-paper-2: color-mix(in srgb, var(--color-dominant) 88%, var(--color-secondary));
+    --uh-night: var(--color-secondary);
+    --uh-ink: var(--color-secondary);
+    --uh-ink-soft: color-mix(in srgb, var(--color-secondary) 78%, white);
+    --uh-muted: color-mix(in srgb, var(--color-secondary) 58%, white);
+    --uh-faint: color-mix(in srgb, var(--color-secondary) 38%, white);
+    --uh-on-night: var(--color-secondary-text);
+    --uh-on-night-muted: color-mix(in srgb, var(--color-secondary-text) 72%, transparent);
+    --uh-accent: var(--color-accent);
+    --uh-accent-ring: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    --uh-line: color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant));
+    --uh-line-strong: color-mix(in srgb, var(--color-secondary) 22%, var(--color-dominant));
 
     /* Geometry */
     --uh-radius-sm: 6px;
@@ -62,23 +63,23 @@ body.uh-home {
 
     /* Shared component tokens, mapped onto the public palette. */
     --font-display: var(--font-sans);
-    --color-ink: var(--uh-ink);
+    --color-ink: var(--color-secondary);
     --color-night: var(--uh-night);
     --color-ivory: var(--uh-on-night);
     --color-limestone: var(--uh-white);
     --color-brass: var(--uh-accent);
     --color-brass-ink: var(--uh-accent);
-    --color-forest: var(--uh-ink);
-    --color-moss: var(--uh-ink-soft);
+    --color-forest: var(--color-accent);
+    --color-moss: var(--color-accent);
     --color-hero: var(--uh-night);
-    --color-emerald: var(--uh-ink);
-    --color-emerald-bright: var(--uh-ink-soft);
+    --color-emerald: var(--color-accent);
+    --color-emerald-bright: var(--color-accent-hover);
     --color-gold: var(--uh-accent);
     --color-gold-ink: var(--uh-accent);
-    --color-gold-soft: var(--uh-paper);
-    --color-sand: var(--uh-paper);
-    --color-cream: var(--uh-on-night);
-    --color-paper: var(--uh-white);
+    --color-gold-soft: color-mix(in srgb, var(--color-accent) 14%, var(--color-dominant));
+    --color-sand: var(--color-dominant);
+    --color-cream: var(--color-dominant);
+    --color-paper: var(--color-dominant);
     --color-line: var(--uh-line);
     --color-line-strong: var(--uh-line-strong);
     --color-muted: var(--uh-muted);
@@ -92,7 +93,7 @@ body.uh-home {
     text-rendering: optimizeLegibility;
 
     ::selection {
-        background: rgb(127 98 55 / 0.16);
+        background: color-mix(in srgb, var(--color-accent) 16%, transparent);
         color: inherit;
     }
 
@@ -563,7 +564,7 @@ body.uh-home {
     }
 
     .uh-pill-link.is-forest {
-        background: #1a3328;
+        background: var(--color-accent);
     }
 
     .uh-pill-link.is-blue {
@@ -2843,7 +2844,7 @@ body.uh-home {
     }
 
     .uh-showcase-card {
-        overflow: hidden;
+        overflow: visible;
         border: 4px solid #ffffff;
         border-radius: 1.5rem;
         background: #f4f4f4;
@@ -3634,7 +3635,7 @@ body.uh-home {
     }
 
     .uh-listing:not(.uh-listing-row) {
-        overflow: hidden;
+        overflow: visible;
         border: 1px solid rgb(29 29 31 / 0.08);
         border-radius: 1rem;
         background: var(--uh-white);
@@ -3901,6 +3902,90 @@ body.uh-home {
         display: flex;
         align-items: center;
         gap: 0.375rem;
+    }
+
+    .uh-share-control {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .uh-share-popover {
+        position: absolute;
+        z-index: 30;
+        bottom: calc(100% + 0.55rem);
+        left: 50%;
+        width: max-content;
+        max-width: min(19rem, calc(100vw - 2rem));
+        padding: 0.55rem;
+        transform: translateX(-50%);
+        border: 1px solid rgb(25 28 33 / 0.08);
+        border-radius: 0.75rem;
+        background: #fff;
+        box-shadow: 0 0.6rem 1.8rem rgb(20 24 32 / 0.16);
+    }
+
+    .uh-share-platforms {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .uh-share-platform {
+        display: grid;
+        width: 1.8rem;
+        height: 1.8rem;
+        flex: 0 0 1.8rem;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #30343b;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 120ms ease, transform 120ms ease;
+    }
+
+    .uh-share-platform:hover {
+        transform: translateY(-1px);
+        background: #f1f3f5;
+    }
+
+    .uh-share-platform svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .uh-share-platform.is-facebook {
+        background: #1877f2;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        font-size: 1.15rem;
+    }
+
+    .uh-share-platform.is-messenger {
+        color: #087cff;
+    }
+
+    .uh-share-platform.is-messenger svg {
+        fill: currentColor;
+    }
+
+    .uh-share-platform.is-whatsapp {
+        background: #25d366;
+        color: #fff;
+    }
+
+    .uh-share-platform.is-email,
+    .uh-share-platform.is-copy {
+        border-radius: 0.25rem;
+    }
+
+    .uh-share-copied {
+        margin: 0.35rem 0 0;
+        color: #187344;
+        font-size: 0.68rem;
     }
 
     .uh-card-next {
@@ -4782,10 +4867,21 @@ body.uh-home {
         gap: 0.25rem 0.5rem;
     }
 
+    .uh-results-bar.is-property-listing .uh-results-summary {
+        display: grid;
+        min-width: 0;
+        gap: 0.2rem;
+    }
+
     .uh-results-heading,
     .uh-results-summary .uh-results-count {
         margin: 0;
         white-space: nowrap;
+    }
+
+    .uh-results-bar.is-property-listing .uh-results-heading,
+    .uh-results-bar.is-property-listing .uh-results-count {
+        white-space: normal;
     }
 
     .uh-results-bar.is-property-listing {
@@ -4794,7 +4890,47 @@ body.uh-home {
 
     .uh-results-tools.is-property-listing-tools {
         flex-wrap: nowrap;
-        gap: 0.25rem 1.75rem;
+        gap: 0.25rem 0.75rem;
+    }
+
+    .uh-save-search {
+        position: relative;
+    }
+
+    .uh-save-search-notice {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        display: flex;
+        width: max-content;
+        max-width: min(20rem, calc(100vw - 2rem));
+        align-items: center;
+        gap: 0.65rem;
+        margin: 0;
+        border: 1px solid var(--uh-line);
+        border-radius: 0.625rem;
+        background: var(--uh-white);
+        padding: 0.65rem 0.75rem;
+        color: var(--uh-ink-soft);
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 0.1);
+    }
+
+    .uh-save-search-close {
+        display: grid;
+        flex: 0 0 auto;
+        width: 1.5rem;
+        height: 1.5rem;
+        place-items: center;
+        border-radius: 999px;
+        color: var(--uh-muted);
+    }
+
+    .uh-save-search-close:hover {
+        background: var(--uh-paper);
+        color: var(--uh-ink);
     }
 
     @media (width <= 767px) {
@@ -7636,6 +7772,10 @@ body.uh-home {
             gap: 1.75rem;
         }
 
+        .uh-home-editorial-grid:not(.has-videos) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
         .uh-home-news .uh-article-grid {
             column-gap: 1.25rem;
         }
@@ -9382,7 +9522,7 @@ body.uh-home {
         z-index: 1;
         min-height: 6rem;
         padding: 1.125rem 1.375rem;
-        border-bottom-color: rgb(127 98 55 / 0.14);
+        border-bottom-color: color-mix(in srgb, var(--color-accent) 14%, transparent);
         background: linear-gradient(115deg, #f5efe4 0%, #fbfaf7 68%, #eef4ef 100%);
     }
 
@@ -9398,11 +9538,11 @@ body.uh-home {
         height: 2.75rem;
         flex: 0 0 auto;
         place-items: center;
-        border: 1px solid rgb(127 98 55 / 0.16);
+        border: 1px solid color-mix(in srgb, var(--color-accent) 16%, transparent);
         border-radius: 0.875rem;
         background: #fffaf0;
         color: var(--uh-accent);
-        box-shadow: 0 4px 12px rgb(127 98 55 / 0.1);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 10%, transparent);
     }
 
     .uh-drawer-kicker {
@@ -9452,7 +9592,7 @@ body.uh-home {
     }
 
     .uh-drawer-group:focus-within {
-        box-shadow: inset 0 0 0 1px rgb(127 98 55 / 0.35), 0 0 0 3px var(--uh-accent-ring), 0 3px 12px rgb(29 29 31 / 0.035);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 35%, transparent), 0 0 0 3px var(--uh-accent-ring), 0 3px 12px rgb(29 29 31 / 0.035);
     }
 
     .uh-drawer-group:last-child {
@@ -9485,7 +9625,7 @@ body.uh-home {
     }
 
     .uh-drawer .uh-choice:hover {
-        border-color: rgb(127 98 55 / 0.45);
+        border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
         background: #fbf7f0;
     }
 
@@ -9493,7 +9633,7 @@ body.uh-home {
         border-color: #9a794e;
         background: #f5efe4;
         color: #5f4828;
-        box-shadow: inset 0 0 0 1px rgb(127 98 55 / 0.08);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 8%, transparent);
     }
 
     .uh-drawer .uh-check {
@@ -9519,7 +9659,7 @@ body.uh-home {
     .uh-drawer-group .uh-icon-action {
         width: 2.5rem;
         height: 2.5rem;
-        border-color: rgb(127 98 55 / 0.22);
+        border-color: color-mix(in srgb, var(--color-accent) 22%, transparent);
         border-radius: 0.75rem;
         background: #fbf8f2;
         color: var(--uh-accent);
@@ -9559,13 +9699,13 @@ body.uh-home {
         border-color: var(--uh-accent);
         border-radius: 0.8rem;
         background: var(--uh-accent);
-        box-shadow: 0 5px 14px rgb(127 98 55 / 0.18);
+        box-shadow: 0 5px 14px color-mix(in srgb, var(--color-accent) 18%, transparent);
     }
 
     .uh-drawer-foot .uh-btn-primary:hover {
         border-color: #654c2c;
         background: #654c2c;
-        box-shadow: 0 7px 18px rgb(127 98 55 / 0.24);
+        box-shadow: 0 7px 18px color-mix(in srgb, var(--color-accent) 24%, transparent);
     }
 
     @media (width < 480px) {

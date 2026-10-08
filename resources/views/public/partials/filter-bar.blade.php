@@ -144,10 +144,12 @@
                 </div>
             </div>
 
-            <a class="uh-btn-secondary uh-filter-map" href="{{ route('map', request()->except('page')) }}" data-track="map_view_click" data-track-location="filter_bar"
-               aria-label="{{ __('Map view') }}" title="{{ __('Map view') }}">
-                <x-icon name="map" class="size-4" />
-            </a>
+            @if($mapAvailable ?? true)
+                <a class="uh-btn-secondary uh-filter-map" href="{{ route('map', request()->except('page')) }}" data-track="map_view_click" data-track-location="filter_bar"
+                   aria-label="{{ __('Map view') }}" title="{{ __('Map view') }}">
+                    <x-icon name="map" class="size-4" />
+                </a>
+            @endif
 
             <button type="button" class="uh-btn-secondary" @click="toggleFilters()"
                     :aria-expanded="filtersOpen.toString()" aria-controls="more-filters"

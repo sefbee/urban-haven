@@ -10,7 +10,8 @@
             <div @class(['uh-area-intro', 'has-map' => $hasMap])>
                 <div class="min-w-0">
                     <h1 class="uh-h1 uh-page-title">{{ __('Property in :area, :city', ['area' => $area->name, 'city' => $area->city]) }}</h1>
-                    <div class="uh-prose uh-prose-lead">{!! nl2br(e($area->intro)) !!}</div>
+                    @php($intro = (string) $area->intro)
+                    <div class="uh-prose uh-prose-lead">{!! strip_tags($intro) === $intro ? nl2br(e($intro)) : \Stevebauman\Purify\Facades\Purify::clean($intro) !!}</div>
                     @if($purposes)
                         <div class="uh-next-links mt-8">
                             @foreach($purposes as $purpose)

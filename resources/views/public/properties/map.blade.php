@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-    <div class="uh-mapview" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
+    <div class="uh-mapview" data-list-url="{{ route('properties.index') }}" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
          :class="{
             'is-map-full': mapMode === 'full',
             'is-map-hidden': mapMode === 'hidden',

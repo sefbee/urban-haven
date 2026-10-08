@@ -58,12 +58,16 @@
             </x-ui.admin-drawer>
 
             <x-ui.admin-drawer name="amenity" title="Add an amenity">
-                <form method="POST" action="{{ route('admin.amenities.store') }}" class="space-y-4" @submit="submit" x-data="uhAutoSlug()">
+                <form method="POST" action="{{ route('admin.amenities.store') }}" class="space-y-4" enctype="multipart/form-data" @submit="submit" x-data="uhAutoSlug()">
                     @csrf
                     <p class="text-sm text-[var(--color-muted)]" x-show="error" x-text="error" x-cloak></p>
                     <x-ui.input name="label" id="quick-amenity-label" label="Amenity name" required maxlength="80" @input="fill($event.target.value)" />
                     <x-ui.input name="key" id="quick-amenity-key" label="Slug" optional dir="ltr" maxlength="50" x-model="slug" @change="edited()"
                                 hint="Generated from the name." />
+                    <div class="uh-field">
+                        <label class="uh-label" for="quick-amenity-icon">Icon image <span class="uh-label-optional">optional</span></label>
+                        <input class="uh-input" type="file" id="quick-amenity-icon" name="icon" accept="image/png,image/jpeg,image/webp">
+                    </div>
                     <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
                         <x-icon name="plus" class="size-3.5" />
                         Add amenity

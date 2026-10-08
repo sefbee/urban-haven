@@ -2,6 +2,7 @@
     'name',
     'label' => null,
     'hint' => null,
+    'showHint' => false,
     'optional' => false,
     'id' => null,
     'errorKey' => null,
@@ -13,7 +14,7 @@
     $errorKey ??= str_replace(['[', ']'], ['.', ''], $name);
     $id ??= 'f-'.trim(preg_replace('/[^a-z0-9]+/i', '-', $name), '-');
     $invalid = $errors->has($errorKey);
-    $described = array_filter([$hint ? $id.'-hint' : null, $invalid ? $id.'-error' : null]);
+    $described = array_filter([$showHint && $hint ? $id.'-hint' : null, $invalid ? $id.'-error' : null]);
     $user = auth()->user();
     $canQuickAdd = match ($quickAdd) {
         'type', 'area', 'amenity' => (bool) $user?->can('reference.manage'),
@@ -61,7 +62,7 @@
         </select>
     @endif
 
-    @if($hint)
+    @if($showHint && $hint)
         <p class="uh-hint" id="{{ $id }}-hint">{{ $hint }}</p>
     @endif
 
