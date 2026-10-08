@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\Publishable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,15 +11,16 @@ use Spatie\Sluggable\SlugOptions;
 
 class CmsPage extends Model
 {
-    use HasSlug, Publishable;
+    use HasMedia, HasSlug, Publishable;
 
-    public const TEMPLATES = ['default', 'contact', 'campaign'];
+    public const TEMPLATES = ['default', 'about', 'contact', 'campaign'];
 
     protected $fillable = [
         'slug',
         'template',
         'title',
         'body',
+        'layout_content',
         'pending_changes',
         'meta_title',
         'meta_description',
@@ -31,6 +33,7 @@ class CmsPage extends Model
     {
         return [
             'pending_changes' => 'array',
+            'layout_content' => 'array',
         ];
     }
 

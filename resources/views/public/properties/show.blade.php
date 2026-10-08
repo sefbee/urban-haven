@@ -204,6 +204,20 @@
                         </ul>
                     </section>
 
+                    @if($property->project?->isPublished())
+                        <section class="uh-pd-card" aria-labelledby="development-heading">
+                            <h2 id="development-heading" class="uh-pd-card-title">{{ __('Part of a development') }}</h2>
+                            <a class="uh-pd-project" href="{{ route('projects.show', $property->project->slug) }}">
+                                <span class="uh-pd-overview-icon"><x-icon name="building" class="size-5" /></span>
+                                <span>
+                                    <span class="uh-project-meta">{{ \App\Models\Project::STAGE_LABELS[$property->project->development_stage] ?? ucfirst($property->project->development_stage) }}</span>
+                                    <span class="uh-pd-project-name">{{ $property->project->name }}</span>
+                                </span>
+                                <x-icon name="arrow-right" class="ml-auto size-4" />
+                            </a>
+                        </section>
+                    @endif
+
                     @if($hasDescription)
                         <section id="description" class="uh-pd-card" aria-labelledby="about-heading">
                             <h2 id="about-heading" class="uh-pd-card-title">{{ __('Description') }}</h2>
@@ -345,7 +359,7 @@
                                         <input type="hidden" name="source" value="property_detail">
                                         <x-ui.input name="name" id="property-contact-name" :label="__('Your name')" autocomplete="name" required maxlength="120" :value="$customer?->name" />
                                         <p x-cloak x-show="fieldError('name')" class="uh-error" x-text="fieldError('name')"></p>
-                                        <x-ui.input name="phone" id="property-contact-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="24" required :value="$customer?->phone" />
+                                <x-ui.input name="phone" id="property-contact-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24" required :value="$customer?->phone" />
                                         <p x-cloak x-show="fieldError('phone')" class="uh-error" x-text="fieldError('phone')"></p>
                                         <x-ui.input name="email" id="property-contact-email" :label="__('Email')" type="email" dir="ltr" autocomplete="email" maxlength="190" optional :value="$customer?->email" />
                                         <p x-cloak x-show="fieldError('email')" class="uh-error" x-text="fieldError('email')"></p>
@@ -406,7 +420,7 @@
                                         </div>
                                         <x-ui.input name="email" id="account-email" :label="__('Email')" type="email" dir="ltr" autocomplete="email" required maxlength="190" />
                                         <div x-show="mode === 'register'">
-                                            <x-ui.input name="phone" id="account-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" required maxlength="24" placeholder="01XXXXXXXXX" />
+                                            <x-ui.input name="phone" id="account-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" required maxlength="24" :placeholder="__('01XXXXXXXXX')" />
                                         </div>
                                         <x-ui.input name="password" id="account-password" :label="__('Password')" type="password" autocomplete="new-password" required minlength="8" />
                                         <div x-show="mode === 'register'">

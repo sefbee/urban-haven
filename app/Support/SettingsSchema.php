@@ -25,6 +25,7 @@ final class SettingsSchema
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],
         'analytics' => ['title' => 'Analytics & tracking', 'description' => 'Google Tag Manager, Google Analytics, Google Ads and Meta Pixel, and the cookie banner that asks visitors first.', 'groups' => ['analytics', 'consent']],
         'seo' => ['title' => 'SEO defaults', 'description' => 'Default title and description, Search Console verification and whether search engines may index the site.', 'groups' => ['seo']],
+        'copy' => ['title' => 'Website copy', 'description' => 'Override public website wording used across pages, controls and messages.', 'groups' => ['website_copy']],
     ];
 
     /**
@@ -43,6 +44,7 @@ final class SettingsSchema
         'listings' => 'How listings appear',
         'analytics' => 'Tracking IDs',
         'seo' => 'Search engine defaults',
+        'website_copy' => 'Public website phrases',
     ];
 
     /**
@@ -131,6 +133,7 @@ final class SettingsSchema
             'seo_allow_indexing' => ['group' => 'seo', 'cast' => 'bool', 'label' => 'Let search engines index the website', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true, 'help' => 'Switch off while the site is being prepared. Live production sites should keep this on.'],
 
             'social_links' => ['group' => 'social', 'cast' => 'json', 'label' => 'Social profile links', 'input' => 'hidden', 'rules' => ['nullable', 'array', 'max:12'], 'default' => []],
+            'public_copy' => ['group' => 'website_copy', 'cast' => 'json', 'label' => 'Phrase overrides (JSON)', 'input' => 'json', 'rules' => ['nullable', 'json', 'max:50000'], 'default' => [], 'help' => 'Map each exact current phrase to its replacement. Keep placeholders such as :count and :name intact. Example: {"Explore properties":"Browse homes"}.'],
         ];
     }
 

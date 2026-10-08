@@ -69,13 +69,15 @@
                         @if($error)<p class="uh-error">{{ $error }}</p>@endif
                     </div>
                 @else
-                    <div @class(['uh-field', 'sm:col-span-2' => in_array($definition['input'], ['textarea', 'lines'], true)])>
+                    <div @class(['uh-field', 'sm:col-span-2' => in_array($definition['input'], ['textarea', 'lines', 'json'], true)])>
                         <label class="uh-label" for="{{ $fieldId }}">{{ $definition['label'] }}</label>
                         @if($definition['input'] === 'textarea')
                             <textarea id="{{ $fieldId }}" class="uh-textarea" rows="3" name="settings[{{ $key }}]" maxlength="500"
                                       @isset($definition['placeholder']) placeholder="{{ $definition['placeholder'] }}" @endisset>{{ $current ?: ($key === 'consent_text' ? \App\Support\SettingsSchema::defaultConsentText() : '') }}</textarea>
                         @elseif($definition['input'] === 'lines')
                             <textarea id="{{ $fieldId }}" class="uh-textarea font-mono text-xs" rows="4" name="settings[{{ $key }}]" dir="ltr">{{ is_array($current) ? implode("\n", $current) : $current }}</textarea>
+                        @elseif($definition['input'] === 'json')
+                            <textarea id="{{ $fieldId }}" class="uh-textarea font-mono text-xs" rows="12" name="settings[{{ $key }}]" maxlength="50000" dir="ltr">{{ is_array($current) ? json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $current }}</textarea>
                         @elseif($definition['input'] === 'select')
                             <select id="{{ $fieldId }}" class="uh-select" name="settings[{{ $key }}]">
                                 @foreach($definition['options'] as $value => $label)

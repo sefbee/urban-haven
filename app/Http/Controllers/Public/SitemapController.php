@@ -8,7 +8,7 @@ use Illuminate\Http\Response;
 
 class SitemapController extends Controller
 {
-    public const SECTIONS = ['pages', 'properties', 'locations', 'articles'];
+    public const SECTIONS = ['pages', 'properties', 'projects', 'locations', 'articles'];
 
     public function index(SitemapGenerator $sitemap): Response
     {

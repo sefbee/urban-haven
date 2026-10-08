@@ -6,9 +6,9 @@
          aria-labelledby="housing-projects-title">
     <div class="uh-container">
         <header class="uh-trending-head" data-reveal>
-            <h2 id="housing-projects-title" class="uh-h2">{{ __('Housing & Apartment Projects in Bangladesh') }}</h2>
+            <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
             <x-ui.pill-link variant="dark" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
-                {{ __('View all') }}
+                {{ $sectionContent['link_label'] }}
             </x-ui.pill-link>
         </header>
 

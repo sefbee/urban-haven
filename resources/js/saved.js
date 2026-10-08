@@ -9,6 +9,7 @@ const KEYS = {
 };
 
 const LIMITS = { shortlist: 24, compare: 4, recent: 10 };
+const copy = (key, replacements = {}) => window.uhCopyText?.(key, replacements) || '';
 
 const read = (key) => {
     try {
@@ -45,26 +46,26 @@ export const registerSavedStore = (Alpine) => {
 
             if (this.has(list, id)) {
                 this[list] = this[list].filter((value) => value !== id);
-                this.notice = list === 'compare' ? 'Removed from compare.' : 'Removed from your shortlist.';
+                this.notice = list === 'compare' ? copy('saved_removed_compare') : copy('saved_removed_shortlist');
             } else if (this[list].length >= LIMITS[list]) {
                 this.notice = list === 'compare'
-                    ? `You can compare up to ${LIMITS.compare} properties. Remove one first.`
-                    : `Your shortlist is full (${LIMITS.shortlist}). Remove one first.`;
+                    ? copy('saved_compare_limit', { limit: LIMITS.compare })
+                    : copy('saved_shortlist_limit', { limit: LIMITS.shortlist });
                 return;
             } else {
                 this[list] = [...this[list], id];
                 if (list === 'compare') {
                     this.notice = this.compare.length === 1
-                        ? 'Added to compare. Add one more to see them side by side.'
-                        : `Added. ${this.compare.length} properties ready to compare.`;
+                        ? copy('saved_compare_added_first')
+                        : copy('saved_compare_added', { count: this.compare.length });
                 } else {
-                    this.notice = 'Saved. It stays on this device — find it any time under Shortlist.';
+                    this.notice = copy('saved_shortlist_added');
                 }
                 window.uhTrack?.(list === 'compare' ? 'compare_add' : 'shortlist_add', { property_id: id });
             }
 
             if (!write(KEYS[list], this[list])) {
-                this.notice = 'Your browser is blocking storage, so this list will reset when you leave.';
+                this.notice = copy('saved_storage_error');
             }
         },
 

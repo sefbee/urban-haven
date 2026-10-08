@@ -50,7 +50,7 @@ class CmsPageController extends Controller
         $this->authorize('update', $page);
 
         return view('admin.cms.pages.edit', [
-            'page' => $page->load(['publicationState', 'seoOverride']),
+            'page' => $page->load(['publicationState', 'seoOverride', 'media']),
             'templates' => CmsPage::TEMPLATES,
             'canPublish' => request()->user()->can('publish', $page),
         ]);

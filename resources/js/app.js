@@ -61,7 +61,7 @@ Alpine.data('uhSiteBar', (overlay = false) => ({
 /**
  * Homepage cover photos crossfade on a timer. Choosing a photo, a hidden tab or reduced motion stops the timer.
  */
-Alpine.data('uhCoverSlides', (count = 0) => ({
+Alpine.data('uhCoverSlides', (count = 0, seconds = 6) => ({
     count,
     active: 0,
     timer: null,
@@ -73,7 +73,7 @@ Alpine.data('uhCoverSlides', (count = 0) => ({
             if (!document.hidden) {
                 this.active = (this.active + 1) % this.count;
             }
-        }, 6000);
+        }, Math.max(3, Math.min(20, seconds)) * 1000);
     },
     show(index) {
         this.active = index;
@@ -1098,15 +1098,15 @@ Alpine.data('uhLeadForm', (formName = 'inquiry') => ({
 
             if (response.status === 422) {
                 this.errors = payload.errors || {};
-                this.error = payload.message || 'Please check the highlighted fields.';
+                this.error = payload.message || window.uhCopyText?.('form_check_fields') || '';
                 track('form_error', { form_name: this.formName, fields: Object.keys(this.errors).join(',') });
             } else if (response.status === 419) {
-                this.error = 'This page has expired. Refresh and try again.';
+                this.error = window.uhCopyText?.('form_expired') || '';
             } else {
-                this.error = payload.message || 'We could not send your request. Please try again or call us.';
+                this.error = payload.message || window.uhCopyText?.('form_send_error') || '';
             }
         } catch {
-            this.error = 'You appear to be offline. Check your connection and try again, or call us.';
+            this.error = window.uhCopyText?.('form_offline') || '';
         } finally {
             this.submitting = false;
         }
@@ -1208,7 +1208,7 @@ Alpine.data('uhCustomerAccount', (registerUrl, loginUrl) => ({
 
             if (!response.ok) {
                 const firstError = Object.values(payload.errors || {}).flat()[0];
-                this.modalError = firstError || payload.message || 'We could not save your account. Please try again.';
+                this.modalError = firstError || payload.message || window.uhCopyText?.('account_save_error') || '';
                 return;
             }
 
@@ -1226,7 +1226,7 @@ Alpine.data('uhCustomerAccount', (registerUrl, loginUrl) => ({
             });
             this.modalOpen = false;
         } catch {
-            this.modalError = 'You appear to be offline. Check your connection and try again.';
+            this.modalError = window.uhCopyText?.('account_offline') || '';
         } finally {
             this.busy = false;
         }

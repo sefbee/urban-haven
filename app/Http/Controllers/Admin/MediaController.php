@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Contracts\MediaService;
 use App\Http\Controllers\Controller;
 use App\Models\CmsBlock;
+use App\Models\CmsPage;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Project;
@@ -18,7 +19,7 @@ use Illuminate\Validation\Rule;
 
 class MediaController extends Controller
 {
-    private const OWNERS = ['property' => Property::class, 'project' => Project::class, 'post' => Post::class, 'cms_block' => CmsBlock::class];
+    private const OWNERS = ['property' => Property::class, 'project' => Project::class, 'post' => Post::class, 'cms_page' => CmsPage::class, 'cms_block' => CmsBlock::class];
 
     public function store(Request $request, MediaService $media): JsonResponse|RedirectResponse
     {

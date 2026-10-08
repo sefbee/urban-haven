@@ -245,7 +245,7 @@ const plot = (L, map, element, payload) => {
                 iconSize: [size, size],
             }),
             keyboard: true,
-            title: `${cluster.count} properties`,
+            title: window.uhCopyText?.('map_cluster_title', { count: cluster.count }) || '',
         })
             .on('click', () => map.setView([cluster.lat, cluster.lng], Math.min(map.getZoom() + 2, 18), { animate: !prefersReducedMotion() }))
             .addTo(layer);
@@ -258,7 +258,7 @@ const plot = (L, map, element, payload) => {
     }
 
     if ((payload.total ?? 0) === 0 && element.dataset.src) {
-        showMessage(element, 'No properties with a map location match these filters.');
+        showMessage(element, window.uhCopyText?.('map_no_results') || '');
     }
 
     return layer;
@@ -271,7 +271,7 @@ const boot = async (element) => {
     try {
         L = await loadLeaflet();
     } catch {
-        showMessage(element, 'The map could not load. The list still shows every result.');
+        showMessage(element, window.uhCopyText?.('map_load_error') || '');
         return;
     }
 
@@ -287,7 +287,7 @@ const boot = async (element) => {
         .on('tileerror', () => {
             tileErrors += 1;
             if (tileErrors === 4) {
-                showMessage(element, 'Map tiles are not loading right now. Pins may still be shown.');
+                showMessage(element, window.uhCopyText?.('map_tiles_error') || '');
             }
         })
         .addTo(map);
@@ -323,7 +323,7 @@ const boot = async (element) => {
             state.layer = plot(L, map, element, await response.json());
         } catch (error) {
             if (error.name !== 'AbortError') {
-                showMessage(element, 'Map pins could not load. The list still shows every result.');
+                showMessage(element, window.uhCopyText?.('map_pins_error') || '');
             }
         } finally {
             if (state.requestController === controller) {
@@ -396,7 +396,7 @@ export const refreshMapData = async () => {
             state.layer = plot(state.leaflet, state.map, state.element, await response.json());
         } catch (error) {
             if (error.name !== 'AbortError') {
-                showMessage(state.element, 'Map pins could not load. The list still shows every result.');
+                showMessage(state.element, window.uhCopyText?.('map_pins_error') || '');
             }
         } finally {
             if (state.requestController === controller) {

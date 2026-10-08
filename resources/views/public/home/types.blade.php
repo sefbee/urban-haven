@@ -29,7 +29,7 @@
 <section id="home-types" class="uh-section uh-home-types scroll-mt-20" x-data="{ category: @js($firstCategory) }" aria-labelledby="types-title">
     <div class="uh-container">
         <header class="uh-type-section-head" data-reveal>
-            <h2 id="types-title" class="uh-h2">{{ __('Explore Real Estate in Bangladesh type wise') }}</h2>
+            <h2 id="types-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
         </header>
 
         <div class="uh-type-tiles-bar" data-reveal>
@@ -44,7 +44,7 @@
                 </div>
             @endif
             <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
-                {{ __('View all') }}
+                {{ $sectionContent['link_label'] }}
             </x-ui.pill-link>
         </div>
 

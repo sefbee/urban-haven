@@ -33,15 +33,27 @@ final class HomeSections
                     'slide_seconds' => ['label' => 'Seconds per background photo', 'type' => 'number', 'min' => 3, 'max' => 20, 'default' => 7],
                 ],
             ],
-            'trending' => [
-                'block' => 'home_trending',
-                'label' => 'Trending properties',
-                'summary' => 'The most viewed live listings over the last 30 days.',
+            'housing' => [
+                'block' => 'home_housing',
+                'label' => 'Housing & apartment listings',
+                'summary' => 'Live residential apartment listings shown in the housing rail.',
                 'source' => ['label' => 'Manage properties', 'route' => 'admin.properties.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Trending Properties', 'required' => true],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View All'],
-                    'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 12, 'default' => 6],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Housing & Apartment Projects in Bangladesh', 'required' => true],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all'],
+                    'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 1, 'max' => 16, 'default' => 8],
+                ],
+            ],
+            'projects' => [
+                'block' => 'home_projects',
+                'label' => 'Featured developments',
+                'summary' => 'Projects published by the team and marked for homepage placement.',
+                'source' => ['label' => 'Manage projects', 'route' => 'admin.projects.index'],
+                'fields' => [
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Featured Developments', 'required' => true],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Explore considered developments from our team.'],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all projects'],
+                    'limit' => ['label' => 'Number of projects', 'type' => 'number', 'min' => 1, 'max' => 12, 'default' => 6],
                 ],
             ],
             'featured' => [
@@ -54,6 +66,17 @@ final class HomeSections
                     'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'A closer look at the places our team is featuring right now.'],
                     'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'See every property'],
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 16, 'default' => 8],
+                ],
+            ],
+            'trending' => [
+                'block' => 'home_trending',
+                'label' => 'Trending properties',
+                'summary' => 'The most viewed live listings over the last 30 days.',
+                'source' => ['label' => 'Manage properties', 'route' => 'admin.properties.index'],
+                'fields' => [
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Trending Properties', 'required' => true],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View All'],
+                    'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 12, 'default' => 6],
                 ],
             ],
             'locations' => [
@@ -90,6 +113,18 @@ final class HomeSections
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 16, 'default' => 8],
                 ],
             ],
+            'requirements' => [
+                'block' => 'home_requirements',
+                'label' => 'Property search callout',
+                'summary' => 'The callout inviting visitors to tell the team what they need.',
+                'fields' => [
+                    'eyebrow' => ['label' => 'Small label', 'type' => 'text', 'max' => 60, 'default' => 'Personal property search'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Can’t find what you’re looking for?', 'required' => true],
+                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => 'Tell us your preferred area, budget and needs. Our team will help you find a property that fits.'],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Tell us what you need'],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                ],
+            ],
             'why' => [
                 'block' => 'about',
                 'label' => 'Why Urban Haven',
@@ -116,6 +151,8 @@ final class HomeSections
                     'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Practical notes on buying, renting and investing in property from the Urban Haven team.'],
                     'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'Read all articles'],
                     'limit' => ['label' => 'Number of articles', 'type' => 'number', 'min' => 1, 'max' => 9, 'default' => 3],
+                    'videos_title' => ['label' => 'Property video heading', 'type' => 'text', 'max' => 80, 'default' => 'Property TV'],
+                    'video_limit' => ['label' => 'Number of property videos', 'type' => 'number', 'min' => 1, 'max' => 9, 'default' => 3],
                 ],
             ],
             'faq' => [
@@ -139,7 +176,7 @@ final class HomeSections
      *
      * @var list<string>
      */
-    private const HIDDEN_BY_DEFAULT = ['why'];
+    private const HIDDEN_BY_DEFAULT = ['why', 'projects'];
 
     /**
      * @return array<string, array<string, mixed>>

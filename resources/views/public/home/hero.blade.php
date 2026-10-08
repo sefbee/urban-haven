@@ -6,7 +6,7 @@
 @endphp
 
 <section @class(['uh-cover uh-under-bar', 'is-bare' => ! $hasHeroImage]) data-cover aria-labelledby="hero-title"
-         @if($heroImages->count() > 1) x-data="uhCoverSlides({{ $heroImages->count() }})" @endif>
+         @if($heroImages->count() > 1) x-data="uhCoverSlides({{ $heroImages->count() }}, {{ (int) ($hero['slide_seconds'] ?? 7) }})" @endif>
     @if($hasHeroImage)
         <div class="uh-cover-media">
             @foreach($heroImages as $heroImage)
@@ -25,9 +25,10 @@
 
     <div class="uh-cover-inner">
         <h1 id="hero-title" class="sr-only">{{ $heroTitle }}</h1>
+        <p class="sr-only">{{ $hero['eyebrow'] }} {{ $hero['body'] }}</p>
         @include('public.home.find')
-        <x-ui.pill-link variant="light" :href="route('properties.index')" data-track="home_cta_click" data-track-cta="cover">
-            {{ __('Explore properties') }}
+        <x-ui.pill-link variant="light" :href="$hero['cta_url']" data-track="home_cta_click" data-track-cta="cover">
+            {{ $hero['cta_label'] }}
         </x-ui.pill-link>
     </div>
 

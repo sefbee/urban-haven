@@ -14,7 +14,7 @@
                 @if($bag->count() === 1)
                     {{ $bag->first() }}
                 @else
-                    <p class="font-medium">Please check the following:</p>
+                    <p class="font-medium">{{ __('Please check the following:') }}</p>
                     <ul class="mt-1.5 list-disc space-y-1 pl-4">
                         @foreach($bag->all() as $message)
                             <li>{{ $message }}</li>

@@ -1,38 +1,62 @@
 @extends('layouts.public')
 
 @section('content')
-    @include('public.home.hero')
-
-    @if($housingListings->isNotEmpty())
-        @include('public.home.housing-projects')
-    @endif
-
-    @if($featured->isNotEmpty())
-        @include('public.home.featured-properties')
-    @endif
-
-    @if($trending->isNotEmpty())
-        @include('public.home.trending-properties')
-    @endif
-
-    @if($areas->isNotEmpty())
-        @include('public.home.locations')
-    @endif
-
-    @if($typeGroups->isNotEmpty())
-        @include('public.home.types')
-    @endif
-
-    @if($latestSale->isNotEmpty() || $latestRent->isNotEmpty())
-        @include('public.home.latest-properties')
-        @include('public.home.requirements-cta')
-    @endif
-
-    @if($articles->isNotEmpty())
-        @include('public.home.articles')
-    @endif
-
-    @if($faqs->isNotEmpty())
-        @include('public.home.faq')
-    @endif
+    @foreach($homepageSections as $section => $sectionContent)
+        @switch($section)
+            @case('hero')
+                @include('public.home.hero')
+                @break
+            @case('housing')
+                @if($housingListings->isNotEmpty())
+                    @include('public.home.housing-projects')
+                @endif
+                @break
+            @case('projects')
+                @if($projects->isNotEmpty())
+                    @include('public.home.projects')
+                @endif
+                @break
+            @case('featured')
+                @if($featured->isNotEmpty())
+                    @include('public.home.featured-properties')
+                @endif
+                @break
+            @case('trending')
+                @if($trending->isNotEmpty())
+                    @include('public.home.trending-properties')
+                @endif
+                @break
+            @case('locations')
+                @if($areas->isNotEmpty())
+                    @include('public.home.locations')
+                @endif
+                @break
+            @case('types')
+                @if($typeGroups->isNotEmpty())
+                    @include('public.home.types')
+                @endif
+                @break
+            @case('latest')
+                @if($latestSale->isNotEmpty() || $latestRent->isNotEmpty())
+                    @include('public.home.latest-properties')
+                @endif
+                @break
+            @case('requirements')
+                @include('public.home.requirements-cta')
+                @break
+            @case('articles')
+                @if($articles->isNotEmpty() || $propertyVideos->isNotEmpty())
+                    @include('public.home.articles')
+                @endif
+                @break
+            @case('faq')
+                @if($faqs->isNotEmpty())
+                    @include('public.home.faq')
+                @endif
+                @break
+            @case('why')
+                @include('public.home.why')
+                @break
+        @endswitch
+    @endforeach
 @endsection

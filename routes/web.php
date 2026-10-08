@@ -39,6 +39,7 @@ use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\LocationSuggestionController;
 use App\Http\Controllers\Public\MapDataController;
 use App\Http\Controllers\Public\MediaDownloadController;
+use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\PropertyController;
 use App\Http\Controllers\Public\PropertyCountController;
 use App\Http\Controllers\Public\PropertySearchController;
@@ -57,8 +58,8 @@ Route::get('/search/locations', LocationSuggestionController::class)->middleware
 Route::get('/properties/map', MapDataController::class)->middleware('throttle:public-json')->name('properties.map');
 Route::get('/properties/count', PropertyCountController::class)->middleware('throttle:public-json')->name('properties.count');
 Route::get('/properties/{slug}', [PropertyController::class, 'show'])->name('properties.show');
-Route::permanentRedirect('/projects', '/properties');
-Route::permanentRedirect('/projects/{slug}', '/properties');
+Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 Route::get('/locations/{slug}', [LocationController::class, 'show'])->name('locations.show');
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
@@ -117,6 +118,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('settings/enquiries', [SettingsController::class, 'enquiries'])->name('settings.enquiries');
         Route::get('settings/analytics', [SettingsController::class, 'analytics'])->name('settings.analytics');
         Route::get('settings/seo', [SettingsController::class, 'seo'])->name('settings.seo');
+        Route::get('settings/copy', [SettingsController::class, 'copy'])->name('settings.copy');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::put('settings/social', [SettingsController::class, 'updateSocial'])->name('settings.social');
         Route::post('settings/test-email', [SettingsController::class, 'testEmail'])->middleware('throttle:5,1')->name('settings.test-email');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Public\SitemapController;
 use App\Models\CmsPage;
 use App\Models\LocationArea;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\Property;
 use App\Models\Setting;
 use App\Support\TaggedCache;
@@ -33,6 +34,7 @@ class SitemapGenerator
         return TaggedCache::remember(['sitemap'], 'sitemap.'.$section, 3600, fn (): string => $this->urlset(match ($section) {
             'pages' => $this->pages(),
             'properties' => $this->properties(),
+            'projects' => $this->projects(),
             'locations' => $this->locations(),
             'articles' => $this->articles(),
             default => [],
@@ -89,6 +91,20 @@ class SitemapGenerator
             ->get(['id', 'slug', 'updated_at'])
             ->map(fn (LocationArea $area): array => ['loc' => route('locations.show', $area->slug), 'lastmod' => $area->updated_at])
             ->all();
+    }
+
+    /**
+     * @return list<array{loc: string, lastmod: mixed}>
+     */
+    private function projects(): array
+    {
+        $urls = $this->indexable(Project::query()->published())
+            ->orderBy('id')
+            ->get(['id', 'slug', 'last_updated_at', 'updated_at'])
+            ->map(fn (Project $project): array => ['loc' => route('projects.show', $project->slug), 'lastmod' => $project->last_updated_at ?? $project->updated_at])
+            ->all();
+
+        return $urls === [] ? [] : [['loc' => route('projects.index'), 'lastmod' => now()], ...$urls];
     }
 
     /**

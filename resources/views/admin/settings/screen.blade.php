@@ -10,6 +10,7 @@
         'listings' => ['Listings', 'admin.listing-display'],
         'analytics' => ['Analytics', 'admin.settings.analytics'],
         'seo' => ['SEO', 'admin.settings.seo'],
+        'copy' => ['Website copy', 'admin.settings.copy'],
     ];
     $hasImages = collect($definitions)->flatten(1)->contains(fn ($definition) => ($definition['input'] ?? null) === 'image');
 @endphp

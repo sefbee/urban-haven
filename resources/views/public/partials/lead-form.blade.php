@@ -75,7 +75,7 @@
             <input type="hidden" name="source" value="{{ $source }}">
         @endif
         <div class="absolute -left-[9999px] size-px overflow-hidden" aria-hidden="true">
-            <label for="{{ $prefix }}-website">Website</label>
+            <label for="{{ $prefix }}-website">{{ __('Website') }}</label>
             <input type="text" id="{{ $prefix }}-website" name="website" tabindex="-1" autocomplete="off">
         </div>
 
@@ -96,7 +96,7 @@
         </div>
         <div>
             <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Mobile number')" type="tel" dir="ltr"
-                        inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="24"
+                        inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24"
                         :hint="$compact ? __('01XXXXXXXXX or +country code') : __('Bangladeshi mobile (01XXXXXXXXX) or an international number starting with +')" required />
             {!! $fieldError('phone') !!}
         </div>

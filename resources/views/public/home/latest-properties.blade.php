@@ -6,8 +6,8 @@
 <section class="uh-section uh-band-paper uh-latest-section uh-trending-section" aria-labelledby="latest-title">
     <div class="uh-container" x-data="uhHomeTabs('{{ $defaultTab }}')">
         <header class="uh-section-head" data-reveal>
-            <h2 id="latest-title" class="uh-h2">{{ __('Latest Property Listings in Bangladesh') }}</h2>
-            <p class="uh-lede">{{ __('New to Urban Haven this week.') }}</p>
+            <h2 id="latest-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+            <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
             @if($showTabs)
                 <div class="uh-seg" role="group" aria-label="{{ __('Listing type') }}">
                     <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'sale').toString()"
@@ -44,7 +44,7 @@
 
         <div class="uh-section-foot">
             <x-ui.pill-link :href="route('properties.index', ['sort' => 'newest'])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?sort=newest&listing_type=' + tab">
-                {{ __('See everything new') }}
+                {{ $sectionContent['link_label'] }}
             </x-ui.pill-link>
         </div>
     </div>

@@ -1,9 +1,11 @@
 <section id="home-locations" class="uh-section uh-band-paper scroll-mt-20" aria-labelledby="locations-title">
     <div class="uh-container">
         <header class="uh-section-head" data-reveal>
-            <h2 id="locations-title" class="uh-h2">{{ __('Explore Real Estate in Bangladesh') }}</h2>
-            <p class="uh-lede">{{ __('') }}</p>
-            <x-ui.pill-link :href="route('properties.index', ['view' => 'map'])">{{ __('See them on the map') }}</x-ui.pill-link>
+            <h2 id="locations-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+            @if(filled($sectionContent['subtitle']))
+                <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
+            @endif
+            <x-ui.pill-link :href="route('properties.index', ['view' => 'map'])">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
         </header>
 
         <ul class="uh-places">

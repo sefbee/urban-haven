@@ -5,7 +5,7 @@
 @endphp
 
 @if($items->isNotEmpty())
-    <nav {{ $attributes->class('min-w-0') }} aria-label="Breadcrumb">
+    <nav {{ $attributes->class('min-w-0') }} aria-label="{{ __('Breadcrumb') }}">
         <ol class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs {{ $onDark ? 'text-cream/70' : 'text-[var(--color-muted)]' }}">
             @foreach($items as $index => $item)
                 <li class="flex min-w-0 items-center gap-1.5">

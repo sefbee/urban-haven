@@ -3,11 +3,14 @@
         <div class="uh-home-editorial-grid">
             <div class="uh-home-news">
                 <header class="uh-home-editorial-head" data-reveal>
-                    <h2 id="articles-title" class="uh-h2">{{ __('News & Blog Updates') }}</h2>
+                    <h2 id="articles-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
                     <x-ui.pill-link variant="dark" :href="route('articles.index')">
-                        {{ __('View all') }}
+                        {{ $sectionContent['link_label'] }}
                     </x-ui.pill-link>
                 </header>
+                @if(filled($sectionContent['subtitle']))
+                    <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
+                @endif
 
                 <div class="uh-article-grid">
                     @foreach($articles as $post)
@@ -43,7 +46,7 @@
             @if($propertyVideos->isNotEmpty())
                 <aside class="uh-home-property-tv" aria-labelledby="property-tv-title">
                     <header class="uh-home-editorial-head" data-reveal>
-                        <h2 id="property-tv-title" class="uh-h2">{{ __('Property TV') }}</h2>
+                        <h2 id="property-tv-title" class="uh-h2">{{ $sectionContent['videos_title'] }}</h2>
                         <a class="uh-icon-action uh-home-tv-more" href="{{ route('properties.index') }}" aria-label="{{ __('View properties') }}">
                             <x-icon name="chevron-right" class="size-4" />
                         </a>

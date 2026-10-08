@@ -20,7 +20,7 @@ use Stevebauman\Purify\Facades\Purify;
  */
 class CmsService
 {
-    private const PAGE_FIELDS = ['title', 'template', 'body'];
+    private const PAGE_FIELDS = ['title', 'template', 'body', 'layout_content'];
 
     private const POST_FIELDS = ['title', 'post_category_id', 'excerpt', 'body', 'author_label', 'related_post_ids'];
 
@@ -257,6 +257,13 @@ class CmsService
     {
         if (isset($validated['body'])) {
             $validated['body'] = Purify::clean($validated['body']);
+        }
+
+        if (isset($validated['layout_content']) && is_array($validated['layout_content'])) {
+            $validated['layout_content'] = array_map(
+                fn (mixed $value): string => trim(strip_tags((string) $value)),
+                $validated['layout_content'],
+            );
         }
 
         foreach (['excerpt', 'title', 'meta_title', 'meta_description', 'author_label'] as $plain) {

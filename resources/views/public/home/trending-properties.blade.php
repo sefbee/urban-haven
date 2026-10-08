@@ -1,9 +1,9 @@
 <section class="uh-section uh-band-paper uh-trending-section" aria-labelledby="trending-title">
     <div class="uh-container">
         <header class="uh-trending-head" data-reveal>
-            <h2 id="trending-title" class="uh-h2">{{ __('Trending Properties in Bangladesh') }}</h2>
+            <h2 id="trending-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
             <x-ui.pill-link variant="light" :href="route('properties.index')">
-                {{ __('View all') }}
+                {{ $sectionContent['link_label'] }}
             </x-ui.pill-link>
         </header>
 

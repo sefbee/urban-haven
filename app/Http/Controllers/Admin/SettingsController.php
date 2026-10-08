@@ -60,6 +60,11 @@ class SettingsController extends Controller
         return $this->screen('seo');
     }
 
+    public function copy(): View
+    {
+        return $this->screen('copy');
+    }
+
     public function update(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
         abort_unless($this->userCanManage(), 403);
@@ -107,8 +112,32 @@ class SettingsController extends Controller
                 if (isset($definitions['enable_sale'], $definitions['enable_rent']) && ! ($input['enable_sale'] ?? false) && ! ($input['enable_rent'] ?? false)) {
                     $validator->errors()->add('settings.enable_sale', 'Keep at least one of sale or rent switched on.');
                 }
+
+                if (isset($definitions['public_copy']) && filled($input['public_copy'] ?? null)) {
+                    $phrases = json_decode((string) $input['public_copy'], true);
+
+                    if (! is_array($phrases) || count($phrases) > 1000) {
+                        $validator->errors()->add('settings.public_copy', 'Use a JSON object with up to 1,000 phrase pairs.');
+
+                        return;
+                    }
+
+                    foreach ($phrases as $source => $replacement) {
+                        if (! is_string($source) || $source === '' || mb_strlen($source) > 500 || ! is_string($replacement) || mb_strlen($replacement) > 1000) {
+                            $validator->errors()->add('settings.public_copy', 'Each phrase needs a source up to 500 characters and replacement up to 1,000 characters.');
+
+                            return;
+                        }
+                    }
+                }
             })
             ->validate();
+
+        if (isset($fieldDefinitions['public_copy'])) {
+            $validated['settings']['public_copy'] = filled($validated['settings']['public_copy'] ?? null)
+                ? json_decode($validated['settings']['public_copy'], true)
+                : [];
+        }
 
         $before = Setting::allValues();
         $changed = [];

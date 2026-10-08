@@ -2,15 +2,17 @@
     $socialProfiles = collect((array) \App\Models\Setting::get('social_links', []))
         ->filter(fn ($profile): bool => is_array($profile) && ($profile['active'] ?? true) && filled($profile['url'] ?? null))
         ->take(4);
-    $mapUrl = filled($address)
-        ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address)
-        : null;
+    $configuredMapUrl = \App\Models\Setting::get('map_url');
+    $mapUrl = filled($configuredMapUrl)
+        ? $configuredMapUrl
+        : (filled($address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address) : null);
+    $contactImage = $page->galleryImages()->first();
 @endphp
 
 <div class="uh-container space-y-5 pb-14 pt-8 sm:space-y-7 sm:pb-20 sm:pt-12">
     <section class="relative isolate overflow-hidden rounded-[2rem] bg-night text-white sm:rounded-[2.5rem]" aria-labelledby="contact-title">
-        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=85"
-             alt="{{ __('Contemporary home surrounded by greenery') }}"
+        <img src="{{ $contactImage?->url(1920) ?? 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=85' }}"
+             alt="{{ $contactImage?->alt(app()->getLocale()) ?: __('Contemporary home surrounded by greenery') }}"
              class="absolute inset-0 -z-20 size-full object-cover object-center" fetchpriority="high">
         <div class="absolute inset-0 -z-10 bg-gradient-to-br from-[#101a27]/95 via-[#101a27]/85 to-[#101a27]/55"></div>
 
@@ -18,7 +20,7 @@
             <div class="flex flex-col justify-between gap-12 py-3 sm:py-6">
                 <div class="max-w-2xl">
                     <p class="text-xs font-semibold uppercase tracking-[0.22em] text-gold-soft">{{ __('We’re here to help') }}</p>
-                    <h1 id="contact-title" class="mt-5 text-balance text-5xl leading-[1.02] font-medium tracking-[-0.05em] sm:text-6xl lg:text-7xl">{{ __('You have questions. We have answers.') }}</h1>
+                    <h1 id="contact-title" class="mt-5 text-balance text-5xl leading-[1.02] font-medium tracking-[-0.05em] sm:text-6xl lg:text-7xl">{{ $page->title }}</h1>
                     <p class="mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
                         {{ filled(trim(strip_tags((string) $page->body)))
                             ? trim(strip_tags((string) $page->body))

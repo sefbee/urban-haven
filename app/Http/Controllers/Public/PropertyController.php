@@ -25,7 +25,7 @@ class PropertyController extends Controller
     {
         $property = Property::query()
             ->published()
-            ->with(['propertyType', 'locationArea', 'media', 'units', 'seoOverride', 'publicationState', 'assignedContact'])
+            ->with(['propertyType', 'locationArea', 'project.media', 'project.locationArea', 'media', 'units', 'seoOverride', 'publicationState', 'assignedContact'])
             ->where('slug', $slug)
             ->first();
 

@@ -1,11 +1,11 @@
 <section id="home-faq" class="uh-section scroll-mt-20" aria-labelledby="faq-title">
     <div class="uh-container uh-home-faq">
         <header class="uh-home-faq-head" data-reveal>
-            <h2 id="faq-title" class="uh-h2">{{ __('Frequently') }}<br>{{ __('asked questions.') }}</h2>
+            <h2 id="faq-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
             <div class="uh-home-faq-aside">
-                <p>{{ __('Answers to your questions,') }}<br>{{ __('every step of the way.') }}</p>
+                <p>{{ $sectionContent['subtitle'] }}</p>
                 <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')" data-track="home_cta_click" data-track-cta="faq">
-                    {{ __('Get in touch') }}
+                    {{ $sectionContent['cta_label'] }}
                 </x-ui.pill-link>
             </div>
         </header>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="uh-section-foot">
-            <x-ui.pill-link :href="route('faq')">{{ __('View all') }}</x-ui.pill-link>
+            <x-ui.pill-link :href="route('faq')">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
         </div>
     </div>
 </section>

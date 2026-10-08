@@ -96,6 +96,35 @@
         <script>
             window.dataLayer = window.dataLayer || [];
             window.uhAnalytics = {!! json_encode($analyticsConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
+            window.uhCopy = @js([
+                'saved_removed_compare' => __('Removed from compare.'),
+                'saved_removed_shortlist' => __('Removed from your shortlist.'),
+                'saved_compare_limit' => __('You can compare up to :limit properties. Remove one first.'),
+                'saved_shortlist_limit' => __('Your shortlist is full (:limit). Remove one first.'),
+                'saved_compare_added_first' => __('Added to compare. Add one more to see them side by side.'),
+                'saved_compare_added' => __('Added. :count properties ready to compare.'),
+                'saved_shortlist_added' => __('Saved. It stays on this device — find it any time under Shortlist.'),
+                'saved_storage_error' => __('Your browser is blocking storage, so this list will reset when you leave.'),
+                'map_no_results' => __('No properties with a map location match these filters.'),
+                'map_cluster_title' => __(':count properties'),
+                'map_load_error' => __('The map could not load. The list still shows every result.'),
+                'map_tiles_error' => __('Map tiles are not loading right now. Pins may still be shown.'),
+                'map_pins_error' => __('Map pins could not load. The list still shows every result.'),
+                'select_keyword' => __('Search for “:term”'),
+                'select_empty' => __('No matching areas'),
+                'select_searching' => __('Searching…'),
+                'select_error' => __('Suggestions could not load'),
+                'form_check_fields' => __('Please check the highlighted fields.'),
+                'form_expired' => __('This page has expired. Refresh and try again.'),
+                'form_send_error' => __('We could not send your request. Please try again or call us.'),
+                'form_offline' => __('You appear to be offline. Check your connection and try again, or call us.'),
+                'account_save_error' => __('We could not save your account. Please try again.'),
+                'account_offline' => __('You appear to be offline. Check your connection and try again.'),
+            ]);
+            window.uhCopyText = (key, replacements = {}) => Object.entries(replacements).reduce(
+                (text, [name, value]) => text.split(`:${name}`).join(String(value)),
+                window.uhCopy[key] || '',
+            );
         </script>
         @if($hasAnalytics)
             <script>

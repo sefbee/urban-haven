@@ -231,7 +231,7 @@ class CatalogSeeder extends Seeder
         ]);
 
         foreach ([
-            ['slug' => 'about', 'title' => 'About Urban Haven', 'body' => '<p>Urban Haven Properties Ltd. develops and sells its own inventory in Dhaka. This website is the public face of that work.</p>'],
+            ['slug' => 'about', 'template' => 'about', 'title' => 'About Urban Haven', 'body' => '<p>Urban Haven Properties Ltd. develops and sells its own inventory in Dhaka. This website is the public face of that work.</p>'],
             ['slug' => 'contact', 'title' => 'Contact', 'template' => 'contact', 'body' => '<p>Call, WhatsApp or send an enquiry. A member of the sales desk will follow up.</p>'],
             ['slug' => 'services', 'title' => 'Services', 'body' => '<p>Sales, lettings and project handover support for company inventory.</p>'],
             ['slug' => 'blog', 'title' => 'Blog', 'body' => '<p>Guides on buying, renting and investing in Dhaka. New notes from the Urban Haven desk will appear here.</p>'],

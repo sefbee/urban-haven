@@ -25,7 +25,7 @@ const optionsFor = (el) => {
     const optionCount = el.querySelectorAll('option:not([value=""])').length;
     const searchable = el.dataset.uhSelectSearch === 'on'
         || (el.dataset.uhSelectSearch !== 'off' && (el.dataset.uhSelectAjax || optionCount >= AUTO_SEARCH_THRESHOLD));
-    const keywordLabel = el.dataset.uhSelectKeyword || 'Search for “:term”';
+    const keywordLabel = el.dataset.uhSelectKeyword || window.uhCopyText?.('select_keyword') || '';
 
     const options = {
         theme: 'uh',
@@ -36,9 +36,9 @@ const optionsFor = (el) => {
         dropdownParent: $(document.body),
         dropdownAutoWidth: el.dataset.uhSelectAutoWidth === 'true',
         language: {
-            noResults: () => el.dataset.uhSelectEmpty || 'No matching areas',
-            searching: () => el.dataset.uhSelectSearching || 'Searching…',
-            errorLoading: () => el.dataset.uhSelectError || 'Suggestions could not load',
+            noResults: () => el.dataset.uhSelectEmpty || window.uhCopyText?.('select_empty') || '',
+            searching: () => el.dataset.uhSelectSearching || window.uhCopyText?.('select_searching') || '',
+            errorLoading: () => el.dataset.uhSelectError || window.uhCopyText?.('select_error') || '',
         },
         templateResult: (item) => {
             if (item.loading || item.id === undefined) {

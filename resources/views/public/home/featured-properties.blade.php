@@ -5,8 +5,8 @@
          @keydown.right.window="preview && nextSlide()">
     <div class="uh-container">
         <header class="uh-section-head" data-reveal>
-            <h2 id="featured-title" class="uh-h2">{{ __('Featured Real Estate in Bangladesh') }}</h2>
-            <p class="uh-lede">{{ __('A closer look at the places our team is featuring right now.') }}</p>
+            <h2 id="featured-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+            <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
         </header>
     </div>
 
@@ -36,6 +36,10 @@
                 @endif
             </div>
         </div>
+    </div>
+
+    <div class="uh-container uh-section-foot">
+        <x-ui.pill-link :href="route('properties.index')">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
     </div>
 
     @include('public.partials.property-preview')

@@ -2,7 +2,21 @@
     $model = $page ?? null;
     $canPublish ??= auth()->user()->hasPermission('cms.publish');
     $draft = fn (string $field) => $model ? ($model->pending_changes[$field] ?? $model->{$field}) : null;
-    $templateLabels = ['default' => 'Standard page', 'contact' => 'Contact page with enquiry form', 'campaign' => 'Campaign landing page with enquiry form'];
+    $templateLabels = ['default' => 'Standard page', 'about' => 'About page', 'contact' => 'Contact page with enquiry form', 'campaign' => 'Campaign landing page with enquiry form'];
+    $aboutValues = \App\Support\AboutPageContent::resolve((array) ($draft('layout_content') ?? []));
+    $aboutFields = [
+        'hero_eyebrow' => ['Small label', 'text', 80], 'hero_title' => ['Main headline', 'text', 120], 'hero_intro' => ['Intro line', 'textarea', 300],
+        'hero_quote' => ['Quote', 'textarea', 240], 'hero_quote_kicker' => ['Quote eyebrow', 'text', 80], 'hero_quote_label' => ['Quote attribution', 'text', 80], 'hero_badge' => ['Corner label', 'text', 100],
+        'hero_primary_cta' => ['Primary button text', 'text', 40], 'hero_primary_url' => ['Primary button link', 'text', 255],
+        'hero_secondary_cta' => ['Secondary button text', 'text', 40], 'hero_secondary_url' => ['Secondary button link', 'text', 255],
+        'story_eyebrow' => ['Story label', 'text', 80], 'story_title' => ['Story heading', 'text', 140],
+        'values_eyebrow' => ['Values label', 'text', 80], 'values_title' => ['Values heading', 'text', 140], 'values_intro' => ['Values introduction', 'textarea', 300],
+        'value_one_title' => ['First value heading', 'text', 80], 'value_one_text' => ['First value text', 'textarea', 240],
+        'value_two_title' => ['Second value heading', 'text', 80], 'value_two_text' => ['Second value text', 'textarea', 240],
+        'value_three_title' => ['Third value heading', 'text', 80], 'value_three_text' => ['Third value text', 'textarea', 240],
+        'cta_eyebrow' => ['Closing label', 'text', 80], 'cta_title' => ['Closing heading', 'text', 140],
+        'cta_body' => ['Closing text', 'textarea', 300], 'cta_label' => ['Closing button text', 'text', 40], 'cta_url' => ['Closing button link', 'text', 255],
+    ];
 @endphp
 
 <x-ui.page-header compact :title="$model->title ?? 'New page'"
@@ -40,14 +54,33 @@
             <h2 class="uh-h4">Page</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
                 <x-ui.input name="title" label="Title" :value="$draft('title')" :autofocus="! $model" required maxlength="255"
-                            hint="The page heading. The web address is generated from it." />
-                <x-ui.select name="template" label="Layout">
+                            hint="The page title and search result title. The web address is generated from it." />
+                <x-ui.select name="template" label="Layout" x-on:change="$dispatch('cms-template-change', $event.target.value)">
                     @foreach($templates as $template)
                         <option value="{{ $template }}" @selected(old('template', $draft('template') ?? 'default') === $template)>{{ $templateLabels[$template] ?? ucfirst($template) }}</option>
                     @endforeach
                 </x-ui.select>
             </div>
         </section>
+
+            <fieldset class="uh-panel" x-data="{ show: @js(old('template', $draft('template') ?? 'default') === 'about') }"
+                      x-on:cms-template-change.window="show = $event.detail === 'about'" x-show="show" x-cloak :disabled="!show">
+                <h2 class="uh-h4">About page content</h2>
+                <p class="mt-2 text-sm text-[var(--color-muted)]">Edit the wording in each part of the existing About page layout.</p>
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    @foreach($aboutFields as $field => [$label, $type, $max])
+                        <div @class(['uh-field', 'sm:col-span-2' => $type === 'textarea'])>
+                            <label class="uh-label" for="about-{{ $field }}">{{ $label }}</label>
+                            @if($type === 'textarea')
+                                <textarea id="about-{{ $field }}" name="layout_content[{{ $field }}]" class="uh-textarea" rows="3" maxlength="{{ $max }}">{{ old('layout_content.'.$field, $aboutValues[$field]) }}</textarea>
+                            @else
+                                <input id="about-{{ $field }}" name="layout_content[{{ $field }}]" class="uh-input" value="{{ old('layout_content.'.$field, $aboutValues[$field]) }}" maxlength="{{ $max }}">
+                            @endif
+                            @error('layout_content.'.$field)<p class="uh-error">{{ $message }}</p>@enderror
+                        </div>
+                    @endforeach
+                </div>
+            </fieldset>
 
         <section class="uh-panel">
             <h2 class="uh-h4">Content</h2>
@@ -79,6 +112,14 @@
 
     @if($model)
         <div class="uh-admin-compose-side">
+            @if(in_array($model->template, ['about', 'contact'], true))
+                @include('admin.partials.media-manager', [
+                    'owner' => $model,
+                    'ownerType' => 'cms_page',
+                    'collections' => ['gallery' => $model->template === 'about' ? 'About page photographs' : 'Contact page photographs'],
+                    'canEdit' => auth()->user()->can('update', $model),
+                ])
+            @endif
             <section class="uh-panel">
                 <h2 class="uh-h4">Publication</h2>
                 <p class="mt-2"><x-ui.status :status="$model->editorialStatus()" /></p>

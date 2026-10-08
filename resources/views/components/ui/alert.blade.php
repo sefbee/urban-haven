@@ -17,7 +17,7 @@
     <div class="min-w-0 flex-1">{{ $slot }}</div>
     @if($dismissible)
         <button type="button" class="-my-1 -mr-1 shrink-0 rounded p-1 opacity-60 transition hover:opacity-100"
-                @click="shown = false" aria-label="Dismiss">
+                @click="shown = false" aria-label="{{ __('Dismiss') }}">
             <x-icon name="close" class="size-4" />
         </button>
     @endif

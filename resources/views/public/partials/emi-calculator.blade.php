@@ -25,7 +25,7 @@
                     <span class="uh-emi-value"><span class="uh-numeric" x-text="downPct"></span>%</span>
                 </span>
                 <input type="range" class="uh-range mt-3" min="0" max="80" step="5" x-model.number="downPct">
-                <p class="mt-2 text-sm text-[var(--uh-faint)]">BDT <span class="uh-numeric" x-text="format(downPayment)"></span></p>
+                <p class="mt-2 text-sm text-[var(--uh-faint)]">{{ __('BDT') }} <span class="uh-numeric" x-text="format(downPayment)"></span></p>
             </label>
 
             <label class="block">
@@ -48,15 +48,15 @@
         <dl class="uh-emi-readout">
             <div class="is-primary">
                 <dt>{{ __('Monthly EMI') }}</dt>
-                <dd>BDT <span class="uh-numeric" x-text="format(emi)"></span></dd>
+                <dd>{{ __('BDT') }} <span class="uh-numeric" x-text="format(emi)"></span></dd>
             </div>
             <div>
                 <dt>{{ __('Loan Amount') }}</dt>
-                <dd>BDT <span class="uh-numeric" x-text="format(principal)"></span></dd>
+                <dd>{{ __('BDT') }} <span class="uh-numeric" x-text="format(principal)"></span></dd>
             </div>
             <div>
                 <dt>{{ __('Total interest') }}</dt>
-                <dd>BDT <span class="uh-numeric" x-text="format(totalInterest)"></span></dd>
+                <dd>{{ __('BDT') }} <span class="uh-numeric" x-text="format(totalInterest)"></span></dd>
             </div>
         </dl>
     </div>

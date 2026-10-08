@@ -74,6 +74,10 @@ class Setting extends Model
     {
         unset(app('uh.settings')['values']);
         TaggedCache::flush([self::CACHE_TAG]);
+
+        if (app()->bound('translator') && method_exists(app('translator'), 'setLoaded')) {
+            app('translator')->setLoaded([]);
+        }
     }
 
     public static function purposeEnabled(string $listingType): bool

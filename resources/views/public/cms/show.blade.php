@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @php
-    $template = $page->slug === 'contact' ? 'contact' : ($page->template ?: 'default');
+    $template = $page->template ?: 'default';
     $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
     $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);
     $email = \App\Models\Setting::get('email') ?: ($contactBlock['email'] ?? null);
@@ -18,9 +18,9 @@
         </div>
     @endif
 
-    @if($page->slug === 'about')
+    @if($template === 'about')
         @include('public.about')
-    @elseif($page->slug === 'contact')
+    @elseif($template === 'contact')
         @include('public.contact')
     @else
     <header class="uh-page-head">

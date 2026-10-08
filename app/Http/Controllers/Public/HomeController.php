@@ -8,10 +8,12 @@ use App\Models\CmsBlock;
 use App\Models\Faq;
 use App\Models\LocationArea;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyMetricDaily;
 use App\Models\PropertyType;
 use App\Models\Setting;
+use App\Support\HomeSections;
 use App\Support\SeoMeta;
 use App\Support\StructuredData;
 use App\Support\TaggedCache;
@@ -21,17 +23,9 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    private const SECTION_LIMIT = 8;
-
     private const CACHE_SECONDS = 600;
 
-    private const TRENDING_LIMIT = 6;
-
     private const TRENDING_DAYS = 30;
-
-    private const ARTICLE_LIMIT = 6;
-
-    private const FAQ_LIMIT = 5;
 
     /**
      * @var list<string>
@@ -41,7 +35,8 @@ class HomeController extends Controller
     public function index(): View
     {
         $purposes = Setting::enabledPurposes();
-        $hero = CmsBlock::contentFor('hero');
+        $sections = HomeSections::visible();
+        $hero = $sections['hero'] ?? HomeSections::defaults('hero');
 
         $types = PropertyType::query()
             ->active()
@@ -58,17 +53,18 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        $featured = $this->listingsFor('featured', $purposes, fn (Builder $query) => $query->where('is_featured', true));
+        $featuredLimit = (int) ($sections['featured']['limit'] ?? 8);
+        $featured = $this->listingsFor('featured', $purposes, fn (Builder $query) => $query->where('is_featured', true), $featuredLimit);
         $featuredAmenityIds = $featured->flatten()->flatMap(fn (Property $property): array => $property->amenity_ids ?? [])->unique()->values();
         $featuredAmenities = Amenity::query()->active()->whereIn('id', $featuredAmenityIds->all())->get()->keyBy('id');
         $housing = $this->listingsFor('housing', $purposes, fn (Builder $query) => $query->whereHas('propertyType', fn (Builder $typeQuery) => $typeQuery
             ->active()
             ->where('category', PropertyType::CATEGORY_RESIDENTIAL)
-            ->where('field_profile', PropertyType::PROFILE_APARTMENT)));
+            ->where('field_profile', PropertyType::PROFILE_APARTMENT)), (int) ($sections['housing']['limit'] ?? 8));
         $housingListings = $this->interleave($housing->get('sale', collect()), $housing->get('rent', collect()))
-            ->take(self::SECTION_LIMIT)
+            ->take((int) ($sections['housing']['limit'] ?? 8))
             ->values();
-        $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query);
+        $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query, (int) ($sections['latest']['limit'] ?? 8));
 
         $listings = $featured->flatten()->concat($latest->flatten());
         $types = $this->withCoverImages($types, 'property_type_id', $listings, $purposes);
@@ -79,7 +75,7 @@ class HomeController extends Controller
             ->mapWithKeys(fn (string $category): array => [$category => $types->where('category', $category)->values()])
             ->filter(fn (Collection $group): bool => $group->isNotEmpty());
         $listedAreas = $this->withCoverImages(
-            $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take(12)->values(),
+            $areas->where('properties_count', '>', 0)->sortByDesc('properties_count')->take((int) ($sections['locations']['limit'] ?? 12))->values(),
             'location_area_id',
             $listings,
             $purposes,
@@ -88,24 +84,30 @@ class HomeController extends Controller
         return view('public.home', [
             'purposes' => $purposes,
             'hero' => $hero,
-            'about' => CmsBlock::contentFor('about'),
+            'homepageSections' => $sections,
+            'projects' => isset($sections['projects']) ? Project::query()->published()->where('is_featured', true)
+                ->with(['locationArea', 'media', 'publicationState'])
+                ->withCount(['properties' => fn (Builder $query) => $query->published()->whereIn('listing_type', $purposes ?: ['__none__'])])
+                ->orderByDesc('last_updated_at')
+                ->limit((int) ($sections['projects']['limit'] ?? 6))
+                ->get() : collect(),
             'housingListings' => $housingListings,
-            'trending' => $this->trendingListings($purposes),
-            'featured' => $this->interleave($featured->get('sale', collect()), $featured->get('rent', collect())),
+            'trending' => $this->trendingListings($purposes, (int) ($sections['trending']['limit'] ?? 6)),
+            'featured' => $this->interleave($featured->get('sale', collect()), $featured->get('rent', collect()))->take($featuredLimit)->values(),
             'featuredAmenities' => $featuredAmenities,
             'latestSale' => $latest->get('sale', collect()),
             'latestRent' => $latest->get('rent', collect()),
             'types' => $types,
             'typeGroups' => $typeGroups,
             'areas' => $listedAreas,
-            'faqs' => Faq::cachedVisible()->take(self::FAQ_LIMIT)->values(),
-            'articles' => Post::query()->published()->with(['category', 'media', 'publicationState'])->latest('id')->limit(self::ARTICLE_LIMIT)->get(),
+            'faqs' => Faq::cachedVisible()->take((int) ($sections['faq']['limit'] ?? 5))->values(),
+            'articles' => Post::query()->published()->with(['category', 'media', 'publicationState'])->latest('id')->limit((int) ($sections['articles']['limit'] ?? 3))->get(),
             'propertyVideos' => $this->liveListings(Property::query(), $purposes)
                 ->whereNotNull('video_url')
                 ->where('video_url', '!=', '')
                 ->with($this->listingRelations)
                 ->latest('id')
-                ->limit(3)
+                ->limit((int) ($sections['articles']['video_limit'] ?? 3))
                 ->get(),
             'heroImages' => $heroImages,
             'heroListing' => $heroImageSource,
@@ -124,11 +126,11 @@ class HomeController extends Controller
      * @param  callable(Builder<Property>): Builder<Property>  $scope
      * @return Collection<string, Collection<int, Property>>
      */
-    private function listingsFor(string $section, array $purposes, callable $scope): Collection
+    private function listingsFor(string $section, array $purposes, callable $scope, int $limit): Collection
     {
-        return collect($purposes)->mapWithKeys(function (string $purpose) use ($section, $scope): array {
-            $cacheKey = 'home:'.$section.':'.$purpose.($section === 'latest' ? ':all-live-v2' : '');
-            $ids = TaggedCache::remember(['homepage', 'properties'], $cacheKey, self::CACHE_SECONDS, function () use ($section, $scope, $purpose): array {
+        return collect($purposes)->mapWithKeys(function (string $purpose) use ($section, $scope, $limit): array {
+            $cacheKey = 'home:'.$section.':'.$purpose.':'.$limit.($section === 'latest' ? ':all-live-v2' : '');
+            $ids = TaggedCache::remember(['homepage', 'properties'], $cacheKey, self::CACHE_SECONDS, function () use ($section, $scope, $purpose, $limit): array {
                 $query = $scope($this->liveListings(Property::query(), [$purpose]));
 
                 if ($section === 'latest') {
@@ -137,7 +139,7 @@ class HomeController extends Controller
                     $query->orderByRaw('display_priority is null, display_priority asc')->orderByDesc('id');
                 }
 
-                return $query->limit(self::SECTION_LIMIT)->pluck('id')->all();
+                return $query->limit($limit)->pluck('id')->all();
             });
 
             $models = Property::query()->with($this->listingRelations)->whereKey($ids)->get()->sortBy(fn (Property $property) => array_search($property->id, $ids, true))->values();
@@ -171,9 +173,9 @@ class HomeController extends Controller
      * @param  list<string>  $purposes
      * @return Collection<int, Property>
      */
-    private function trendingListings(array $purposes): Collection
+    private function trendingListings(array $purposes, int $limit): Collection
     {
-        $ids = TaggedCache::remember(['homepage', 'properties'], 'home:trending:'.implode(',', $purposes), self::CACHE_SECONDS, fn (): array => $this->liveListings(Property::query(), $purposes)
+        $ids = TaggedCache::remember(['homepage', 'properties'], 'home:trending:'.implode(',', $purposes).':'.$limit, self::CACHE_SECONDS, fn (): array => $this->liveListings(Property::query(), $purposes)
             ->leftJoinSub(
                 PropertyMetricDaily::query()
                     ->selectRaw('property_id, sum(views) as recent_views')
@@ -187,7 +189,7 @@ class HomeController extends Controller
             ->orderByRaw('coalesce(recent_metrics.recent_views, 0) desc')
             ->orderByRaw('display_priority is null, display_priority asc')
             ->orderByDesc('properties.id')
-            ->limit(self::TRENDING_LIMIT)
+            ->limit($limit)
             ->pluck('properties.id')
             ->all());
 

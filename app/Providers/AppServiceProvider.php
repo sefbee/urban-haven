@@ -29,6 +29,7 @@ use App\Services\Inventory\InventoryService;
 use App\Services\Lead\LeadService;
 use App\Services\Media\MediaService;
 use App\Services\Search\SearchService;
+use App\Support\PublicCopyLoader;
 use ArrayObject;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
@@ -54,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MediaServiceContract::class, MediaService::class);
         $this->app->singleton(SimilarPropertiesService::class, \App\Services\Search\SimilarPropertiesService::class);
         $this->app->scoped('uh.settings', fn (): ArrayObject => new ArrayObject);
+        $this->app->extend('translation.loader', fn ($loader): PublicCopyLoader => new PublicCopyLoader($loader));
     }
 
     /**

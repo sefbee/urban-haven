@@ -128,6 +128,38 @@ class Project extends Model
     }
 
     /**
+     * Coordinates visible on the public page, following the same address privacy setting as listings.
+     *
+     * @return array{lat: float, lng: float, approximate: bool}|null
+     */
+    public function publicCoordinates(): ?array
+    {
+        if ($this->lat === null || $this->lng === null) {
+            return null;
+        }
+
+        $lat = (float) $this->lat;
+        $lng = (float) $this->lng;
+        if (! Property::coordinatesWithinServiceArea($lat, $lng)) {
+            return null;
+        }
+
+        $mode = (string) Setting::get('address_display_mode', 'approximate');
+        if ($mode === 'hidden') {
+            return null;
+        }
+
+        $approximate = $mode === 'approximate';
+        if ($approximate) {
+            $precision = max(1, min(4, (int) Setting::get('coordinate_precision', 2)));
+            $lat = round($lat, $precision);
+            $lng = round($lng, $precision);
+        }
+
+        return ['lat' => $lat, 'lng' => $lng, 'approximate' => $approximate];
+    }
+
+    /**
      * Prefilled WhatsApp chat for this project, or null when no desk number is configured.
      */
     public function whatsappEnquiryUrl(): ?string

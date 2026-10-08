@@ -21,6 +21,7 @@ final class PageSeo
     public const PAGES = [
         'home' => ['label' => 'Home page', 'path' => '/', 'title' => '', 'hint' => 'The most important page for Google. Use your main keyword, e.g. “apartments for sale in Dhaka”.'],
         'properties.index' => ['label' => 'Property search', 'path' => '/properties', 'title' => 'Properties for sale and rent', 'hint' => 'Applies to the unfiltered search page. Filtered searches build their own titles.'],
+        'projects.index' => ['label' => 'Property projects', 'path' => '/projects', 'title' => 'Property projects', 'hint' => 'The list of published property developments.'],
         'map' => ['label' => 'Map of properties', 'path' => '/map', 'title' => 'Map of properties', 'hint' => 'The full-screen map of listings.'],
         'articles.index' => ['label' => 'Articles', 'path' => '/articles', 'title' => 'Guides and articles', 'hint' => 'The list of all guides and articles. Category pages use the category’s own settings.'],
         'faq' => ['label' => 'Frequently asked questions', 'path' => '/faq', 'title' => 'Frequently asked questions', 'hint' => 'The FAQ page.'],
