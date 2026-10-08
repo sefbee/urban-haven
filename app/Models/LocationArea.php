@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSeo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class LocationArea extends Model
 {
-    use HasSlug;
+    use HasSeo, HasSlug;
 
-    protected $fillable = ['name', 'slug', 'city', 'intro', 'meta_description', 'lat', 'lng', 'is_active'];
+    public const DEFAULT_COUNTRY = 'Bangladesh';
+
+    protected $fillable = ['name', 'slug', 'country', 'city', 'intro', 'lat', 'lng', 'is_active'];
 
     protected function casts(): array
     {
@@ -35,7 +39,29 @@ class LocationArea extends Model
     {
         return SlugOptions::create()
             ->generateSlugsFrom('name')
-            ->saveSlugsTo('slug');
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate()
+            ->preventOverwrite();
+    }
+
+    public function label(): string
+    {
+        return $this->name.' — '.$this->city;
+    }
+
+    /**
+     * Countries and their cities, for the country → city → area pickers.
+     *
+     * @param  iterable<LocationArea>  $areas
+     * @return array<string, list<string>>
+     */
+    public static function placeTree(iterable $areas): array
+    {
+        return Collection::make($areas)
+            ->groupBy(fn (LocationArea $area): string => $area->country ?: self::DEFAULT_COUNTRY)
+            ->sortKeys()
+            ->map(fn (Collection $group): array => $group->pluck('city')->filter()->unique()->sort()->values()->all())
+            ->all();
     }
 
     /**

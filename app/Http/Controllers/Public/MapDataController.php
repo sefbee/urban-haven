@@ -34,6 +34,18 @@ class MapDataController extends Controller
                 }
 
                 $residential = $property->fieldProfile() !== PropertyType::PROFILE_PLOT;
+                $image = $property->featuredImage()?->url(480);
+                $place = collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', ');
+                $compactPrice = MoneyFormatter::compactBdt($property->price);
+                $previewPrice = $property->isPriceOnRequest()
+                    ? __('Price on request')
+                    : ($property->listing_type !== 'rent' && $compactPrice !== null ? 'BDT '.$compactPrice : MoneyFormatter::formatBdt($property->price, $property->price_basis));
+                $specs = array_values(array_filter([
+                    $residential && $property->bedrooms ? $property->bedrooms.' '.__('bed') : null,
+                    $residential && $property->bathrooms ? $property->bathrooms.' '.__('bath') : null,
+                    $property->area_value ? AreaConverter::format($property->area_value, $property->area_unit) : null,
+                    $residential && $property->is_furnished ? __('Furnished') : null,
+                ]));
 
                 return [
                     'id' => $property->id,
@@ -43,12 +55,24 @@ class MapDataController extends Controller
                     'lat' => $coordinates['lat'],
                     'lng' => $coordinates['lng'],
                     'approximate' => $coordinates['approximate'],
-                    'image' => $property->featuredImage()?->url(480),
-                    'place' => collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', '),
+                    'image' => $image,
+                    'place' => $place,
+                    'quickViewLabel' => __('Quick view'),
                     'area' => $property->area_value ? AreaConverter::format($property->area_value, $property->area_unit) : null,
                     'beds' => $residential ? $property->bedrooms : null,
                     'baths' => $residential ? $property->bathrooms : null,
                     'furnishing' => $residential && $property->is_furnished !== null ? ($property->is_furnished ? __('Furnished') : __('Unfurnished')) : null,
+                    'preview' => [
+                        'id' => $property->id,
+                        'title' => $property->title,
+                        'url' => route('properties.show', $property->slug),
+                        'price' => $previewPrice,
+                        'location' => $place,
+                        'listing' => $property->listing_type === 'rent' ? __('For rent') : __('For sale'),
+                        'type' => $property->propertyType?->label,
+                        'specs' => $specs,
+                        'images' => $image ? [['url' => $image, 'alt' => $property->title]] : [],
+                    ],
                 ];
             })
             ->filter()

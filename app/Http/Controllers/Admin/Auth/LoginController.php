@@ -40,7 +40,6 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
-        $request->session()->regenerate();
         $user = $request->user();
 
         if ($user->is_active === false) {
@@ -50,6 +49,16 @@ class LoginController extends Controller
 
             return back()->withErrors(['email' => 'This staff account is no longer active.']);
         }
+
+        if ($user->roles()->doesntExist()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors(['email' => 'Those credentials do not match our records.'])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
 
         $staff->markLogin($user);
 

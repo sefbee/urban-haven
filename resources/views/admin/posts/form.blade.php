@@ -11,7 +11,7 @@
 @section('content')
     <x-ui.page-header compact :title="$exists ? $post->title : 'New article'"
                       :description="$canPublish ? 'Saved changes go live when the article is published.' : 'Changes to a live article wait for a publisher before they appear.'">
-        <x-slot:eyebrow>Website · {{ $exists ? 'Edit article' : 'New article' }}</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library · {{ $exists ? 'Edit article' : 'New article' }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.posts.index') }}"><x-icon name="chevron-left" class="size-4" /> All articles</a>
             @if($exists)
@@ -28,25 +28,34 @@
     @endif
 
     <div @class(['uh-admin-compose', 'is-split' => $exists])>
-        <form method="POST" action="{{ $exists ? route('admin.posts.update', $post) : route('admin.posts.store') }}" class="uh-admin-compose-main" x-data="uhForm" @submit="submit">
+        <form method="POST" action="{{ $exists ? route('admin.posts.update', $post) : route('admin.posts.store') }}" class="uh-admin-compose-main" x-data="uhForm" @submit="submit" data-unsaved-guard>
             @csrf
             @if($exists) @method('PUT') @endif
 
-            <div class="uh-admin-stack">
-            <section class="uh-panel space-y-4">
-                <x-ui.input name="title" label="Title" :value="$draft('title')" required maxlength="255" />
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="slug" label="URL" :value="$draft('slug')" optional maxlength="120" dir="ltr" hint="Lowercase letters, numbers and dashes." />
+            <div class="uh-admin-stack dd-form-steps">
+            <section class="uh-panel">
+                <h2 class="uh-h4">Topic</h2>
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <x-ui.input name="title" label="Title" :value="$draft('title')" :autofocus="! $exists" required maxlength="255" class="sm:col-span-2"
+                                hint="A clear promise, e.g. “How to check a flat’s RAJUK approval”. The web address is generated from it." />
                     <x-ui.select name="post_category_id" label="Category" optional quick-add="category">
                         <option value="">No category</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" @selected(old('post_category_id', $draft('post_category_id')) == $category->id)>{{ $category->name }}</option>
                         @endforeach
                     </x-ui.select>
+                    <x-ui.input name="author_label" label="Author" :value="$draft('author_label')" optional maxlength="120"
+                                :placeholder="\App\Models\Setting::get('company_name', config('app.name')).' team'" />
                 </div>
-                <x-ui.textarea name="excerpt" label="Summary" rows="2" maxlength="300" optional :value="$draft('excerpt')" hint="Shown on article cards and as the search description." />
-                <x-ui.textarea name="body" label="Body" rows="18" required :value="$draft('body')" hint="Basic HTML is allowed and cleaned on save." />
-                <x-ui.input name="author_label" label="Author" :value="$draft('author_label')" optional maxlength="120" placeholder="Urban Haven sales team" />
+            </section>
+
+            <section class="uh-panel">
+                <h2 class="uh-h4">Content</h2>
+                <div class="mt-4 space-y-4">
+                    <x-ui.textarea name="excerpt" label="Summary" rows="2" maxlength="300" optional :value="$draft('excerpt')" hint="Shown on article cards. Two sentences is plenty." />
+                    <x-ui.rich-text name="body" label="Article" :value="$draft('body')" min-height="22rem"
+                                    hint="Use Heading for sections and lists for steps. Pasting from Word or Google Docs keeps the formatting." />
+                </div>
             </section>
 
             @if($otherPosts->isNotEmpty())
@@ -61,6 +70,16 @@
                     @error('related_post_ids')<p class="uh-error">{{ $message }}</p>@enderror
                 </section>
             @endif
+
+            @include('admin.partials.seo-panel', [
+                'seo' => $exists ? $post->seoOverride : null,
+                'slugName' => 'slug',
+                'slug' => $draft('slug'),
+                'baseUrl' => url('/articles'),
+                'titleSource' => 'title',
+                'contentSource' => 'excerpt',
+                'idPrefix' => 'post-seo',
+            ])
 
             </div>
             <div class="uh-admin-dock">
@@ -110,11 +129,12 @@
                         <input type="hidden" name="owner_id" value="{{ $post->id }}">
                         <input type="hidden" name="collection" value="gallery">
                         <input id="cover-image-file" x-ref="file" class="uh-admin-media-file" type="file" name="file" accept="image/jpeg,image/png,image/webp" required aria-label="Cover image file" @change="chosen(true)">
-                        <div class="uh-admin-media-drop">
+                        <div class="uh-admin-media-drop" :class="{ 'is-dragging': dragging }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="dropped($event, true)">
                             <button type="button" class="uh-admin-media-trigger" :disabled="submitting" @click="pick()">
                                 <x-icon name="upload" class="size-4" />
                                 <span x-text="submitting ? 'Uploading…' : 'Upload photograph'">Upload photograph</span>
                             </button>
+                            <span class="uh-admin-media-drop-hint">or drag a photo here</span>
                         </div>
                     </form>
                     <ul class="uh-admin-media-grid" @if(! $cover) x-show="filename" x-cloak @endif>
@@ -129,8 +149,8 @@
                                     <x-icon name="close" class="size-3.5" />
                                 </button>
                             </div>
-                            <div class="uh-admin-media-preview">
-                                <img x-show="preview" x-bind:src="preview" alt="" x-cloak>
+                            <div class="uh-admin-media-preview" :class="{ 'is-multi': previews.length > 1 }">
+                    <template x-for="src in previews" :key="src"><img :src="src" alt=""></template>
                                 <span class="uh-admin-media-slot" x-show="!preview"><x-icon name="image" class="size-8" /></span>
                             </div>
                         </li>

@@ -3,11 +3,6 @@
 @section('content')
     <header class="uh-page-head">
         <div class="uh-container">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => __('Articles'), 'url' => $activeCategory ? route('articles.index') : null],
-                $activeCategory ? ['label' => $activeCategory->name] : null,
-            ]" />
             <h1 class="uh-h1 uh-page-title">{{ $activeCategory?->name ?? __('Guides and articles') }}</h1>
             <p class="uh-lede">{{ __('Practical notes on buying, renting and investing in property from the Urban Haven team.') }}</p>
 

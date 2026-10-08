@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ApplySiteSettings;
 use App\Http\Middleware\CaptureFirstTouchAttribution;
 use App\Http\Middleware\EnsureMfaIsSatisfied;
 use App\Http\Middleware\EnsureStaffIsActive;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
 
         $middleware->web(append: [
+            ApplySiteSettings::class,
             SetLocale::class,
             CaptureFirstTouchAttribution::class,
             ResolveRedirects::class,

@@ -12,7 +12,7 @@
 @section('content')
     <x-ui.page-header compact title="Leads"
                       :description="$seesAll ? 'Every enquiry captured from the public site. Open leads with the most urgent follow-up come first.' : 'Leads assigned to you. Open leads with the most urgent follow-up come first.'">
-        <x-slot:eyebrow>Sales</x-slot:eyebrow>
+        <x-slot:eyebrow>Communication</x-slot:eyebrow>
         @if($canExport)
             <x-slot:actions>
                 <a class="uh-btn-outline uh-btn-sm" href="#lead-export">

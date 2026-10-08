@@ -4,7 +4,7 @@
 @section('content')
     <x-ui.page-header compact title="Projects"
                       description="Developments that group several listings together.">
-        <x-slot:eyebrow>Inventory</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.projects.create') }}">
                 <x-icon name="plus" class="size-4" />

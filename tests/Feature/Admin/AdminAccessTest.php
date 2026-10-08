@@ -43,7 +43,7 @@ class AdminAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('What needs a decision today');
+            ->assertSee('Needs your attention');
     }
 
     public function test_active_staff_can_view_dashboard(): void
@@ -54,6 +54,6 @@ class AdminAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('What needs a decision today');
+            ->assertSee('Needs your attention');
     }
 }

@@ -56,11 +56,12 @@
                        accept="{{ $isDocument ? 'application/pdf' : 'image/jpeg,image/png,image/webp' }}"
                        aria-label="{{ $isDocument ? 'Brochure' : 'Photograph' }}"
                        @change="chosen(true)">
-                <div class="uh-admin-media-drop">
+                <div class="uh-admin-media-drop" :class="{ 'is-dragging': dragging }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="dropped($event, true)">
                     <button type="button" class="uh-admin-media-trigger" :disabled="submitting" @click="pick()">
                         <x-icon name="upload" class="size-4" />
                         <span x-text="submitting ? 'Uploading…' : {{ \Illuminate\Support\Js::from($uploadLabel) }}">{{ $uploadLabel }}</span>
                     </button>
+                    <span class="uh-admin-media-drop-hint">or drag {{ $isDocument ? 'the PDF' : 'photos' }} here</span>
                 </div>
             </form>
         @endif
@@ -79,8 +80,8 @@
                                 <x-icon name="close" class="size-3.5" />
                             </button>
                         </div>
-                        <div class="uh-admin-media-preview">
-                            <img x-show="preview" x-bind:src="preview" alt="" x-cloak>
+                        <div class="uh-admin-media-preview" :class="{ 'is-multi': previews.length > 1 }">
+                    <template x-for="src in previews" :key="src"><img :src="src" alt=""></template>
                             <span class="uh-admin-media-slot" x-show="!preview"><x-icon :name="$isDocument ? 'document' : 'image'" class="size-8" /></span>
                         </div>
                     </li>

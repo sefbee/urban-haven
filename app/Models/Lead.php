@@ -46,6 +46,7 @@ class Lead extends Model
 
     protected $fillable = [
         'type',
+        'user_id',
         'name',
         'phone',
         'phone_hash',
@@ -159,6 +160,11 @@ class Lead extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function project(): BelongsTo

@@ -1,9 +1,9 @@
 @extends('layouts.admin')
-@section('title', 'Audit log')
+@section('title', 'Activity log')
 
 @section('content')
-    <x-ui.page-header compact title="Audit log" description="Sign-ins, publishing, lead changes, exports and settings changes. Entries cannot be edited.">
-        <x-slot:eyebrow>Company</x-slot:eyebrow>
+    <x-ui.page-header compact title="Activity log" description="Sign-ins, publishing, lead changes, exports and settings changes. Entries cannot be edited.">
+        <x-slot:eyebrow>Website settings</x-slot:eyebrow>
     </x-ui.page-header>
 
     <form method="GET" class="uh-admin-toolbar">

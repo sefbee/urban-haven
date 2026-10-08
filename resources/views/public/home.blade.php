@@ -3,12 +3,16 @@
 @section('content')
     @include('public.home.hero')
 
-    @if($trending->isNotEmpty())
-        @include('public.home.trending-properties')
+    @if($housingListings->isNotEmpty())
+        @include('public.home.housing-projects')
     @endif
 
     @if($featured->isNotEmpty())
         @include('public.home.featured-properties')
+    @endif
+
+    @if($trending->isNotEmpty())
+        @include('public.home.trending-properties')
     @endif
 
     @if($areas->isNotEmpty())
@@ -21,9 +25,8 @@
 
     @if($latestSale->isNotEmpty() || $latestRent->isNotEmpty())
         @include('public.home.latest-properties')
+        @include('public.home.requirements-cta')
     @endif
-
-    @include('public.home.why')
 
     @if($articles->isNotEmpty())
         @include('public.home.articles')

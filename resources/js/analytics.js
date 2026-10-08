@@ -46,6 +46,14 @@ export const bootAnalytics = (consent) => {
         window.gtag('config', ids.ga4, { anonymize_ip: true });
     }
 
+    if (ids.ads && !ids.gtm) {
+        if (!ids.ga4) {
+            inject(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ids.ads)}`);
+            window.gtag('js', new Date());
+        }
+        window.gtag('config', ids.ads);
+    }
+
     if (ids.pixel && !window.fbq) {
         const fbq = function (...args) {
             fbq.callMethod ? fbq.callMethod(...args) : fbq.queue.push(args);

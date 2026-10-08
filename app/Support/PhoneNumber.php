@@ -46,10 +46,16 @@ final class PhoneNumber
         return $normalized ? 'tel:'.$normalized : null;
     }
 
-    public static function whatsappHref(?string $input): ?string
+    public static function whatsappHref(?string $input, ?string $message = null): ?string
     {
         $normalized = self::normalize($input);
 
-        return $normalized ? 'https://wa.me/'.ltrim($normalized, '+') : null;
+        if (! $normalized) {
+            return null;
+        }
+
+        $href = 'https://wa.me/'.ltrim($normalized, '+');
+
+        return filled($message) ? $href.'?text='.rawurlencode($message) : $href;
     }
 }

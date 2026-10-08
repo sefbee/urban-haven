@@ -8,6 +8,8 @@ use App\Http\Requests\Admin\UpdateCmsPageRequest;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use App\Services\Cms\CmsService;
+use App\Support\HomeSections;
+use App\Support\SeoFields;
 use App\Support\SeoMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +25,7 @@ class CmsPageController extends Controller
 
         return view('admin.cms.pages.index', [
             'pages' => CmsPage::query()->with('publicationState')->orderBy('title')->get(),
-            'blocks' => CmsBlock::query()->with('media')->orderBy('sort_order')->orderBy('label')->get()->sortByDesc(fn (CmsBlock $block): bool => $block->acceptsImage())->values(),
+            'blocks' => CmsBlock::query()->whereNotIn('key', HomeSections::blockKeys())->orderBy('sort_order')->orderBy('label')->get(),
             'canPublish' => request()->user()->hasPermission('cms.publish'),
         ]);
     }
@@ -37,7 +39,8 @@ class CmsPageController extends Controller
 
     public function store(StoreCmsPageRequest $request, CmsService $cms): RedirectResponse
     {
-        $page = $cms->createPage($request->validated(), $request->user());
+        $page = $cms->createPage($request->content(), $request->user());
+        SeoFields::sync($page, $request->validated());
 
         return redirect()->route('admin.cms.edit', $page)->with('status', 'Page created as a draft.');
     }
@@ -47,7 +50,7 @@ class CmsPageController extends Controller
         $this->authorize('update', $page);
 
         return view('admin.cms.pages.edit', [
-            'page' => $page->load('publicationState'),
+            'page' => $page->load(['publicationState', 'seoOverride']),
             'templates' => CmsPage::TEMPLATES,
             'canPublish' => request()->user()->can('publish', $page),
         ]);
@@ -67,7 +70,8 @@ class CmsPageController extends Controller
 
     public function update(UpdateCmsPageRequest $request, CmsPage $page, CmsService $cms): RedirectResponse
     {
-        $cms->updatePage($page, $request->validated(), $request->user());
+        $cms->updatePage($page, $request->content(), $request->user());
+        SeoFields::sync($page, $request->validated());
 
         return back()->with('status', $page->fresh()->hasPendingChanges()
             ? 'Changes saved and waiting for publish approval. The live page is unchanged.'

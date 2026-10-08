@@ -7,11 +7,6 @@
 @section('content')
     <header class="uh-page-head">
         <div class="uh-container">
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => $area->name],
-            ]" />
-
             <div @class(['uh-area-intro', 'has-map' => $hasMap])>
                 <div class="min-w-0">
                     <h1 class="uh-h1 uh-page-title">{{ __('Property in :area, :city', ['area' => $area->name, 'city' => $area->city]) }}</h1>

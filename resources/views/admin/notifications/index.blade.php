@@ -4,7 +4,7 @@
 @section('content')
     <x-ui.page-header compact title="Notifications"
                       description="Every alert raised for your desk, newest first.">
-        <x-slot:eyebrow>Desk</x-slot:eyebrow>
+        <x-slot:eyebrow>Dashboard</x-slot:eyebrow>
     </x-ui.page-header>
 
     @if($notifications->isNotEmpty())

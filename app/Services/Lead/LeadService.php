@@ -75,6 +75,7 @@ class LeadService implements LeadServiceContract
         try {
             $lead = DB::transaction(function () use ($validated, $request, $phone, $type, $email, $token, $previous, $attribution): Lead {
                 $lead = Lead::query()->create([
+                    'user_id' => $request->user()?->id,
                     'type' => $type,
                     'name' => trim((string) $validated['name']),
                     'phone' => $phone,

@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StorePostRequest;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Services\Cms\CmsService;
+use App\Support\SeoFields;
 use App\Support\SeoMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -40,7 +41,8 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request, CmsService $cms): RedirectResponse
     {
-        $post = $cms->createPost($request->validated(), $request->user());
+        $post = $cms->createPost($request->content(), $request->user());
+        SeoFields::sync($post, $request->validated());
 
         return redirect()->route('admin.posts.edit', $post)->with('status', 'Article created as a draft.');
     }
@@ -49,12 +51,13 @@ class PostController extends Controller
     {
         $this->authorize('update', $post);
 
-        return view('admin.posts.form', $this->formData($post->load(['publicationState', 'media'])));
+        return view('admin.posts.form', $this->formData($post->load(['publicationState', 'media', 'seoOverride'])));
     }
 
     public function update(StorePostRequest $request, Post $post, CmsService $cms): RedirectResponse
     {
-        $cms->updatePost($post, $request->validated(), $request->user());
+        $cms->updatePost($post, $request->content(), $request->user());
+        SeoFields::sync($post, $request->validated());
 
         return redirect()->route('admin.posts.edit', $post->fresh())->with('status', $post->fresh()->hasPendingChanges()
             ? 'Changes saved and waiting for publish approval. The live article is unchanged.'

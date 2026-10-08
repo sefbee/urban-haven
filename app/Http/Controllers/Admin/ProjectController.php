@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\UpdateProjectRequest;
 use App\Models\Amenity;
 use App\Models\LocationArea;
 use App\Models\Project;
+use App\Support\SeoFields;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -34,7 +35,8 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request, InventoryService $inventory, MediaService $media): RedirectResponse|JsonResponse
     {
-        $project = $inventory->createProject($request->safe()->except(['photograph', 'photograph_alt']), $request->user());
+        $project = $inventory->createProject($this->attributes($request), $request->user());
+        SeoFields::sync($project, $request->validated());
 
         if ($request->hasFile('photograph')) {
             $media->store($project, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
@@ -65,7 +67,8 @@ class ProjectController extends Controller
 
     public function update(UpdateProjectRequest $request, Project $project, InventoryService $inventory): RedirectResponse
     {
-        $inventory->updateProject($project, $request->safe()->except(['photograph', 'photograph_alt']), $request->user());
+        $project = $inventory->updateProject($project, $this->attributes($request), $request->user());
+        SeoFields::sync($project, $request->validated());
 
         return redirect()->route('admin.projects.edit', $project)->with('status', 'Project updated.');
     }
@@ -76,6 +79,20 @@ class ProjectController extends Controller
         $inventory->deleteProject($project, request()->user());
 
         return redirect()->route('admin.projects.index')->with('status', 'Project deleted.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function attributes(StoreProjectRequest $request): array
+    {
+        $attributes = $request->safe()->except([...SeoFields::inputNames(), 'photograph', 'photograph_alt']);
+
+        if (blank($attributes['slug'] ?? null)) {
+            unset($attributes['slug']);
+        }
+
+        return $attributes;
     }
 
     /**

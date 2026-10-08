@@ -51,6 +51,7 @@ return [
         'gtm_id' => env('ANALYTICS_GTM_ID'),
         'ga4_id' => env('ANALYTICS_GA4_ID'),
         'meta_pixel_id' => env('ANALYTICS_META_PIXEL_ID'),
+        'google_ads_id' => env('ANALYTICS_GOOGLE_ADS_ID'),
         'consent_cookie' => 'uh_consent',
     ],
 

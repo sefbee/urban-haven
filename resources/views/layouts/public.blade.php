@@ -11,10 +11,48 @@
         'gtm' => config('urbanhaven.analytics.gtm_id'),
         'ga4' => config('urbanhaven.analytics.ga4_id'),
         'pixel' => config('urbanhaven.analytics.meta_pixel_id'),
+        'ads' => config('urbanhaven.analytics.google_ads_id'),
     ];
     $hasAnalytics = filled(array_filter($analytics));
     $consentCookie = config('urbanhaven.analytics.consent_cookie');
-    $consent = request()->cookie($consentCookie);
+    $consentBanner = (bool) \App\Models\Setting::get('consent_banner_enabled', true);
+    $consent = $consentBanner ? request()->cookie($consentCookie) : 'granted';
+    $analyticsConfig = ['ids' => $analytics, 'cookie' => $consentCookie, 'trackUrl' => route('track'), 'autoConsent' => ! $consentBanner];
+    $consentTitle = \App\Models\Setting::get('consent_title') ?: __('Analytics cookies');
+    $consentMessage = \App\Models\Setting::get('consent_message') ?: __('We would like to measure visits and enquiries to improve this site. Nothing is loaded until you agree.');
+
+    $brandUrl = fn (?string $path): ?string => filled($path) ? \Illuminate\Support\Facades\Storage::disk('public')->url($path) : null;
+    $logoLight = $brandUrl(\App\Models\Setting::get('brand_logo'));
+    $logoDark = $brandUrl(\App\Models\Setting::get('brand_logo_dark')) ?? $logoLight;
+    $logoMobile = $brandUrl(\App\Models\Setting::get('brand_logo_mobile'));
+    $logoFooter = $brandUrl(\App\Models\Setting::get('brand_logo_footer')) ?? $logoLight;
+    $favicon = $brandUrl(\App\Models\Setting::get('brand_favicon'));
+    $headerCtaLabel = \App\Models\Setting::get('header_cta_label');
+    $headerCtaUrl = \App\Models\Setting::get('header_cta_url') ?: '/contact';
+    $footerNote = \App\Models\Setting::get('footer_note') ?: __('Every listing on this site is published by our own team, not a marketplace of unknown sellers.');
+    $footerCopyright = \App\Models\Setting::get('footer_copyright');
+    $socialProfiles = \App\Support\SocialProfiles::active();
+
+    $savedSettings = \App\Models\Setting::allValues();
+    $themeVariables = array_filter([
+        '--uh-accent' => $savedSettings['theme_accent'] ?? null,
+        '--uh-night' => $savedSettings['theme_dark'] ?? null,
+        '--uh-paper' => $savedSettings['theme_surface'] ?? null,
+        '--color-forest' => $savedSettings['theme_primary'] ?? null,
+        '--color-emerald' => $savedSettings['theme_primary'] ?? null,
+        '--uh-primary' => $savedSettings['theme_primary'] ?? null,
+    ], fn ($value) => is_string($value) && preg_match('/^#[0-9a-fA-F]{6}$/', $value));
+
+    $chatWhatsapp = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp'), \App\Models\Setting::get('floating_chat_message'));
+    $chatMessenger = \App\Models\Setting::get('messenger_url');
+    $chatClasses = \Illuminate\Support\Arr::toCssClasses([
+        'uh-chat-float',
+        'is-left' => \App\Models\Setting::get('floating_chat_position') === 'bottom-left',
+        'hide-desktop' => ! \App\Models\Setting::get('floating_chat_desktop', true),
+        'hide-mobile' => ! \App\Models\Setting::get('floating_chat_mobile', true),
+    ]);
+    $themeStyle = collect($themeVariables)->map(fn ($colour, $variable) => $variable.':'.$colour)->implode(';');
+    $showChat = (bool) \App\Models\Setting::get('floating_chat_enabled', true) && ($chatWhatsapp || $chatMessenger);
     $privacyUrl = \App\Models\CmsPage::query()->where('slug', 'privacy')->published()->exists() ? route('cms.show', 'privacy') : null;
     $isHome = request()->routeIs('home');
     $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
@@ -49,11 +87,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#ffffff">
+        @if($favicon)
+            <link rel="icon" href="{{ $favicon }}">
+            <link rel="apple-touch-icon" href="{{ $favicon }}">
+        @endif
         <title>{{ ($seo['title'] ?? config('app.name')) === config('app.name') ? config('app.name') : ($seo['title'].' — '.config('app.name')) }}</title>
         @include('partials.seo-meta')
         <script>
             window.dataLayer = window.dataLayer || [];
-            window.uhAnalytics = @json(['ids' => $analytics, 'cookie' => $consentCookie, 'trackUrl' => route('track')]);
+            window.uhAnalytics = {!! json_encode($analyticsConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
         </script>
         @if($hasAnalytics)
             <script>
@@ -63,6 +105,9 @@
         @endif
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if($themeVariables)
+            <style>body.uh-home{ {{ $themeStyle }} }</style>
+        @endif
         @stack('head')
     </head>
     <body @class(['uh-home min-h-screen antialiased', 'uh-is-home' => $isHome, 'uh-has-overlay' => $overlayHeader])>
@@ -75,7 +120,18 @@
                 :class="{ 'is-overlay': !solid }">
             <div class="uh-container uh-bar-row">
                 <a href="{{ route('home') }}" class="uh-brand" @if($isHome) aria-current="page" @endif>
-                    <span class="uh-wordmark">Urban Haven</span>
+                    @if($logoLight)
+                        <picture class="uh-brand-logo is-light">
+                            @if($logoMobile)<source media="(max-width: 639px)" srcset="{{ $logoMobile }}">@endif
+                            <img src="{{ $logoLight }}" alt="{{ $companyName }}">
+                        </picture>
+                        <picture class="uh-brand-logo is-dark">
+                            @if($logoMobile)<source media="(max-width: 639px)" srcset="{{ $logoMobile }}">@endif
+                            <img src="{{ $logoDark }}" alt="{{ $companyName }}">
+                        </picture>
+                    @else
+                        <span class="uh-wordmark">{{ $companyName }}</span>
+                    @endif
                 </a>
 
                 <nav class="uh-nav" aria-label="{{ __('Main navigation') }}">
@@ -118,6 +174,18 @@
                         <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-bar-count"></span>
                     </a>
 
+                    @auth
+                        @if(auth()->user()->roles()->doesntExist())
+                            <a href="{{ route('account.show') }}" class="uh-bar-quiet hidden sm:inline-flex" aria-label="{{ __('My property activity') }}" title="{{ __('My property activity') }}">
+                                <x-icon name="user" class="size-[1.125rem]" />
+                            </a>
+                        @endif
+                    @endauth
+
+                    @if(filled($headerCtaLabel))
+                        <a href="{{ $headerCtaUrl }}" class="uh-bar-cta hidden sm:inline-flex" data-track="header_cta_click">{{ $headerCtaLabel }}</a>
+                    @endif
+
                     <button type="button" class="uh-bar-quiet min-[1100px]:hidden"
                             @click="open = true; $dispatch('uh-menu', true)" :aria-expanded="open.toString()" aria-controls="mobile-nav">
                         <span class="sr-only">{{ __('Menu') }}</span>
@@ -138,7 +206,11 @@
             <div class="uh-container flex flex-1 flex-col pb-8">
                 <div class="uh-menu-head">
                     <a href="{{ route('home') }}" class="uh-brand">
-                        <span class="uh-wordmark">Urban Haven</span>
+                        @if($logoLight)
+                            <img class="uh-brand-logo-img" src="{{ $logoMobile ?? $logoLight }}" alt="{{ $companyName }}">
+                        @else
+                            <span class="uh-wordmark">{{ $companyName }}</span>
+                        @endif
                     </a>
                     <button type="button" x-ref="close" class="uh-bar-quiet" @click="open = false; $dispatch('uh-menu', false)">
                         <span class="sr-only">{{ __('Close menu') }}</span>
@@ -151,10 +223,18 @@
                         <a href="{{ $link['url'] }}" @if($link['external']) rel="noopener" target="_blank" @endif
                            @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
                     @endforeach
+                    @if(filled($headerCtaLabel))
+                        <a href="{{ $headerCtaUrl }}">{{ $headerCtaLabel }}</a>
+                    @endif
                     <a href="{{ route('shortlist') }}" x-data>
                         {{ __('Shortlist') }}
                         <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-menu-count"></span>
                     </a>
+                    @auth
+                        @if(auth()->user()->roles()->doesntExist())
+                            <a href="{{ route('account.show') }}">{{ __('My property activity') }}</a>
+                        @endif
+                    @endauth
                 </nav>
 
                 <div class="uh-menu-foot">
@@ -190,11 +270,13 @@
             <div class="uh-container">
                 <div class="uh-foot-top">
                     <a href="{{ route('home') }}" class="uh-brand">
-                        <span class="uh-wordmark">{{ $companyName }}</span>
+                        @if($logoFooter)
+                            <img class="uh-brand-logo-img" src="{{ $logoFooter }}" alt="{{ $companyName }}">
+                        @else
+                            <span class="uh-wordmark">{{ $companyName }}</span>
+                        @endif
                     </a>
-                    <p class="uh-foot-line">
-                        {{ __('Every listing on this site is published by our own team, not a marketplace of unknown sellers.') }}
-                    </p>
+                    <p class="uh-foot-line">{{ $footerNote }}</p>
                 </div>
 
                 <div class="uh-foot-columns">
@@ -242,11 +324,11 @@
                                 <li class="uh-foot-address">{{ $contactAddress }}</li>
                             @endif
                         </ul>
-                        @if($socialLinks)
+                        @if($socialProfiles)
                             <ul class="uh-foot-social">
-                                @foreach($socialLinks as $social)
+                                @foreach($socialProfiles as $social)
                                     <li>
-                                        <a href="{{ $social }}" rel="noopener me" target="_blank">{{ \Illuminate\Support\Str::of(parse_url($social, PHP_URL_HOST))->replace('www.', '') }}</a>
+                                        <a href="{{ $social['url'] }}" rel="noopener me" @if($social['new_tab']) target="_blank" @endif>{{ $social['label'] ?: (\App\Support\SocialProfiles::PLATFORMS[$social['platform']] ?? \Illuminate\Support\Str::of(parse_url($social['url'], PHP_URL_HOST))->replace('www.', '')) }}</a>
                                     </li>
                                 @endforeach
                             </ul>
@@ -255,12 +337,12 @@
                 </div>
 
                 <div class="uh-foot-legal">
-                    <p>© {{ date('Y') }} {{ $companyName }}</p>
+                    <p>© {{ date('Y') }} {{ $companyName }}{{ filled($footerCopyright) ? '. '.$footerCopyright : '' }}</p>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
                         @if($privacyUrl)
                             <a href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
                         @endif
-                        @if($hasAnalytics)
+                        @if($hasAnalytics && $consentBanner)
                             <button type="button" x-data @click="$dispatch('uh:consent-open')">{{ __('Cookie settings') }}</button>
                         @endif
                         <a href="{{ route('admin.login') }}" rel="nofollow">{{ __('Staff sign in') }}</a>
@@ -275,21 +357,36 @@
                 <span x-text="$store.saved.notice"></span>
             </div>
             @unless(request()->routeIs('compare'))
-                <a href="{{ route('compare') }}" class="uh-compare-tray" x-show="$store.saved.compare.length > 0" x-cloak x-transition.opacity.duration.250ms>
+                <a href="{{ route('compare') }}" class="uh-compare-tray" x-show="$store.saved.compare.length > 1" x-cloak x-transition.opacity.duration.250ms>
                     <span x-text="$store.saved.compare.length === 1 ? @js(__('Pick one more to compare')) : @js(__('Compare :count properties')).replace(':count', $store.saved.compare.length)">{{ __('Compare') }}</span>
                     <x-icon name="arrow-right" class="size-3.5 shrink-0" />
                 </a>
             @endunless
         </div>
 
-        @if($hasAnalytics)
+        @if($showChat)
+            <div class="{{ $chatClasses }}">
+                @if($chatMessenger)
+                    <a href="{{ $chatMessenger }}" class="uh-chat-btn is-messenger" rel="noopener" target="_blank" aria-label="{{ __('Chat on Messenger') }}" data-track="messenger_click" data-track-location="floating">
+                        <svg viewBox="0 0 24 24" class="size-6" fill="currentColor" aria-hidden="true"><path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.15.26.35.27.57l.05 1.78a.8.8 0 0 0 1.12.71l1.98-.87a.8.8 0 0 1 .53-.04c.91.25 1.87.38 2.91.38 5.64 0 10-4.13 10-9.7S17.64 2 12 2Zm6 7.46-2.94 4.66a1.5 1.5 0 0 1-2.17.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.32-.97-.18-.69-.63l2.94-4.66a1.5 1.5 0 0 1 2.17-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.32.97.18.69.63Z"/></svg>
+                    </a>
+                @endif
+                @if($chatWhatsapp)
+                    <a href="{{ $chatWhatsapp }}" class="uh-chat-btn is-whatsapp" rel="noopener" target="_blank" aria-label="{{ __('Chat on WhatsApp') }}" data-track="whatsapp_click" data-track-location="floating">
+                        <x-icon name="whatsapp" class="size-6" />
+                    </a>
+                @endif
+            </div>
+        @endif
+
+        @if($hasAnalytics && $consentBanner)
             <div x-data="uhConsent(@js($consent))" x-cloak x-show="open" @uh:consent-open.window="open = true"
                  x-transition.opacity.duration.250ms
                  class="uh-dialog uh-consent"
                  role="dialog" aria-modal="false" aria-labelledby="consent-title">
-                <h2 id="consent-title" class="uh-h4">{{ __('Analytics cookies') }}</h2>
+                <h2 id="consent-title" class="uh-h4">{{ $consentTitle }}</h2>
                 <p class="mt-2 text-sm leading-relaxed text-[var(--uh-muted)]">
-                    {{ __('We would like to measure visits and enquiries to improve this site. Nothing is loaded until you agree.') }}
+                    {{ $consentMessage }}
                     @if($privacyUrl)
                         <a class="uh-link" href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
                     @endif

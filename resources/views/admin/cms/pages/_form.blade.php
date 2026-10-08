@@ -6,8 +6,8 @@
 @endphp
 
 <x-ui.page-header compact :title="$model->title ?? 'New page'"
-                  :description="$model ? ($canPublish ? 'Saved changes go live when the page is published.' : 'Changes to a live page wait for a publisher before they appear.') : 'Give the page a title and body. The URL is generated from the title unless you set one.'">
-    <x-slot:eyebrow>Website · {{ $model ? 'Edit page' : 'New page' }}</x-slot:eyebrow>
+                  :description="$model ? ($canPublish ? 'Saved changes go live when the page is published.' : 'Changes to a live page wait for a publisher before they appear.') : 'Give the page a title and body. The web address is generated from the title unless you set one.'">
+    <x-slot:eyebrow>Website pages · {{ $model ? 'Edit page' : 'New page' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.cms.index') }}">
             <x-icon name="chevron-left" class="size-4" />
@@ -31,36 +31,41 @@
 
 <div @class(['uh-admin-compose', 'is-split' => (bool) $model])>
     <form method="POST" action="{{ $model ? route('admin.cms.update', $model) : route('admin.cms.store') }}"
-          class="uh-admin-compose-main" x-data="uhForm" @submit="submit">
+          class="uh-admin-compose-main" x-data="uhForm" @submit="submit" data-unsaved-guard>
         @csrf
         @if($model) @method('PUT') @endif
 
-        <div class="uh-admin-stack">
+        <div class="uh-admin-stack dd-form-steps">
         <section class="uh-panel">
-            <h2 class="uh-h4">Page content</h2>
-            <div class="mt-4 space-y-4">
-                <x-ui.input name="title" label="Title" :value="$draft('title')" required maxlength="255" />
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="slug" label="URL" :value="$draft('slug')" optional maxlength="120" dir="ltr"
-                                hint="Lowercase letters, numbers and dashes. Changing it on a live page adds a redirect." />
-                    <x-ui.select name="template" label="Template">
-                        @foreach($templates as $template)
-                            <option value="{{ $template }}" @selected(old('template', $draft('template') ?? 'default') === $template)>{{ $templateLabels[$template] ?? ucfirst($template) }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
-                <x-ui.textarea name="body" label="Body" rows="16" :value="$draft('body')"
-                               hint="Basic HTML is allowed and cleaned on save. Headings and paragraphs are styled automatically." />
+            <h2 class="uh-h4">Page</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                <x-ui.input name="title" label="Title" :value="$draft('title')" :autofocus="! $model" required maxlength="255"
+                            hint="The page heading. The web address is generated from it." />
+                <x-ui.select name="template" label="Layout">
+                    @foreach($templates as $template)
+                        <option value="{{ $template }}" @selected(old('template', $draft('template') ?? 'default') === $template)>{{ $templateLabels[$template] ?? ucfirst($template) }}</option>
+                    @endforeach
+                </x-ui.select>
             </div>
         </section>
 
         <section class="uh-panel">
-            <h2 class="uh-h4">Search engine listing</h2>
-            <div class="mt-4 space-y-4">
-                <x-ui.input name="meta_title" label="Meta title" maxlength="70" optional :value="$draft('meta_title')" />
-                <x-ui.textarea name="meta_description" label="Meta description" rows="2" maxlength="160" optional :value="$draft('meta_description')" />
+            <h2 class="uh-h4">Content</h2>
+            <div class="mt-4">
+                <x-ui.rich-text name="body" label="Page content" :value="$draft('body')" min-height="20rem"
+                                hint="Headings, lists and links are styled to match the website automatically." />
             </div>
         </section>
+
+        @include('admin.partials.seo-panel', [
+            'seo' => $model?->seoOverride,
+            'slugName' => 'slug',
+            'slug' => $draft('slug'),
+            'baseUrl' => url('/'),
+            'titleSource' => 'title',
+            'contentSource' => 'body',
+            'idPrefix' => 'page-seo',
+        ])
 
         </div>
         <div class="uh-admin-dock">

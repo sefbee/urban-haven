@@ -14,6 +14,7 @@ use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\PublicationState;
 use App\Models\User;
+use App\Support\SeoFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,8 +22,6 @@ use Illuminate\View\View;
 
 class PropertyController extends Controller
 {
-    private const SEO_FIELDS = ['meta_title', 'meta_description', 'noindex'];
-
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Property::class);
@@ -74,8 +73,8 @@ class PropertyController extends Controller
 
     public function store(StorePropertyRequest $request, InventoryService $inventory, MediaService $media): RedirectResponse
     {
-        $property = $inventory->createProperty($request->safe()->except([...self::SEO_FIELDS, 'photograph', 'photograph_alt']), $request->user());
-        $this->syncSeo($property, $request->validated());
+        $property = $inventory->createProperty($this->attributes($request), $request->user());
+        SeoFields::sync($property, $request->validated());
 
         if ($request->hasFile('photograph')) {
             $media->store($property, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
@@ -98,8 +97,8 @@ class PropertyController extends Controller
 
     public function update(UpdatePropertyRequest $request, Property $property, InventoryService $inventory): RedirectResponse
     {
-        $inventory->updateProperty($property, $request->safe()->except([...self::SEO_FIELDS, 'photograph', 'photograph_alt']), $request->user());
-        $this->syncSeo($property, $request->validated());
+        $inventory->updateProperty($property, $this->attributes($request), $request->user());
+        SeoFields::sync($property, $request->validated());
 
         return redirect()->route('admin.properties.edit', $property->fresh())->with('status', 'Property updated.');
     }
@@ -151,15 +150,18 @@ class PropertyController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $validated
+     * Listing columns only; a blank permalink keeps the current one (or is generated from the title).
+     *
+     * @return array<string, mixed>
      */
-    private function syncSeo(Property $property, array $validated): void
+    private function attributes(StorePropertyRequest $request): array
     {
-        $property->seoOverride()->updateOrCreate([], [
-            'meta_title' => $validated['meta_title'] ?? null,
-            'meta_description' => $validated['meta_description'] ?? null,
-            'noindex' => (bool) ($validated['noindex'] ?? false),
-            'updated_at' => now(),
-        ]);
+        $attributes = $request->safe()->except([...SeoFields::inputNames(), 'photograph', 'photograph_alt']);
+
+        if (blank($attributes['slug'] ?? null)) {
+            unset($attributes['slug']);
+        }
+
+        return $attributes;
     }
 }

@@ -20,7 +20,7 @@ use Stevebauman\Purify\Facades\Purify;
  */
 class CmsService
 {
-    private const PAGE_FIELDS = ['title', 'template', 'body', 'meta_title', 'meta_description'];
+    private const PAGE_FIELDS = ['title', 'template', 'body'];
 
     private const POST_FIELDS = ['title', 'post_category_id', 'excerpt', 'body', 'author_label', 'related_post_ids'];
 

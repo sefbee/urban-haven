@@ -62,8 +62,8 @@ class MediaUploadTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin.properties.create'))
             ->assertOk()
-            ->assertSee('Photographs')
-            ->assertSee('Upload photographs')
+            ->assertSee('Cover photograph')
+            ->assertSee('Upload the cover photograph')
             ->assertSee('name="photograph"', false);
     }
 

@@ -4,7 +4,7 @@
 @section('content')
     <x-ui.page-header compact title="Add a unit"
                       :description="'Units let one listing cover several apartments with their own prices and availability.'">
-        <x-slot:eyebrow>Inventory · {{ $property->title }}</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library · {{ $property->title }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.edit', $property) }}">
                 <x-icon name="chevron-left" class="size-4" />
@@ -19,9 +19,9 @@
         <div class="uh-admin-stack">
             <section class="uh-panel">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="unit_number" label="Unit number" required placeholder="4B" />
-                    <x-ui.input name="price" label="Price" type="number" step="0.01" min="0" inputmode="decimal"
-                                hint="In BDT. Leave blank to use the listing price." />
+                    <x-ui.input name="unit_number" label="Unit number" required autofocus placeholder="4B" />
+                    <x-ui.input name="price" label="Price (BDT)" optional type="number" step="0.01" min="0" inputmode="decimal"
+                                hint="Leave blank to use the listing price." />
                     <x-ui.select name="status" label="Status" required>
                         @foreach(['available' => 'Available', 'reserved' => 'Reserved', 'sold' => 'Sold', 'rented' => 'Rented'] as $value => $label)
                             <option value="{{ $value }}" @selected(old('status', 'available') === $value)>{{ $label }}</option>

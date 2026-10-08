@@ -3,20 +3,16 @@
 namespace App\Models\Concerns;
 
 use App\Models\PublicationState;
-use App\Models\SeoOverride;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 trait Publishable
 {
+    use HasSeo;
+
     public function publicationState(): MorphOne
     {
         return $this->morphOne(PublicationState::class, 'publishable');
-    }
-
-    public function seoOverride(): MorphOne
-    {
-        return $this->morphOne(SeoOverride::class, 'seoable');
     }
 
     public function editorialStatus(): string

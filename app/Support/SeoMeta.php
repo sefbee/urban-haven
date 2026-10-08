@@ -2,42 +2,57 @@
 
 namespace App\Support;
 
-use App\Models\CmsPage;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\Property;
+use App\Models\Setting;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 final class SeoMeta
 {
     /**
      * @param  array<string, mixed>  $options  canonical, type, noindex, json_ld (list of schema arrays)
-     * @return array{title: string, description: ?string, image: ?string, noindex: bool, canonical: string, type: string, json_ld: list<array<string, mixed>>}
+     * @return array{title: string, description: ?string, image: ?string, noindex: bool, canonical: string, type: string, json_ld: list<array<string, mixed>>, verification: ?string, focus_keyword: ?string}
      */
-    public static function for(Property|Project|CmsPage|Post|null $model, string $fallbackTitle, ?string $fallbackDescription = null, array $options = []): array
+    public static function for(?Model $model, string $fallbackTitle, ?string $fallbackDescription = null, array $options = []): array
     {
-        $override = $model?->seoOverride;
+        $override = $model && method_exists($model, 'seoOverride') ? $model->seoOverride : null;
+        $page = $model === null ? PageSeo::current() : null;
 
         $title = $override?->meta_title
+            ?: ($page['meta_title'] ?? null)
             ?: ($model->meta_title ?? null)
-            ?: ($model->title ?? $model->name ?? $fallbackTitle);
+            ?: $fallbackTitle;
+
+        if ($title === config('app.name') && filled($defaultTitle = Setting::get('seo_default_title'))) {
+            $title = $defaultTitle;
+        }
 
         $description = $override?->meta_description
+            ?: ($page['meta_description'] ?? null)
             ?: ($model->meta_description ?? null)
-            ?: $fallbackDescription;
+            ?: $fallbackDescription
+            ?: Setting::get('seo_default_description');
 
         $image = $override?->og_image_path;
         if (! $image && ($model instanceof Property || $model instanceof Project || $model instanceof Post)) {
             $image = $model->featuredImage()?->url(1280);
+        }
+        if (! $image && filled($brandImage = Setting::get('brand_og_image'))) {
+            $image = Storage::disk('public')->url($brandImage);
         }
 
         return [
             'title' => (string) $title,
             'description' => $description ? mb_strimwidth(trim(preg_replace('/\s+/', ' ', strip_tags($description)) ?? ''), 0, 160, '…') : null,
             'image' => $image,
-            'noindex' => (bool) ($options['noindex'] ?? false) || (bool) ($override?->noindex),
+            'noindex' => (bool) ($options['noindex'] ?? false) || (bool) ($override?->noindex) || (bool) ($page['noindex'] ?? false),
             'canonical' => $options['canonical'] ?? self::canonical(),
             'type' => $options['type'] ?? ($model instanceof Post ? 'article' : 'website'),
             'json_ld' => array_values(array_filter($options['json_ld'] ?? [])),
+            'verification' => $override?->gsc_code ?: ($page['gsc_code'] ?? null),
+            'focus_keyword' => $override?->focus_keyword ?: ($page['focus_keyword'] ?? null),
         ];
     }
 

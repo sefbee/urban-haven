@@ -12,11 +12,6 @@
     <article>
         <header class="uh-page-head">
             <div class="uh-container-narrow">
-                <x-ui.breadcrumbs :items="[
-                    ['label' => __('Home'), 'url' => route('home')],
-                    ['label' => __('Articles'), 'url' => route('articles.index')],
-                    ['label' => $post->title],
-                ]" />
                 <h1 class="uh-h1 uh-page-title">{{ $post->title }}</h1>
                 <p class="uh-article-meta mt-6">
                     @if($post->category)

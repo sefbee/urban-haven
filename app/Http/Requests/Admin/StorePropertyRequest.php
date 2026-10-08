@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\User;
+use App\Support\SeoFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -30,6 +31,10 @@ class StorePropertyRequest extends FormRequest
 
         if ($this->filled('reference')) {
             $merge['reference'] = strtoupper(trim((string) $this->input('reference')));
+        }
+
+        if ($this->has('slug')) {
+            $merge['slug'] = SeoFields::normaliseSlug($this->input('slug'));
         }
 
         $this->merge($merge);
@@ -88,9 +93,8 @@ class StorePropertyRequest extends FormRequest
             'assigned_contact_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
             'display_priority' => ['nullable', 'integer', 'min:1', 'max:999'],
             'is_featured' => ['sometimes', 'boolean'],
-            'meta_title' => ['nullable', 'string', 'max:70'],
-            'meta_description' => ['nullable', 'string', 'max:160'],
-            'noindex' => ['sometimes', 'boolean'],
+            'slug' => SeoFields::slugRules('properties', $property instanceof Property ? $property : null),
+            ...SeoFields::rules(),
             'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
             'photograph_alt' => ['nullable', 'string', 'max:200'],
         ];

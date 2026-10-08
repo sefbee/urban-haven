@@ -129,7 +129,7 @@ class PublicationTest extends TestCase
         $this->actingAs($owner)->get(route('admin.properties.create'))
             ->assertOk()
             ->assertSee('Save draft')
-            ->assertSee('Photographs');
+            ->assertSee('Cover photograph');
         $this->actingAs($owner)->get(route('admin.properties.edit', $property))
             ->assertOk()
             ->assertSee('Editable home')

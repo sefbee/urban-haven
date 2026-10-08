@@ -1,17 +1,15 @@
 @extends('layouts.admin')
-@section('title', 'Pages')
+@section('title', 'Custom pages')
 
 @section('content')
-    <x-ui.page-header compact title="Pages"
+    <x-ui.page-header compact title="Custom pages"
                       description="Standalone pages and the editable blocks used across the public site.">
-        <x-slot:eyebrow>Website</x-slot:eyebrow>
+        <x-slot:eyebrow>Website pages</x-slot:eyebrow>
         <x-slot:actions>
-            @if($canPublish && $blocks->contains(fn ($block) => $block->acceptsImage()))
-                <a class="uh-btn-outline uh-btn-sm" href="#hero-images">
-                    <x-icon name="image" class="size-4" />
-                    Homepage hero images
-                </a>
-            @endif
+            <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.home-sections.index') }}">
+                <x-icon name="grid" class="size-4" />
+                Edit home page
+            </a>
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New page
@@ -23,7 +21,7 @@
         <a href="{{ route('admin.posts.index') }}">Articles</a>
         <a href="{{ route('admin.faqs.index') }}">FAQs</a>
         @if($canPublish)
-            <a href="{{ route('admin.menus.index') }}">Menus</a>
+            <a href="{{ route('admin.menus.index') }}">Menu management</a>
         @endif
         @can('redirect.manage')
             <a href="{{ route('admin.redirects.index') }}">Redirects</a>
@@ -75,27 +73,22 @@
     </section>
 
     @if($blocks->isNotEmpty())
-        <section class="mt-10" aria-labelledby="blocks-heading">
-            <h2 id="blocks-heading" class="uh-h3">Homepage and site blocks</h2>
-            <p class="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
-                {{ $canPublish ? 'Changes go live as soon as you save. Hidden blocks fall back to the built-in text.' : 'Your changes are saved as a draft until a publisher approves them.' }}
-            </p>
+        <section aria-labelledby="blocks-heading">
+            <div class="uh-section-head">
+                <div>
+                    <h2 id="blocks-heading">Shared site blocks</h2>
+                    <p>{{ $canPublish ? 'Text reused across the public site. Changes go live as soon as you save; hidden blocks fall back to the built-in text.' : 'Text reused across the public site. Your changes are saved as a draft until a publisher approves them.' }}</p>
+                </div>
+                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.home-sections.index') }}">
+                    <x-icon name="home" class="size-4" />
+                    Homepage sections
+                </a>
+            </div>
 
-            <div class="mt-4 grid gap-4 lg:grid-cols-2">
+            <div class="grid items-start gap-4 lg:grid-cols-2">
                 @foreach($blocks as $block)
                     @php($fields = \Illuminate\Support\Arr::dot($block->draft_content ?? $block->content ?? []))
-                    @if($canPublish && $block->acceptsImage())
-                        <div id="hero-images" class="scroll-mt-24 lg:col-span-2">
-                            @include('admin.partials.media-manager', [
-                                'owner' => $block,
-                                'ownerType' => 'cms_block',
-                                'collections' => ['gallery' => 'Homepage hero images'],
-                                'hints' => ['gallery' => 'Use wide landscape photos, at least 1920 px across. Several public photos crossfade behind the homepage search; without any, a featured listing photo is used.'],
-                                'canEdit' => true,
-                            ])
-                        </div>
-                    @endif
-                    <div id="block-{{ $block->key }}" @class(['uh-panel scroll-mt-24', 'lg:col-span-2' => $block->acceptsImage()])>
+                    <div id="block-{{ $block->key }}" class="uh-panel scroll-mt-24">
                         <form method="POST" action="{{ route('admin.cms.blocks.update', $block) }}" x-data="uhForm" @submit="submit">
                             @csrf
                             @method('PUT')

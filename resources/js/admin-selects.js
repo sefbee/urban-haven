@@ -43,6 +43,11 @@ const enhance = (el) => {
     $el.on('change.select2', () => {
         el.dispatchEvent(new Event('input', { bubbles: true }));
     });
+
+    // jQuery's change event never reaches native listeners such as Alpine's x-model on selects.
+    $el.on('select2:select select2:clear', () => {
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
 };
 
 export const bootAdminSelects = (root = document) => {
@@ -50,7 +55,7 @@ export const bootAdminSelects = (root = document) => {
         return;
     }
 
-    root.querySelectorAll('select.uh-select').forEach((el) => enhance(el));
+    root.querySelectorAll('select.uh-select:not([data-native-select])').forEach((el) => enhance(el));
 };
 
 export const applySelectOption = (target, payload) => {
@@ -78,6 +83,12 @@ export const applySelectOption = (target, payload) => {
 
     const select = document.getElementById(target);
     if (! select) {
+        return;
+    }
+
+    if (select.hasAttribute('data-place-area')) {
+        window.dispatchEvent(new CustomEvent('uh-place-added', { detail: { ...payload, target } }));
+
         return;
     }
 

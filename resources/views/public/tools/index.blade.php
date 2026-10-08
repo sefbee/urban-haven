@@ -4,10 +4,6 @@
     @include('public.partials.page-head', [
         'title' => __('Tools'),
         'lede' => __('Estimate a home loan EMI or ask our desk for a valuation on a Dhaka property.'),
-        'crumbs' => [
-            ['label' => __('Home'), 'url' => route('home')],
-            ['label' => __('Tools')],
-        ],
     ])
 
     @php($whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp')))

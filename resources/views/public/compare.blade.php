@@ -4,10 +4,6 @@
     @include('public.partials.page-head', [
         'title' => __('Compare properties'),
         'lede' => __('Put up to :count properties side by side. We highlight what is different, so the choice gets clearer.', ['count' => $compareLimit]),
-        'crumbs' => [
-            ['label' => __('Home'), 'url' => route('home')],
-            ['label' => __('Compare')],
-        ],
     ])
 
     <div class="uh-container uh-section-tight uh-compare-workspace" x-data="uhSavedList('compare', @js(route('saved.cards')), 'compare')">

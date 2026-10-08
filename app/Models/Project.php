@@ -40,6 +40,8 @@ class Project extends Model
 
     public const STAGES = ['upcoming', 'ongoing', 'completed'];
 
+    public const STAGE_LABELS = ['upcoming' => 'Upcoming', 'ongoing' => 'Ongoing', 'completed' => 'Completed'];
+
     protected function casts(): array
     {
         return [

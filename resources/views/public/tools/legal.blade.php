@@ -5,10 +5,6 @@
         'wide' => false,
         'title' => __('Legal Services'),
         'lede' => __('Paperwork for Urban Haven sales, lettings and handover — not a public legal marketplace.'),
-        'crumbs' => [
-            ['label' => __('Home'), 'url' => route('home')],
-            ['label' => __('Legal Services')],
-        ],
     ])
 
     <div class="uh-container-narrow uh-section-tight">

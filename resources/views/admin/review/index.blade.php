@@ -3,7 +3,7 @@
 
 @section('content')
     <x-ui.page-header compact title="Review queue" description="Listings and projects submitted by editors. Approve and publish, or return them with a note.">
-        <x-slot:eyebrow>Inventory</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library</x-slot:eyebrow>
     </x-ui.page-header>
 
     <x-ui.admin-related label="After you decide">

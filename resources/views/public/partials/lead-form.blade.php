@@ -6,6 +6,7 @@
     $source = $source ?? null;
     $submitLabel = $submitLabel ?? ($isVisit ? __('Request a visit') : __('Send enquiry'));
     $showMessage = $showMessage ?? true;
+    $compact = $compact ?? false;
     $messageLabel = $messageLabel ?? __('Anything we should know?');
     $messagePlaceholder = $messagePlaceholder ?? __('Preferred floor, timeline, budget…');
     $consentText = \App\Models\Setting::get('consent_text') ?: \App\Support\SettingsSchema::defaultConsentText();
@@ -13,6 +14,8 @@
     $minVisit = now($timezone)->addHours(2)->startOfHour()->format('Y-m-d\TH:i');
     $maxVisit = now($timezone)->addDays((int) config('urbanhaven.lead.visit_window_days', 90))->format('Y-m-d\TH:i');
     $showNextSteps = $showNextSteps ?? true;
+    $showVisitNotes = $showVisitNotes ?? true;
+    $showSuggestedVisitTimes = $showSuggestedVisitTimes ?? true;
     $officeHours = \App\Models\Setting::get('office_hours');
     $nextSteps = $isVisit
         ? array_values(array_filter([
@@ -55,7 +58,7 @@
         @endif
     </div>
 
-    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" class="uh-lead-form" novalidate
+    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" @class(['uh-lead-form', 'gap-3' => $compact]) novalidate
           x-show="!done" @submit="submit($event)" @focusin.once="start()">
         @csrf
         <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
@@ -84,6 +87,9 @@
             <x-ui.alert tone="danger">{{ $message }}</x-ui.alert>
         @enderror
 
+        @if($compact && ! $isVisit)
+            <div class="grid gap-3 sm:grid-cols-2">
+        @endif
         <div>
             <x-ui.input name="name" id="{{ $prefix }}-name" :label="__('Your name')" autocomplete="name" required maxlength="120" />
             {!! $fieldError('name') !!}
@@ -91,18 +97,34 @@
         <div>
             <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Mobile number')" type="tel" dir="ltr"
                         inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="24"
-                        :hint="__('Bangladeshi mobile (01XXXXXXXXX) or an international number starting with +')" required />
+                        :hint="$compact ? __('01XXXXXXXXX or +country code') : __('Bangladeshi mobile (01XXXXXXXXX) or an international number starting with +')" required />
             {!! $fieldError('phone') !!}
         </div>
-        <div>
-            <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr"
-                        autocomplete="email" maxlength="190" optional />
-            {!! $fieldError('email') !!}
-        </div>
+        @if($compact && ! $isVisit)
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div>
+                    <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr"
+                                autocomplete="email" maxlength="190" optional />
+                    {!! $fieldError('email') !!}
+                </div>
+                <x-ui.select name="preferred_contact" id="{{ $prefix }}-contact" :label="__('Best way to reach you')">
+                    <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
+                    <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
+                    <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
+                </x-ui.select>
+            </div>
+        @else
+            <div>
+                <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr"
+                            autocomplete="email" maxlength="190" optional />
+                {!! $fieldError('email') !!}
+            </div>
+        @endif
 
         @if($isVisit)
             <div @input="if ($event.target.name === 'preferred_at') slot = $event.target.value">
-                @if($visitSlots)
+                @if($showSuggestedVisitTimes && $visitSlots)
                     <div class="uh-intents" role="group" aria-label="{{ __('Suggested times') }}">
                         <p class="uh-intents-label">{{ __('Suggested times') }}</p>
                         @foreach($visitSlots as $value => $label)
@@ -116,16 +138,20 @@
                             :hint="__('Dhaka time. We will call to confirm before you travel.')" />
                 {!! $fieldError('preferred_at') !!}
             </div>
-            <div>
-                <x-ui.textarea name="notes" id="{{ $prefix }}-notes" :label="__('Notes for the visit')" rows="2" maxlength="1000" optional />
-                {!! $fieldError('notes') !!}
-            </div>
+            @if($showVisitNotes)
+                <div>
+                    <x-ui.textarea name="notes" id="{{ $prefix }}-notes" :label="__('Notes for the visit')" rows="2" maxlength="1000" optional />
+                    {!! $fieldError('notes') !!}
+                </div>
+            @endif
         @else
-            <x-ui.select name="preferred_contact" id="{{ $prefix }}-contact" :label="__('Best way to reach you')">
-                <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
-                <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
-                <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
-            </x-ui.select>
+            @unless($compact)
+                <x-ui.select name="preferred_contact" id="{{ $prefix }}-contact" :label="__('Best way to reach you')">
+                    <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
+                    <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
+                    <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
+                </x-ui.select>
+            @endunless
             @if($showMessage)
                 <div>
                     @if($intents)
@@ -137,7 +163,7 @@
                             @endforeach
                         </div>
                     @endif
-                    <x-ui.textarea name="message" id="{{ $prefix }}-message" :label="$messageLabel" rows="3" maxlength="2000" optional
+                    <x-ui.textarea name="message" id="{{ $prefix }}-message" :label="$messageLabel" :rows="$compact ? 2 : 3" maxlength="2000" optional
                                    :placeholder="$messagePlaceholder" />
                     {!! $fieldError('message') !!}
                 </div>

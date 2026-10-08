@@ -3,10 +3,10 @@
     $showTabs = $latestSale->isNotEmpty() && $latestRent->isNotEmpty();
 @endphp
 
-<section class="uh-section uh-band-paper" aria-labelledby="latest-title">
+<section class="uh-section uh-band-paper uh-latest-section uh-trending-section" aria-labelledby="latest-title">
     <div class="uh-container" x-data="uhHomeTabs('{{ $defaultTab }}')">
         <header class="uh-section-head" data-reveal>
-            <h2 id="latest-title" class="uh-h2">{{ __('Latest Properties') }}</h2>
+            <h2 id="latest-title" class="uh-h2">{{ __('Latest Property Listings in Bangladesh') }}</h2>
             <p class="uh-lede">{{ __('New to Urban Haven this week.') }}</p>
             @if($showTabs)
                 <div class="uh-seg" role="group" aria-label="{{ __('Listing type') }}">
@@ -20,9 +20,23 @@
 
         @foreach(['sale' => $latestSale, 'rent' => $latestRent] as $purpose => $listings)
             @if($listings->isNotEmpty())
-                <div class="uh-grid-cards" x-bind:class="tab === '{{ $purpose }}' ? '' : 'hidden'">
+                <div class="uh-trending-grid uh-latest-grid" x-show="tab === '{{ $purpose }}'" x-cloak
+                     role="list" aria-label="{{ __('Latest properties') }}">
                     @foreach($listings as $property)
-                        @include('public.partials.property-card', ['property' => $property, 'revealIndex' => $loop->index % 3])
+                        <div role="listitem">
+                            @include('public.partials.property-card', [
+                                'property' => $property,
+                                'revealIndex' => $loop->index % 3,
+                                'showShortlist' => false,
+                                'showDetails' => true,
+                                'showContact' => true,
+                                'showFavoriteAction' => true,
+                                'priceInBody' => true,
+                                'detailsLabel' => __('View Details'),
+                                'detailsClass' => 'uh-trending-details',
+                                'detailsIconOnly' => true,
+                            ])
+                        </div>
                     @endforeach
                 </div>
             @endif

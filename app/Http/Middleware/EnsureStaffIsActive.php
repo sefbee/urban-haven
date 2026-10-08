@@ -23,6 +23,8 @@ class EnsureStaffIsActive
                 ->withErrors(['email' => 'This staff account is no longer active.']);
         }
 
+        abort_if($user !== null && $user->roles()->doesntExist(), 403);
+
         return $next($request);
     }
 }

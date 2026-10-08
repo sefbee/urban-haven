@@ -3,7 +3,7 @@
 
 @section('content')
     <x-ui.page-header compact title="Follow-ups" description="Open follow-ups, most urgent first. Times are shown in Dhaka time.">
-        <x-slot:eyebrow>Sales</x-slot:eyebrow>
+        <x-slot:eyebrow>Communication</x-slot:eyebrow>
     </x-ui.page-header>
 
     <x-ui.admin-related label="Next to this">

@@ -17,7 +17,7 @@ class LocationController extends Controller
      */
     public function show(string $slug): View
     {
-        $area = LocationArea::query()->where('slug', $slug)->firstOrFail();
+        $area = LocationArea::query()->with('seoOverride')->where('slug', $slug)->firstOrFail();
         abort_unless($area->hasLandingPage(), 404);
 
         $listings = Property::query()
@@ -35,7 +35,7 @@ class LocationController extends Controller
             'area' => $area,
             'listings' => $listings,
             'purposes' => Setting::enabledPurposes(),
-            'seo' => SeoMeta::for(null, 'Property in '.$area->name.', '.$area->city, $area->meta_description ?: mb_strimwidth(strip_tags((string) $area->intro), 0, 155, '…'), [
+            'seo' => SeoMeta::for($area, 'Property in '.$area->name.', '.$area->city, mb_strimwidth(strip_tags((string) $area->intro), 0, 155, '…'), [
                 'json_ld' => [StructuredData::breadcrumbs([[__('Home'), route('home')], [$area->name, route('locations.show', $area->slug)]])],
             ]),
         ]);

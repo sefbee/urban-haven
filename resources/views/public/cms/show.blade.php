@@ -18,12 +18,13 @@
         </div>
     @endif
 
+    @if($page->slug === 'about')
+        @include('public.about')
+    @elseif($page->slug === 'contact')
+        @include('public.contact')
+    @else
     <header class="uh-page-head">
         <div @class(['uh-container' => $hasForm, 'uh-container-narrow' => ! $hasForm])>
-            <x-ui.breadcrumbs :items="[
-                ['label' => __('Home'), 'url' => route('home')],
-                ['label' => $page->title],
-            ]" />
             <h1 class="uh-h1 uh-page-title">{{ $template === 'contact' ? __('Talk to our sales team') : $page->title }}</h1>
             @if($template === 'contact')
                 <p class="uh-page-lede">{{ __('Call, WhatsApp or send a message. The people who manage our homes will get back to you.') }}</p>
@@ -138,5 +139,6 @@
                 </div>
             </aside>
         </div>
+    @endif
     @endif
 @endsection

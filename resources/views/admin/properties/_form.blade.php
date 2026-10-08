@@ -6,11 +6,12 @@
     $profiles = $types->mapWithKeys(fn ($type) => [$type->id => $type->field_profile])->all();
     $status = $exists ? $property->editorialStatus() : \App\Models\PublicationState::DRAFT;
     $user = auth()->user();
+    $steps = ['what' => 'What', 'where' => 'Where', 'describe' => 'Describe', 'price' => 'Price', 'size' => 'Size', 'features' => 'Features', 'media' => 'Media', 'visibility' => 'Visibility', 'seo' => 'SEO'];
 @endphp
 
 <x-ui.page-header compact :title="$exists ? $property->title : 'New property'"
-                  :description="$exists ? 'Reference '.($property->reference ?? '—').'. Version '.$property->version.'.' : 'Add the listing details. A photograph can go with this draft.'">
-    <x-slot:eyebrow>Inventory · {{ $exists ? 'Edit property' : 'New property' }}</x-slot:eyebrow>
+                  :description="$exists ? 'Reference '.($property->reference ?? '—').'. Version '.$property->version.'.' : 'Work from top to bottom: what it is, where it is, then the details buyers compare.'">
+    <x-slot:eyebrow>Content library · {{ $exists ? 'Edit property' : 'New property' }}</x-slot:eyebrow>
     <x-slot:actions>
         <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.index') }}">
             <x-icon name="chevron-left" class="size-4" />
@@ -25,19 +26,23 @@
     </x-slot:actions>
 </x-ui.page-header>
 
-@if(auth()->user()?->can('reference.manage') || auth()->user()?->can('settings.update'))
-    @include('admin.catalogue._related')
-@endif
-
 @if($exists && ! $canEdit)
     <x-ui.alert tone="info" class="mt-6">
         This listing is live. Only a publisher can change its content; you can still update availability below.
     </x-ui.alert>
 @endif
 
+<nav class="dd-steps" aria-label="Form sections">
+    @foreach($steps as $anchor => $label)
+        @continue($anchor === 'media' && ($exists || ! $canEdit))
+        <a href="#step-{{ $anchor }}">{{ $label }}</a>
+    @endforeach
+</nav>
+
 <div @class(['uh-admin-compose', 'is-split' => $exists])>
     <form method="POST" action="{{ $exists ? route('admin.properties.update', $property) : route('admin.properties.store') }}"
-          class="uh-admin-compose-main" enctype="multipart/form-data" x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
+          class="uh-admin-compose-main" enctype="multipart/form-data" data-unsaved-guard
+          x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
           @submit="submit">
         @csrf
         @if($exists)
@@ -46,32 +51,21 @@
         @endif
 
         <fieldset class="grid gap-4" @disabled(! $canEdit)>
-            <div class="uh-admin-stack">
-            <section class="uh-panel">
-                <h2 class="uh-h4">Listing basics</h2>
-                <div class="mt-4 space-y-4">
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
-                                    hint="What a buyer sees first. Be specific: beds, type and area." />
-                        @if($canEditReference)
-                            <x-ui.input name="reference" label="Reference" :value="$property->reference" optional maxlength="30"
-                                        hint="Letters, numbers and dashes. Leave blank to generate one automatically." />
-                        @endif
-                    </div>
-                    <x-ui.textarea name="description" label="Description" rows="5" :value="$property->description"
-                                   hint="Plain text. Line breaks are preserved on the public page." />
-                </div>
-            </section>
-
-            @if(! $exists && $canEdit)
-                @include('admin.partials.photograph-field')
-            @endif
-
-            <section class="uh-panel">
-                <h2 class="uh-h4">Classification</h2>
+            <div class="uh-admin-stack dd-form-steps">
+            <section class="uh-panel" id="step-what">
+                <h2 class="uh-h4">What are you listing?</h2>
+                <p class="dd-step-hint">Purpose and type decide which fields appear below.</p>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <x-ui.select name="listing_type" label="Purpose" required>
+                        @foreach(\App\Models\Setting::enabledPurposes() ?: ['sale', 'rent'] as $purpose)
+                            <option value="{{ $purpose }}" @selected(old('listing_type', $property->listing_type) === $purpose)>{{ $purpose === 'rent' ? 'For rent' : 'For sale' }}</option>
+                        @endforeach
+                        @if($exists && ! in_array($property->listing_type, \App\Models\Setting::enabledPurposes(), true))
+                            <option value="{{ $property->listing_type }}" selected>{{ $property->listing_type === 'rent' ? 'For rent' : 'For sale' }} (switched off on the website)</option>
+                        @endif
+                    </x-ui.select>
                     <x-ui.select name="property_type_id" label="Property type" required x-model="typeId" quick-add="type"
-                                 hint="Grouped by main type: Residential or Commercial.">
+                                 hint="Grouped by main type.">
                         <option value="">Choose a type</option>
                         @foreach(\App\Models\PropertyType::categoryLabels() as $category => $categoryLabel)
                             @if($types->where('category', $category)->isNotEmpty())
@@ -83,46 +77,50 @@
                             @endif
                         @endforeach
                     </x-ui.select>
-                    <x-ui.select name="location_area_id" label="Area" required quick-add="area">
-                        <option value="">Choose an area</option>
-                        @foreach($areas as $area)
-                            <option value="{{ $area->id }}" @selected(old('location_area_id', $property->location_area_id) == $area->id)>{{ $area->name }} — {{ $area->city }}</option>
-                        @endforeach
-                    </x-ui.select>
-                    <x-ui.select name="listing_type" label="Purpose" required>
-                        <option value="sale" @selected(old('listing_type', $property->listing_type) === 'sale')>For sale</option>
-                        <option value="rent" @selected(old('listing_type', $property->listing_type) === 'rent')>For rent</option>
-                    </x-ui.select>
-                    @if($exists)
-                        <input type="hidden" name="availability" value="{{ $property->availability }}">
-                        <div class="uh-field">
-                            <span class="uh-label">Availability</span>
-                            <p class="flex min-h-10 items-center gap-2 text-sm"><x-ui.status :status="$property->availability" /> <span class="text-xs text-[var(--color-muted)]">Change it in the Availability panel.</span></p>
-                        </div>
-                    @else
-                        <x-ui.select name="availability" label="Availability" required>
-                            @foreach(\App\Models\Property::AVAILABILITY_LABELS as $value => $label)
-                                <option value="{{ $value }}" @selected(old('availability', $property->availability) === $value)>{{ $label }}</option>
-                            @endforeach
-                        </x-ui.select>
-                    @endif
-                    <x-ui.select name="project_id" label="Part of a project" optional quick-add="project">
+                    <x-ui.select name="project_id" label="Part of a project" optional quick-add="project" class="sm:col-span-2"
+                                 hint="Link it when the listing is a unit in one of your developments.">
                         <option value="">Standalone listing</option>
                         @foreach($projects as $project)
                             <option value="{{ $project->id }}" @selected(old('project_id', $property->project_id) == $project->id)>{{ $project->name }}</option>
                         @endforeach
                     </x-ui.select>
-                    <x-ui.select name="assigned_contact_id" label="Listing contact" optional>
-                        <option value="">Main sales line</option>
-                        @foreach($contacts as $contact)
-                            <option value="{{ $contact->id }}" @selected(old('assigned_contact_id', $property->assigned_contact_id) == $contact->id)>{{ $contact->name }}</option>
-                        @endforeach
-                    </x-ui.select>
                 </div>
             </section>
 
-            <section class="uh-panel">
-                <h2 class="uh-h4">Pricing</h2>
+            <section class="uh-panel" id="step-where">
+                <h2 class="uh-h4">Where is it?</h2>
+                <p class="dd-step-hint">Country, then city, then area. Only areas in the chosen city are offered.</p>
+                <div class="mt-4 space-y-4">
+                    @include('admin.partials.place-picker', ['areas' => $areas, 'selectedArea' => $property->location_area_id, 'idPrefix' => 'property-place'])
+                    <x-ui.input name="address" label="Street address" :value="$property->address" optional maxlength="255"
+                                hint="House, road and block. Shown publicly according to the address display setting." />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <x-ui.input name="lat" label="Map pin latitude" type="number" step="0.0000001" dir="ltr"
+                                    :value="$property->lat" optional hint="Within Bangladesh, e.g. 23.7806" />
+                        <x-ui.input name="lng" label="Map pin longitude" type="number" step="0.0000001" dir="ltr"
+                                    :value="$property->lng" optional hint="Within Bangladesh, e.g. 90.4074" />
+                    </div>
+                </div>
+            </section>
+
+            <section class="uh-panel" id="step-describe">
+                <h2 class="uh-h4">Describe it</h2>
+                <p class="dd-step-hint">Lead with what a buyer searches for: bedrooms, type and area.</p>
+                <div class="mt-4 space-y-4">
+                    <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
+                                placeholder="e.g. 3-bed apartment with lake view in Gulshan 2"
+                                hint="What a buyer sees first. The web address is generated from it." />
+                    <x-ui.textarea name="description" label="Description" rows="6" :value="$property->description"
+                                   hint="Plain text. Line breaks are preserved on the public page." />
+                    @if($canEditReference)
+                        <x-ui.input name="reference" label="Reference" :value="$property->reference" optional maxlength="30" dir="ltr"
+                                    hint="Letters, numbers and dashes. Leave blank to generate one automatically." />
+                    @endif
+                </div>
+            </section>
+
+            <section class="uh-panel" id="step-price">
+                <h2 class="uh-h4">Price</h2>
                 <fieldset class="mt-4">
                     <legend class="uh-legend">Price display</legend>
                     <div class="flex flex-wrap gap-x-6 gap-y-2">
@@ -137,12 +135,12 @@
                 </div>
             </section>
 
-            <section class="uh-panel">
+            <section class="uh-panel" id="step-size">
                 <h2 class="uh-h4">Size and layout</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="area_value" label="Area" type="number" step="0.01" min="1" inputmode="decimal" required
+                    <x-ui.input name="area_value" label="Size" type="number" step="0.01" min="1" inputmode="decimal" required
                                 :value="$property->area_value" />
-                    <x-ui.select name="area_unit" label="Area unit" required>
+                    <x-ui.select name="area_unit" label="Size unit" required>
                         @foreach(config('urbanhaven.area_units') as $unit => $meta)
                             <option value="{{ $unit }}" @selected(old('area_unit', $property->area_unit) === $unit)>{{ $meta['label'] }}</option>
                         @endforeach
@@ -170,50 +168,78 @@
                         </label>
                     </div>
                 </div>
-
-                <fieldset class="mt-5 border-t border-line pt-5">
-                    <div class="flex items-center justify-between gap-3">
-                        <legend class="uh-legend">Amenities</legend>
-                        @can('reference.manage')
-                            <button type="button" class="uh-admin-quick-add" aria-label="Add an amenity"
-                                    @click.prevent="$dispatch('uh-quick-add', { kind: 'amenity', target: 'amenity-list' })">
-                                <x-icon name="plus" class="size-4" />
-                            </button>
-                        @endcan
-                    </div>
-                    <div id="amenity-list" class="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach($amenities as $amenity)
-                            <label class="uh-check">
-                                <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
-                                       @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
-                                <span>{{ $amenity->label }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </fieldset>
             </section>
 
-            <section class="uh-panel">
-                <h2 class="uh-h4">Location and links</h2>
+            <section class="uh-panel" id="step-features">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="uh-h4">Features and amenities</h2>
+                    @can('reference.manage')
+                        <button type="button" class="uh-admin-quick-add" aria-label="Add an amenity"
+                                @click.prevent="$dispatch('uh-quick-add', { kind: 'amenity', target: 'amenity-list' })">
+                            <x-icon name="plus" class="size-4" />
+                        </button>
+                    @endcan
+                </div>
+                <div id="amenity-list" class="mt-4 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                    @forelse($amenities as $amenity)
+                        <label class="uh-check">
+                            <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
+                                   @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
+                            @if($amenity->iconUrl())
+                                <img class="size-5 object-contain" src="{{ $amenity->iconUrl() }}" alt="" loading="lazy">
+                            @else
+                                <x-icon name="sparkle" class="size-4 text-[var(--color-muted)]" />
+                            @endif
+                            <span>{{ $amenity->label }}</span>
+                        </label>
+                    @empty
+                        <p class="text-sm text-[var(--color-muted)]">No amenities yet. Add them under Catalogue › Amenities.</p>
+                    @endforelse
+                </div>
+                @error('amenity_ids')<p class="uh-error">{{ $message }}</p>@enderror
+            </section>
+
+            @if(! $exists && $canEdit)
+                <div id="step-media">
+                    @include('admin.partials.photograph-field')
+                </div>
+            @endif
+
+            <section class="uh-panel" @if($exists || ! $canEdit) id="step-media" @endif>
+                <h2 class="uh-h4">Video, tour and trust</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="address" label="Address" :value="$property->address" optional maxlength="255" class="sm:col-span-2"
-                                hint="Shown publicly according to the address display setting." />
-                    <x-ui.input name="lat" label="Latitude" type="number" step="0.0000001" dir="ltr"
-                                :value="$property->lat" optional hint="Within Bangladesh, e.g. 23.7806" />
-                    <x-ui.input name="lng" label="Longitude" type="number" step="0.0000001" dir="ltr"
-                                :value="$property->lng" optional hint="Within Bangladesh, e.g. 90.4074" />
                     <x-ui.input name="video_url" label="Video URL" type="url" dir="ltr" :value="$property->video_url" optional hint="YouTube or Vimeo link." />
                     <x-ui.input name="virtual_tour_url" label="Virtual tour URL" type="url" dir="ltr" :value="$property->virtual_tour_url" optional />
                     <x-ui.input name="trust_label" label="Trust label" :value="$property->trust_label" optional maxlength="120"
                                 class="sm:col-span-2" hint="A verifiable fact only, e.g. “Registered deed available”." />
                 </div>
+                @if($exists)
+                    <p class="mt-4 text-xs text-[var(--color-muted)]">Photographs are managed in the gallery below the form.</p>
+                @endif
             </section>
 
-            <section class="uh-panel">
-                <h2 class="uh-h4">Placement</h2>
+            <section class="uh-panel" id="step-visibility">
+                <h2 class="uh-h4">Availability, contact and placement</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <x-ui.input name="display_priority" label="Display priority" type="number" min="1" max="999" inputmode="numeric"
-                                :value="$property->display_priority" optional hint="1 shows first in featured sections. Leave blank for newest-first." />
+                    @if($exists)
+                        <input type="hidden" name="availability" value="{{ $property->availability }}">
+                        <div class="uh-field">
+                            <span class="uh-label">Availability</span>
+                            <p class="flex min-h-10 items-center gap-2 text-sm"><x-ui.status :status="$property->availability" /> <span class="text-xs text-[var(--color-muted)]">Change it in the Availability panel.</span></p>
+                        </div>
+                    @else
+                        <x-ui.select name="availability" label="Availability" required>
+                            @foreach(\App\Models\Property::AVAILABILITY_LABELS as $value => $label)
+                                <option value="{{ $value }}" @selected(old('availability', $property->availability) === $value)>{{ $label }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    @endif
+                    <x-ui.select name="assigned_contact_id" label="Listing contact" optional hint="Enquiries for this listing go to this person.">
+                        <option value="">Main sales line</option>
+                        @foreach($contacts as $contact)
+                            <option value="{{ $contact->id }}" @selected(old('assigned_contact_id', $property->assigned_contact_id) == $contact->id)>{{ $contact->name }}</option>
+                        @endforeach
+                    </x-ui.select>
                     <div class="uh-field justify-end">
                         <input type="hidden" name="is_featured" value="0">
                         <label class="uh-check">
@@ -221,24 +247,22 @@
                             <span>Feature on the homepage</span>
                         </label>
                     </div>
+                    <x-ui.input name="display_priority" label="Display priority" type="number" min="1" max="999" inputmode="numeric"
+                                :value="$property->display_priority" optional hint="1 shows first in featured sections. Leave blank for newest-first." />
                 </div>
             </section>
 
-            <section class="uh-panel">
-                <h2 class="uh-h4">Search engine listing</h2>
-                <p class="mt-1 text-sm text-[var(--color-muted)]">Leave these blank to use the title and description above.</p>
-                <div class="mt-4 space-y-4">
-                    <x-ui.input name="meta_title" label="Meta title" maxlength="70" optional
-                                :value="$property->seoOverride?->meta_title" hint="Up to 70 characters." />
-                    <x-ui.textarea name="meta_description" label="Meta description" rows="2" maxlength="160" optional
-                                   :value="$property->seoOverride?->meta_description" hint="Up to 160 characters." />
-                    <input type="hidden" name="noindex" value="0">
-                    <label class="uh-check">
-                        <input type="checkbox" name="noindex" value="1" @checked(old('noindex', $property->seoOverride?->noindex))>
-                        <span>Hide this page from search engines</span>
-                    </label>
-                </div>
-            </section>
+            <div id="step-seo">
+                @include('admin.partials.seo-panel', [
+                    'seo' => $property->seoOverride,
+                    'slugName' => 'slug',
+                    'slug' => $property->slug,
+                    'baseUrl' => url('/properties'),
+                    'titleSource' => 'title',
+                    'contentSource' => 'description',
+                    'idPrefix' => 'property-seo',
+                ])
+            </div>
 
             </div>
             @if($canEdit)

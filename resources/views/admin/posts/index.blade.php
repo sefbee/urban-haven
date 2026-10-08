@@ -3,7 +3,7 @@
 
 @section('content')
     <x-ui.page-header compact title="Articles" description="Guides and news published under /articles.">
-        <x-slot:eyebrow>Website</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library</x-slot:eyebrow>
         <x-slot:actions>
             <form method="GET" class="uh-admin-search" role="search">
                 <label class="sr-only" for="post-search">Search articles</label>

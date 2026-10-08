@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\CmsPage;
+use App\Support\SeoFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,8 +16,8 @@ class StoreCmsPageRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->filled('slug')) {
-            $this->merge(['slug' => str($this->input('slug'))->slug()->toString()]);
+        if ($this->has('slug')) {
+            $this->merge(['slug' => SeoFields::normaliseSlug($this->input('slug'))]);
         }
     }
 
@@ -29,11 +30,26 @@ class StoreCmsPageRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:120', 'regex:/^[a-z0-9-]+$/', Rule::unique('cms_pages', 'slug')->ignore($page instanceof CmsPage ? $page->id : null), Rule::notIn(['admin', 'properties', 'projects', 'locations', 'articles', 'faq', 'shortlist', 'compare'])],
+            'slug' => SeoFields::slugRules('cms_pages', $page instanceof CmsPage ? $page : null, SeoFields::RESERVED_SLUGS),
             'template' => ['nullable', Rule::in(CmsPage::TEMPLATES)],
             'body' => ['nullable', 'string', 'max:200000'],
-            'meta_title' => ['nullable', 'string', 'max:70'],
-            'meta_description' => ['nullable', 'string', 'max:160'],
+            ...SeoFields::rules(),
         ];
+    }
+
+    /**
+     * The page columns, without the search engine inputs. A blank permalink keeps the current one.
+     *
+     * @return array<string, mixed>
+     */
+    public function content(): array
+    {
+        $content = $this->safe()->except(SeoFields::inputNames());
+
+        if (blank($content['slug'] ?? null)) {
+            unset($content['slug']);
+        }
+
+        return $content;
     }
 }

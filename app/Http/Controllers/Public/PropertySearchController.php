@@ -91,7 +91,7 @@ class PropertySearchController extends Controller
             ]],
             'activeFilters' => $this->activeFilters($filters, $areas, $types, $amenities, $routeName),
             'sortOptions' => [
-                'newest' => __('Newest first'),
+                'newest' => __('Relevance'),
                 'price_asc' => __('Price: low to high'),
                 'price_desc' => __('Price: high to low'),
                 'area_desc' => __('Largest first'),

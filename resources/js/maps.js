@@ -60,6 +60,7 @@ const ICONS = {
     bed: svg('<path d="M2 17v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/><path d="M2 17h20"/><path d="M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/><path d="M2 20v-3"/><path d="M22 20v-3"/>'),
     bath: svg('<path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3Z"/><path d="M7 12V6a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2"/><path d="M7 21v-2"/><path d="M17 21v-2"/>'),
     sofa: svg('<path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v4H3z"/><path d="M5 17v2"/><path d="M19 17v2"/>'),
+    expand: svg('<path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M15 4h5v5"/><path d="M9 20H4v-5"/>'),
 };
 
 /**
@@ -72,7 +73,7 @@ const identityFor = (point) => {
     const source = point.image ? safeUrl(point.image) : (cardImage ? safeUrl(cardImage.currentSrc || cardImage.src) : '#');
     const place = point.place || card?.querySelector('.uh-listing-place > span:first-child')?.textContent.trim();
 
-    if (!card && !point.image && !point.place) {
+    if (!point.preview && !card && !point.image && !point.place) {
         return popupFor(point);
     }
 
@@ -81,8 +82,17 @@ const identityFor = (point) => {
         point.baths ? `<span>${ICONS.bath}${Number(point.baths)}</span>` : '',
         point.furnishing ? `<span>${ICONS.sofa}${escapeHtml(point.furnishing)}</span>` : '',
     ].filter(Boolean).join('');
+    const preview = point.preview ? {
+        ...point.preview,
+        images: point.preview.images?.length
+            ? point.preview.images
+            : (source !== '#' ? [{ url: source, alt: point.title }] : []),
+    } : null;
+    const quickViewButton = preview
+        ? `<button type="button" class="uh-pin-card-quick-view" data-uh-map-quick-view="${escapeHtml(JSON.stringify(preview))}" aria-label="${escapeHtml(point.quickViewLabel || 'Quick view')}" title="${escapeHtml(point.quickViewLabel || 'Quick view')}"><span class="sr-only">${escapeHtml(point.quickViewLabel || 'Quick view')}</span>${ICONS.expand}</button>`
+        : '';
 
-    return `<a class="uh-pin-card" href="${escapeHtml(safeUrl(point.url))}">${
+    return `<article class="uh-pin-card"><a class="uh-pin-card-link" href="${escapeHtml(safeUrl(point.url))}">${
         source !== '#' ? `<span class="uh-pin-card-media"><img src="${escapeHtml(source)}" alt="" loading="lazy"></span>` : ''
     }<span class="uh-pin-card-body">${
         point.area ? `<span class="uh-pin-card-area">${escapeHtml(point.area)}</span>` : ''
@@ -90,7 +100,7 @@ const identityFor = (point) => {
         place ? `<span class="uh-pin-card-place">${escapeHtml(place)}</span>` : ''
     }${point.price ? `<span class="uh-pin-card-price">${escapeHtml(point.price)}</span>` : ''}${
         facts ? `<span class="uh-pin-card-facts">${facts}</span>` : ''
-    }${point.approximate ? '<em>Approximate location</em>' : ''}</span></a>`;
+    }${point.approximate ? '<em>Approximate location</em>' : ''}</span></a>${quickViewButton}</article>`;
 };
 
 const MARK = '#d93025';
@@ -145,7 +155,7 @@ const setSelected = (id) => {
     }
 
     (pinsById.get(selectedId) || []).forEach((marker) => marker.getElement()?.classList.add('is-selected'));
-    const card = document.querySelector(`.uh-listing[data-spotlight="${selectedId}"]`);
+    const card = document.querySelector(`[data-spotlight="${selectedId}"]`);
     if (card && card.offsetParent !== null) {
         card.classList.add('is-selected');
         card.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
@@ -174,7 +184,7 @@ const bindSpotlight = () => {
     document.addEventListener('focusout', handler(false));
 };
 
-const placeListing = (L, layer, point, seen) => {
+const placeListing = (L, layer, point, seen, mapElement) => {
     const key = `${Number(point.lat).toFixed(4)},${Number(point.lng).toFixed(4)}`;
     const stacked = seen.get(key) ?? 0;
     seen.set(key, stacked + 1);
@@ -187,7 +197,26 @@ const placeListing = (L, layer, point, seen) => {
         pinsById.set(Number(point.id), [...(pinsById.get(Number(point.id)) || []), marker]);
         marker.on('mouseover', () => setCardSpotlight(point.id, true));
         marker.on('mouseout', () => setCardSpotlight(point.id, false));
-        marker.on('popupopen', () => setSelected(point.id));
+        marker.on('popupopen', (event) => {
+            setSelected(point.id);
+            const quickViewButton = event.popup.getElement()?.querySelector('[data-uh-map-quick-view]');
+            if (!quickViewButton || quickViewButton.dataset.bound === 'true') {
+                return;
+            }
+
+            quickViewButton.dataset.bound = 'true';
+            quickViewButton.addEventListener('click', (clickEvent) => {
+                clickEvent.preventDefault();
+                clickEvent.stopPropagation();
+
+                try {
+                    const preview = JSON.parse(quickViewButton.dataset.uhMapQuickView || '');
+                    mapElement.dispatchEvent(new CustomEvent('open-preview', { detail: preview, bubbles: true }));
+                } catch {
+                    // Ignore a malformed preview payload and leave the popup open.
+                }
+            });
+        });
         marker.on('popupclose', () => {
             if (selectedId === Number(point.id)) {
                 setSelected(null);
@@ -200,11 +229,11 @@ const plot = (L, map, element, payload) => {
     const layer = L.featureGroup().addTo(map);
     const seen = new Map();
 
-    (payload.points || []).forEach((point) => placeListing(L, layer, point, seen));
+    (payload.points || []).forEach((point) => placeListing(L, layer, point, seen, element));
 
     (payload.clusters || []).forEach((cluster) => {
         if (cluster.count === 1 && cluster.url) {
-            placeListing(L, layer, cluster, seen);
+            placeListing(L, layer, cluster, seen, element);
             return;
         }
 
@@ -231,6 +260,8 @@ const plot = (L, map, element, payload) => {
     if ((payload.total ?? 0) === 0 && element.dataset.src) {
         showMessage(element, 'No properties with a map location match these filters.');
     }
+
+    return layer;
 };
 
 const boot = async (element) => {
@@ -248,6 +279,8 @@ const boot = async (element) => {
     const lng = Number(element.dataset.lng || 90.4125);
     const dedicated = element.dataset.scrollZoom === 'true';
     const map = L.map(element, { scrollWheelZoom: dedicated, zoomControl: true }).setView([lat, lng], Number(element.dataset.zoom || 12));
+    const state = { map, element, leaflet: L, layer: null, dataUrl: null, requestController: null };
+    maps.push(state);
 
     let tileErrors = 0;
     L.tileLayer(element.dataset.tiles, { attribution: element.dataset.attribution, maxZoom: 19 })
@@ -276,14 +309,26 @@ const boot = async (element) => {
 
     if (element.dataset.src) {
         bindSpotlight();
+        state.dataUrl = element.dataset.src;
+        const controller = new AbortController();
+        state.requestController = controller;
         try {
-            const response = await fetch(element.dataset.src, { headers: { Accept: 'application/json' } });
+            const response = await fetch(state.dataUrl, {
+                signal: controller.signal,
+                headers: { Accept: 'application/json' },
+            });
             if (!response.ok) {
                 throw new Error(String(response.status));
             }
-            plot(L, map, element, await response.json());
-        } catch {
-            showMessage(element, 'Map pins could not load. The list still shows every result.');
+            state.layer = plot(L, map, element, await response.json());
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                showMessage(element, 'Map pins could not load. The list still shows every result.');
+            }
+        } finally {
+            if (state.requestController === controller) {
+                state.requestController = null;
+            }
         }
     } else if (element.dataset.properties) {
         try {
@@ -293,7 +338,6 @@ const boot = async (element) => {
         }
     }
 
-    maps.push(map);
 };
 
 export const bootMaps = () => {
@@ -322,5 +366,42 @@ export const bootMaps = () => {
 
 export const refreshMaps = () => {
     bootMaps();
-    maps.forEach((map) => map.invalidateSize());
+    maps.forEach(({ map }) => map.invalidateSize());
+};
+
+export const refreshMapData = async () => {
+    await Promise.all(maps.map(async (state) => {
+        const dataUrl = state.element.dataset.src;
+        if (!dataUrl || dataUrl === state.dataUrl) {
+            return;
+        }
+
+        state.requestController?.abort();
+        const controller = new AbortController();
+        state.requestController = controller;
+        state.dataUrl = dataUrl;
+        state.layer?.remove();
+        state.layer = null;
+        pinsById.clear();
+
+        try {
+            const response = await fetch(dataUrl, {
+                signal: controller.signal,
+                headers: { Accept: 'application/json' },
+            });
+            if (!response.ok) {
+                throw new Error(String(response.status));
+            }
+            state.element.parentElement?.querySelector('[data-uh-map-message]')?.remove();
+            state.layer = plot(state.leaflet, state.map, state.element, await response.json());
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                showMessage(state.element, 'Map pins could not load. The list still shows every result.');
+            }
+        } finally {
+            if (state.requestController === controller) {
+                state.requestController = null;
+            }
+        }
+    }));
 };

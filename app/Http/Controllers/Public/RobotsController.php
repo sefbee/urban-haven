@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use Illuminate\Http\Response;
 
 class RobotsController extends Controller
@@ -12,7 +13,7 @@ class RobotsController extends Controller
      */
     public function __invoke(): Response
     {
-        $lines = app()->isProduction()
+        $lines = app()->isProduction() && Setting::get('seo_allow_indexing', true)
             ? ['User-agent: *', 'Disallow: /admin', 'Disallow: /thank-you', 'Disallow: /saved/', 'Disallow: /track', '', 'Sitemap: '.route('sitemap')]
             : ['User-agent: *', 'Disallow: /'];
 

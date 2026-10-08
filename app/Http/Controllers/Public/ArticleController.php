@@ -15,7 +15,7 @@ class ArticleController extends Controller
     public function index(Request $request): View
     {
         $category = $request->filled('category')
-            ? PostCategory::query()->where('slug', $request->string('category'))->first()
+            ? PostCategory::query()->with('seoOverride')->where('slug', $request->string('category'))->first()
             : null;
 
         $posts = Post::query()
@@ -30,7 +30,7 @@ class ArticleController extends Controller
             'posts' => $posts,
             'categories' => PostCategory::query()->whereHas('posts', fn ($query) => $query->published())->orderBy('name')->get(),
             'activeCategory' => $category,
-            'seo' => SeoMeta::for(null, $category ? $category->name.' articles' : 'Guides and articles', 'Practical guides on buying, renting and investing in property in Dhaka from the Urban Haven team.', [
+            'seo' => SeoMeta::for($category, $category ? $category->name.' articles' : 'Guides and articles', 'Practical guides on buying, renting and investing in property in Dhaka from the Urban Haven team.', [
                 'canonical' => SeoMeta::canonical(['category', 'page']),
             ]),
         ]);

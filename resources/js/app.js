@@ -1,9 +1,10 @@
 import Alpine from 'alpinejs';
 import { track, bootAnalytics, bindTrackedClicks } from './analytics';
 import { applySelectOption, bootAdminSelects } from './admin-selects';
+import { registerAdminForms } from './admin-forms';
 import { bootPublicSelects } from './public-selects';
 import { registerSavedStore } from './saved';
-import { bootMaps, refreshMaps } from './maps';
+import { bootMaps, refreshMapData, refreshMaps } from './maps';
 
 const syncAdminSheets = (name) => {
     document.querySelectorAll('.uh-admin-sheet').forEach((sheet) => {
@@ -122,8 +123,10 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     submitting: false,
     more: hasAdvanced,
     layout: 'grid',
+    mapMode: 'split',
     preview: null,
     slide: 0,
+    requestController: null,
     init() {
         try {
             const stored = localStorage.getItem('uh-browse-layout');
@@ -134,6 +137,65 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
             this.layout = 'grid';
         }
     },
+    async search(form) {
+        if (!form) {
+            return;
+        }
+        this.requestController?.abort();
+        const controller = new AbortController();
+        this.requestController = controller;
+        this.submitting = true;
+        const url = new URL(form.action, window.location.origin);
+        url.search = new URLSearchParams(new FormData(form)).toString();
+        try {
+            const response = await fetch(url, { signal: controller.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) {
+                throw new Error('Search request failed');
+            }
+            const documentResult = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const selectors = document.querySelector('.uh-mapview-results')
+                ? ['.uh-mapview-results']
+                : ['.uh-results-bar', '.uh-active-filters', '.uh-workspace'];
+            selectors.forEach((selector) => {
+                const current = document.querySelector(selector);
+                const replacement = documentResult.querySelector(selector);
+                if (current && replacement) {
+                    current.replaceWith(replacement);
+                    Alpine.initTree(replacement);
+                } else if (current && !replacement) {
+                    current.remove();
+                } else if (!current && replacement && selector === '.uh-active-filters') {
+                    document.querySelector('.uh-results-bar')?.after(replacement);
+                    Alpine.initTree(replacement);
+                }
+            });
+            window.history.pushState({}, '', url);
+            const mapLink = form.querySelector('.uh-filter-map');
+            if (mapLink) {
+                const mapUrl = new URL(mapLink.href, window.location.origin);
+                mapUrl.search = url.search;
+                mapLink.href = mapUrl;
+            }
+
+            const mapElement = document.querySelector('[data-uh-map]');
+            if (mapElement?.dataset.src) {
+                const dataUrl = new URL(mapElement.dataset.src, window.location.origin);
+                dataUrl.search = url.search;
+                mapElement.dataset.src = dataUrl.href;
+                window.dispatchEvent(new Event('uh:refresh-map-data'));
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return;
+            }
+            window.location.assign(url);
+        } finally {
+            if (this.requestController === controller) {
+                this.submitting = false;
+                this.requestController = null;
+            }
+        }
+    },
     setLayout(layout) {
         this.layout = layout;
         try {
@@ -141,6 +203,19 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         } catch {
             // Private browsing can block storage; the choice still applies this visit.
         }
+    },
+    toggleMapMode() {
+        const nextMode = {
+            split: 'full',
+            full: 'hidden',
+            hidden: 'split',
+        };
+
+        this.mapMode = nextMode[this.mapMode] ?? 'split';
+        this.$nextTick(() => {
+            window.dispatchEvent(new Event('uh:refresh-maps'));
+            window.setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300);
+        });
     },
     toggleFilters() {
         this.filtersOpen = !this.filtersOpen;
@@ -186,6 +261,63 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     lockBody() {
         const drawerOpen = this.filtersOpen;
         document.body.style.overflow = drawerOpen || this.preview ? 'hidden' : '';
+    },
+}));
+
+/**
+ * Save and revisit property searches on this device.
+ */
+Alpine.data('uhSavedSearch', (url, title, labels) => ({
+    items: [],
+    notice: '',
+    open: false,
+    labels,
+    init() {
+        try {
+            const stored = JSON.parse(localStorage.getItem('uh:v1:saved-searches') || '[]');
+            this.items = Array.isArray(stored)
+                ? stored.filter((item) => {
+                    if (!item || typeof item.url !== 'string' || typeof item.title !== 'string') {
+                        return false;
+                    }
+
+                    try {
+                        return new URL(item.url, window.location.origin).origin === window.location.origin;
+                    } catch {
+                        return false;
+                    }
+                }).slice(0, 20)
+                : [];
+        } catch {
+            this.items = [];
+        }
+    },
+    get saved() {
+        return this.items.some((item) => item.url === url);
+    },
+    toggle() {
+        if (this.saved) {
+            this.open = !this.open;
+
+            return;
+        }
+
+        this.items = [{ url, title }, ...this.items].slice(0, 20);
+        this.notice = this.labels.saved;
+        this.persist();
+        this.open = true;
+    },
+    remove(searchUrl) {
+        this.items = this.items.filter((item) => item.url !== searchUrl);
+        this.notice = this.labels.removed;
+        this.persist();
+    },
+    persist() {
+        try {
+            localStorage.setItem('uh:v1:saved-searches', JSON.stringify(this.items));
+        } catch {
+            this.notice = this.labels.storageError;
+        }
     },
 }));
 
@@ -307,7 +439,7 @@ Alpine.data('uhHomeTabs', (initial = 'sale') => ({
 /**
  * Homepage featured carousel: one centred listing with its neighbours turned away in 3D.
  * Wraps in both directions; swipe, arrow keys and clicking a neighbour all move it. Hovering a
- * listing previews its second photo when available; listing selection never advances on a timer.
+ * listing previews its second photo when available; selection changes only through user input.
  */
 Alpine.data('uhShowcase', (count = 0) => ({
     count,
@@ -437,7 +569,7 @@ Alpine.data('uhTypePicker', (config = {}) => ({
  * back to a keyword search; categories link straight to results and leave the type field alone.
  * Type and price open small panels. Choices clear by clicking them again.
  */
-Alpine.data('uhHeroSearch', ({ initial = 'sale', suggestUrl = null, labels = {}, stops = {}, types = [] } = {}) => ({
+Alpine.data('uhHeroSearch', ({ initial = 'sale', initialMin = '', initialMax = '', suggestUrl = null, labels = {}, stops = {}, types = [] } = {}) => ({
     ...typePicker({ types, labels }),
     purpose: initial,
     open: null,
@@ -445,8 +577,8 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', suggestUrl = null, labels = {},
     area: '',
     home: '',
     locationType: '',
-    min: '',
-    max: '',
+    min: String(initialMin ?? ''),
+    max: String(initialMax ?? ''),
     minIndex: 0,
     maxIndex: (stops[initial] ?? [0]).length - 1,
     areas: [],
@@ -457,6 +589,12 @@ Alpine.data('uhHeroSearch', ({ initial = 'sale', suggestUrl = null, labels = {},
     suggestRequest: 0,
     submitting: false,
     init() {
+        if (this.hasMin) {
+            this.minIndex = Math.min(this.nearestStop(this.min, false), this.lastStop - 1);
+        }
+        if (this.hasMax) {
+            this.maxIndex = Math.max(this.nearestStop(this.max, true), 1);
+        }
         window.addEventListener('pageshow', () => {
             this.submitting = false;
             this.$root.querySelectorAll('input[name]').forEach((field) => {
@@ -975,6 +1113,126 @@ Alpine.data('uhLeadForm', (formName = 'inquiry') => ({
     },
 }));
 
+Alpine.data('uhCustomerAccount', (registerUrl, loginUrl) => ({
+    modalOpen: false,
+    accountReady: false,
+    mode: 'register',
+    busy: false,
+    modalError: '',
+    init() {
+        this.updateModeFields();
+    },
+    toggle(event) {
+        if (!event.target.checked) {
+            return;
+        }
+
+        this.mode = 'register';
+        this.modalError = '';
+        this.modalOpen = true;
+        this.$nextTick(() => {
+            this.copyContactDetailsToModal();
+            this.$root.querySelector('#account-name')?.focus();
+        });
+    },
+    close() {
+        this.modalOpen = false;
+        if (!this.accountReady) {
+            const checkbox = this.$root.querySelector('[name="create_account"]');
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        }
+    },
+    switchMode() {
+        this.mode = this.mode === 'register' ? 'login' : 'register';
+        this.modalError = '';
+        this.$nextTick(() => {
+            this.updateModeFields();
+            if (this.mode === 'login') {
+                const contactEmail = this.$root.querySelector('#property-contact-email')?.value;
+                const email = this.$root.querySelector('#account-email');
+                if (email && contactEmail) {
+                    email.value = contactEmail;
+                }
+            } else {
+                this.copyContactDetailsToModal();
+            }
+        });
+    },
+    updateModeFields() {
+        const registerOnlyFields = ['name', 'phone', 'password_confirmation'];
+        registerOnlyFields.forEach((name) => {
+            const field = this.$root.querySelector(`#account-${name.replace('_', '-')}`);
+            if (field) {
+                field.disabled = this.mode !== 'register';
+            }
+        });
+        const password = this.$root.querySelector('#account-password');
+        if (password) {
+            password.autocomplete = this.mode === 'register' ? 'new-password' : 'current-password';
+        }
+    },
+    copyContactDetailsToModal() {
+        const pairs = [
+            ['#property-contact-name', '#account-name'],
+            ['#property-contact-email', '#account-email'],
+            ['#property-contact-phone', '#account-phone'],
+        ];
+        pairs.forEach(([source, target]) => {
+            const value = this.$root.querySelector(source)?.value;
+            const field = this.$root.querySelector(target);
+            if (field && value) {
+                field.value = value;
+            }
+        });
+    },
+    async submit(event) {
+        if (this.busy) {
+            return;
+        }
+
+        this.busy = true;
+        this.modalError = '';
+        const form = event.target;
+        const endpoint = this.mode === 'register' ? registerUrl : loginUrl;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const firstError = Object.values(payload.errors || {}).flat()[0];
+                this.modalError = firstError || payload.message || 'We could not save your account. Please try again.';
+                return;
+            }
+
+            this.accountReady = true;
+            const accountCheckbox = this.$root.querySelector('[name="create_account"]');
+            if (accountCheckbox) {
+                accountCheckbox.checked = true;
+            }
+            Object.entries(payload.user || {}).forEach(([name, value]) => {
+                const field = this.$root.querySelector(`#property-contact-${name}`);
+                if (field && value) {
+                    field.value = value;
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+            this.modalOpen = false;
+        } catch {
+            this.modalError = 'You appear to be offline. Check your connection and try again.';
+        } finally {
+            this.busy = false;
+        }
+    },
+}));
+
 /**
  * Analytics consent banner. Nothing third-party loads until the visitor chooses "Allow".
  */
@@ -1132,21 +1390,37 @@ Alpine.data('uhAdminDrawers', (initial = null) => ({
  */
 Alpine.data('uhMediaUpload', () => ({
     submitting: false,
+    dragging: false,
     filename: '',
     filesize: '',
     preview: '',
+    previews: [],
     pick() {
         this.$refs.file?.click();
+    },
+    dropped(event, autoSubmit = false) {
+        this.dragging = false;
+        const input = this.$refs.file;
+        const accepted = (input?.accept ?? '').split(',').map((type) => type.trim()).filter(Boolean);
+        const files = [...(event.dataTransfer?.files ?? [])]
+            .filter((file) => accepted.length === 0 || accepted.includes(file.type))
+            .slice(0, input?.multiple ? 20 : 1);
+        if (! input || files.length === 0) {
+            return;
+        }
+        const transfer = new DataTransfer();
+        files.forEach((file) => transfer.items.add(file));
+        input.files = transfer.files;
+        this.chosen(autoSubmit);
     },
     chosen(autoSubmit = false) {
         const files = [...(this.$refs.file?.files ?? [])];
         const file = files[0];
-        if (this.preview) {
-            URL.revokeObjectURL(this.preview);
-        }
+        this.previews.forEach((url) => URL.revokeObjectURL(url));
         this.filename = files.length > 1 ? `${files.length} files` : (file?.name ?? '');
         this.filesize = file ? this.formatSize(files.reduce((total, item) => total + item.size, 0)) : '';
-        this.preview = file?.type?.startsWith('image/') ? URL.createObjectURL(file) : '';
+        this.previews = files.filter((item) => item.type?.startsWith('image/')).slice(0, 12).map((item) => URL.createObjectURL(item));
+        this.preview = this.previews[0] ?? '';
         if (autoSubmit && file && this.$refs.file?.form) {
             this.submitting = true;
             this.$refs.file.form.requestSubmit();
@@ -1160,12 +1434,11 @@ Alpine.data('uhMediaUpload', () => ({
         return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     },
     clear() {
-        if (this.preview) {
-            URL.revokeObjectURL(this.preview);
-        }
+        this.previews.forEach((url) => URL.revokeObjectURL(url));
         this.filename = '';
         this.filesize = '';
         this.preview = '';
+        this.previews = [];
         this.submitting = false;
         if (this.$refs.file) {
             this.$refs.file.value = '';
@@ -1248,6 +1521,7 @@ const bootImageFades = () => {
 };
 
 registerSavedStore(Alpine);
+registerAdminForms(Alpine);
 
 window.Alpine = Alpine;
 window.uhTrack = track;
@@ -1262,15 +1536,58 @@ document.addEventListener('click', (event) => {
     row.querySelector('.uh-admin-row-main')?.click();
 });
 
+/**
+ * Admin forms marked data-unsaved-guard warn before the page is left with edits that were never saved.
+ */
+const bootUnsavedGuards = () => {
+    if (! document.body.classList.contains('uh-admin')) {
+        return;
+    }
+
+    const dirty = new Set();
+
+    document.querySelectorAll('form[data-unsaved-guard]').forEach((form) => {
+        const mark = () => dirty.add(form);
+        form.addEventListener('input', mark);
+        form.addEventListener('change', mark);
+        form.addEventListener('submit', () => dirty.clear());
+    });
+
+    window.addEventListener('beforeunload', (event) => {
+        if (dirty.size > 0) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
+
+    window.addEventListener('keydown', (event) => {
+        if (! (event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's') {
+            return;
+        }
+        const focusedForm = document.activeElement?.closest?.('form');
+        const form = focusedForm?.querySelector('input[name="_token"]')
+            ? focusedForm
+            : document.querySelector('form[data-unsaved-guard]');
+        if (! form) {
+            return;
+        }
+        event.preventDefault();
+        form.requestSubmit();
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     bootAdminSelects();
+    bootUnsavedGuards();
     bootPublicSelects();
     bootMaps();
     bindTrackedClicks();
     bootReveals();
     bootImageFades();
 
-    const consent = document.cookie.match(new RegExp(`(?:^|; )${window.uhAnalytics?.cookie || 'uh_consent'}=([^;]*)`))?.[1];
+    const consent = window.uhAnalytics?.autoConsent
+        ? 'granted'
+        : document.cookie.match(new RegExp(`(?:^|; )${window.uhAnalytics?.cookie || 'uh_consent'}=([^;]*)`))?.[1];
     bootAnalytics(consent);
 
     const pageEvents = document.getElementById('uh-page-events');
@@ -1284,3 +1601,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('uh:refresh-maps', refreshMaps);
+window.addEventListener('uh:refresh-map-data', refreshMapData);

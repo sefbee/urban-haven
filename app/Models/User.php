@@ -42,6 +42,11 @@ class User extends Authenticatable
         return $this->hasMany(Lead::class, 'assigned_to');
     }
 
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
+
     public function hasRole(string $key): bool
     {
         if ($this->relationLoaded('roles')) {

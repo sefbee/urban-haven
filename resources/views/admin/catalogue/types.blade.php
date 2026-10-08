@@ -9,7 +9,7 @@
     <div x-data="uhAdminDrawers(@js($drawer))">
         <x-ui.page-header compact title="Property types"
                           description="Every listing has one of two main types, Residential or Commercial, and a sub-type under it such as apartment, plot or office. The field profile decides which details a listing asks for.">
-            <x-slot:eyebrow>Catalogue</x-slot:eyebrow>
+            <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
                 <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
                     <x-icon name="plus" class="size-4" />
@@ -41,6 +41,7 @@
                                     <thead>
                                         <tr>
                                             <th scope="col">Sub-type</th>
+                                            <th scope="col">Slug</th>
                                             <th scope="col">Fields</th>
                                             <th scope="col">Listings</th>
                                             <th scope="col">Status</th>
@@ -51,6 +52,7 @@
                                         @foreach($categoryTypes as $type)
                                             <tr>
                                                 <td class="min-w-40 font-medium">{{ $type->label }}</td>
+                                                <td class="text-xs text-[var(--color-muted)]" dir="ltr">{{ $type->key }}</td>
                                                 <td class="text-xs text-[var(--color-muted)]">{{ ucfirst($type->field_profile) }}</td>
                                                 <td class="text-sm tabular-nums">{{ $type->properties_count }}</td>
                                                 <td>
@@ -89,7 +91,7 @@
 
         @foreach(['create' => null, ...collect($categories)->keys()->mapWithKeys(fn ($key) => ['create-'.$key => $key])->all()] as $drawerName => $presetCategory)
             <x-ui.admin-drawer :name="$drawerName" :title="$presetCategory ? 'Add a '.Str::lower($categories[$presetCategory]).' sub-type' : 'Add a sub-type'">
-                <form method="POST" action="{{ route('admin.property-types.store') }}" class="space-y-4">
+                <form method="POST" action="{{ route('admin.property-types.store') }}" class="space-y-4" x-data="uhAutoSlug({ value: @js((string) old('key', '')) })">
                     @csrf
                     <input type="hidden" name="_drawer" value="{{ $drawerName }}">
                     <x-ui.select name="category" :id="$drawerName.'-category'" label="Main type">
@@ -97,9 +99,9 @@
                             <option value="{{ $category }}" @selected(old('category', $presetCategory) === $category)>{{ $categoryLabel }}</option>
                         @endforeach
                     </x-ui.select>
-                    <x-ui.input name="label" :id="$drawerName.'-label'" label="Sub-type name" required placeholder="Apartment" />
-                    <x-ui.input name="key" :id="$drawerName.'-key'" label="Key" required placeholder="apartment" dir="ltr"
-                                hint="Lowercase, no spaces. Used internally." />
+                    <x-ui.input name="label" :id="$drawerName.'-label'" label="Sub-type name" required @input="fill($event.target.value)" />
+                    <x-ui.input name="key" :id="$drawerName.'-key'" label="Slug" optional dir="ltr" maxlength="50" x-model="slug" @change="edited()"
+                                hint="Generated from the name. Lowercase letters, numbers and dashes." />
                     <x-ui.select name="field_profile" :id="$drawerName.'-profile'" label="Fields shown" hint="Plots hide bedrooms, bathrooms, balconies and floor.">
                         @foreach($profiles as $profile)
                             <option value="{{ $profile }}" @selected(old('field_profile', $presetCategory === 'commercial' ? 'commercial' : null) === $profile)>{{ ucfirst($profile) }}</option>

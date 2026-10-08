@@ -147,9 +147,15 @@ class CataloguePagesTest extends TestCase
         $this->actingAs($owner)
             ->get(route('admin.settings.index'))
             ->assertOk()
-            ->assertSee('Company identity')
-            ->assertSee('Enquiries and follow-up')
+            ->assertSee('Identity')
+            ->assertSee('Logos and icons')
             ->assertDontSee('Neighbourhoods used on listings');
+
+        $this->actingAs($owner)
+            ->get(route('admin.settings.enquiries'))
+            ->assertOk()
+            ->assertSee('Enquiries and follow-up')
+            ->assertSee('Email delivery');
 
         $this->actingAs($owner)
             ->get(route('admin.listing-display'))

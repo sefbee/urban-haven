@@ -4,10 +4,6 @@
     @include('public.partials.page-head', [
         'wide' => false,
         'title' => __('Frequently asked questions'),
-        'crumbs' => [
-            ['label' => __('Home'), 'url' => route('home')],
-            ['label' => __('FAQ')],
-        ],
     ])
 
     <div class="uh-container-narrow uh-section-tight pt-0">

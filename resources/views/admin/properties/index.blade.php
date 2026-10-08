@@ -4,7 +4,7 @@
 @section('content')
     <x-ui.page-header compact title="Properties"
                       description="Every listing we own, with its editorial and availability state.">
-        <x-slot:eyebrow>Inventory</x-slot:eyebrow>
+        <x-slot:eyebrow>Content library</x-slot:eyebrow>
         <x-slot:actions>
             <form method="GET" class="uh-admin-search" role="search">
                 <label class="sr-only" for="property-search">Search listings</label>

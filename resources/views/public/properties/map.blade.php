@@ -2,16 +2,24 @@
 
 @php
     $listViewUrl = route('properties.index', request()->except('page'));
+    $amenityCatalog = $amenities->keyBy('id');
 @endphp
 
 @section('content')
     <div class="uh-mapview" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
+         :class="{
+            'is-map-full': mapMode === 'full',
+            'is-map-hidden': mapMode === 'hidden',
+         }"
          @open-preview="openPreview($event.detail)"
          @keydown.escape.window="onEscape()"
          @keydown.left.window="preview && previousSlide()"
          @keydown.right.window="preview && nextSlide()">
 
-        <section class="uh-mapview-map" aria-label="{{ __('Map of matching homes') }}">
+        @include('public.partials.filter-bar', ['browseRoute' => 'map'])
+
+        <section id="uh-mapview-map" class="uh-mapview-map" aria-label="{{ __('Map of matching homes') }}"
+                 :aria-hidden="(mapMode === 'hidden').toString()" :inert="mapMode === 'hidden'">
             <div class="uh-mapview-frame">
                 <div data-uh-map class="uh-mapview-canvas"
                      data-lat="{{ config('urbanhaven.maps.default_lat') }}"
@@ -25,9 +33,18 @@
                     <p class="uh-map-legend" aria-hidden="true">
                         <span><i></i>{{ __('For sale') }}</span>
                         <span><i class="is-rent"></i>{{ __('For rent') }}</span>
-                    </p>
+                </p>
                 @endif
             </div>
+            <button type="button" class="uh-mapview-toggle" @click="toggleMapMode()"
+                    aria-controls="uh-mapview-map"
+                    :aria-pressed="(mapMode === 'full').toString()"
+                    :aria-label="mapMode === 'full' ? @js(__('Hide map')) : @js(__('Expand map to full view'))"
+                    :title="mapMode === 'full' ? @js(__('Hide map')) : @js(__('Expand map to full view'))"
+                    x-show="mapMode !== 'hidden'">
+                <x-icon name="expand" class="size-4" x-show="mapMode === 'split'" />
+                <x-icon name="minimize" class="size-4" x-show="mapMode === 'full'" x-cloak />
+            </button>
             <a class="uh-mapview-back" href="{{ $listViewUrl }}">
                 <x-icon name="list" class="size-4" />
                 {{ __('List view') }}
@@ -35,17 +52,6 @@
         </section>
 
         <section class="uh-mapview-list" aria-labelledby="map-title">
-            <header class="uh-mapview-head">
-                <x-ui.breadcrumbs :items="[
-                    ['label' => __('Home'), 'url' => route('home')],
-                    ['label' => __('Properties'), 'url' => $listViewUrl],
-                    ['label' => __('Map')],
-                ]" />
-                <h1 id="map-title" class="uh-mapview-title">{{ __('Homes on the map') }}</h1>
-            </header>
-
-            @include('public.partials.filter-bar', ['browseRoute' => 'map'])
-
             <div class="uh-mapview-results">
                 <div class="uh-results-bar">
                     <p class="uh-results-count" aria-live="polite">
@@ -59,7 +65,23 @@
                             {{ __('Nothing matches yet') }}
                         @endif
                     </p>
-                    @include('public.partials.sort-select')
+                    <div class="uh-results-tools">
+                        <div class="uh-text-toggle" role="group" aria-label="{{ __('Result layout') }}">
+                            <button type="button" :aria-pressed="(layout === 'grid').toString()"
+                                    aria-label="{{ __('Grid view') }}" title="{{ __('Grid view') }}"
+                                    @click="setLayout('grid')">
+                                <x-icon name="grid" class="size-4" />
+                                <span class="sr-only">{{ __('Grid') }}</span>
+                            </button>
+                            <button type="button" :aria-pressed="(layout === 'list').toString()"
+                                    aria-label="{{ __('List view') }}" title="{{ __('List view') }}"
+                                    @click="setLayout('list')">
+                                <x-icon name="list" class="size-4" />
+                                <span class="sr-only">{{ __('List') }}</span>
+                            </button>
+                        </div>
+                        @include('public.partials.sort-select')
+                    </div>
                 </div>
 
                 @if(filled($activeFilters))
@@ -77,9 +99,21 @@
 
                 <div class="uh-workspace-results mt-5" :class="submitting ? 'is-busy' : ''" :aria-busy="submitting.toString()">
                     @if($properties->isNotEmpty())
-                        <div class="uh-mapview-grid">
+                        <div class="uh-mapview-grid" x-show="layout === 'grid'">
+                            @foreach($properties as $index => $property)
+                                @include('public.partials.showcase-slide', [
+                                    'property' => $property,
+                                    'amenityCatalog' => $amenityCatalog,
+                                    'index' => $index,
+                                    'total' => $properties->count(),
+                                    'listingLayout' => true,
+                                    'gridLayout' => true,
+                                ])
+                            @endforeach
+                        </div>
+                        <div class="uh-list-rows" x-show="layout === 'list'" x-cloak>
                             @foreach($properties as $property)
-                                @include('public.partials.property-card', ['property' => $property, 'sizes' => '(min-width: 1100px) 22vw, (min-width: 640px) 50vw, 100vw'])
+                                @include('public.partials.property-row', ['property' => $property])
                             @endforeach
                         </div>
 

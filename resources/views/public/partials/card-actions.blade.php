@@ -8,14 +8,20 @@
     $trackProjectId = $trackProjectId ?? null;
     $detailsLabel = $detailsLabel ?? __('Explore');
     $detailsClass = $detailsClass ?? 'uh-arrow-link';
+    $detailsIconOnly = $detailsIconOnly ?? false;
     $dividerClass = $dividerClass ?? '';
     $iconClass = $iconClass ?? 'uh-icon-action';
     $showQuickView = $showQuickView ?? false;
     $showDetails = $showDetails ?? true;
+    $showContact = $showContact ?? true;
+    $showFavoriteAction = $showFavoriteAction ?? false;
+    $property = $property ?? null;
+    $iconActions = $iconActions ?? false;
 @endphp
 
 <div class="uh-card-actions {{ $dividerClass }}">
-    <div class="uh-card-contact">
+    @if($showContact)
+        <div class="uh-card-contact">
         @if($phoneHref)
             <a class="{{ $iconClass }}" href="{{ $phoneHref }}"
                data-track="phone_click" data-track-location="{{ $trackLocation }}"
@@ -39,20 +45,37 @@
                 @click="share()" aria-label="{{ __('Share') }}">
             <x-icon name="share" class="size-4" />
         </button>
-    </div>
+        </div>
+    @endif
 
-    @if($showQuickView || $showDetails)
+    @if($showQuickView || $showDetails || $showFavoriteAction)
         <div class="uh-card-next">
             @if($showQuickView)
-                <button type="button" class="uh-btn-text" @click="$dispatch('open-preview', payload)">
-                    {{ __('Quick view') }}
+                <button type="button" @class([$iconActions ? 'uh-icon-action' : 'uh-btn-text'])
+                        @if($iconActions) aria-label="{{ __('Quick view') }}" title="{{ __('Quick view') }}" @endif
+                        @click="$dispatch('open-preview', payload)">
+                    @if($iconActions)
+                        <x-icon name="expand" class="size-4" />
+                    @else
+                        {{ __('Quick view') }}
+                    @endif
                 </button>
             @endif
             @if($showDetails)
-                <a class="{{ $detailsClass }}" href="{{ $url }}">
-                    {{ $detailsLabel }}
-                    <x-icon name="arrow-right" class="size-3.5" />
+                <a class="{{ $iconActions ? 'uh-icon-action' : $detailsClass }}" href="{{ $url }}"
+                   @if($iconActions || $detailsIconOnly) aria-label="{{ $detailsLabel }}" title="{{ $detailsLabel }}" @endif>
+                    @if($iconActions)
+                        <x-icon name="arrow-right" class="size-4" />
+                    @elseif($detailsIconOnly)
+                        <x-icon name="external" class="size-4" />
+                    @else
+                        {{ $detailsLabel }}
+                        <x-icon name="arrow-right" class="size-3.5" />
+                    @endif
                 </a>
+            @endif
+            @if($showFavoriteAction && $property)
+                <x-save-button :property="$property" />
             @endif
         </div>
     @endif

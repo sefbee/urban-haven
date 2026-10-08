@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PropertyType;
+use App\Support\SeoFields;
 use App\Support\TaggedCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +32,11 @@ class PropertyTypeController extends Controller
     public function store(Request $request): RedirectResponse|JsonResponse
     {
         $this->authorize('reference.manage');
+
+        if (! $request->filled('key') && $request->filled('label')) {
+            $request->merge(['key' => SeoFields::uniqueSlug('property_types', 'key', (string) $request->input('label'))]);
+        }
+
         $validated = $request->validate([
             'key' => ['required', 'string', 'max:50', 'regex:/^[a-z0-9_-]+$/', 'unique:property_types,key'],
             'label' => ['required', 'string', 'max:80'],

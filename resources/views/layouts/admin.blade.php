@@ -1,40 +1,13 @@
 @php
     $user = auth()->user();
-    $can = fn (string $permission): bool => (bool) $user?->hasPermission($permission);
-    $canReview = $can('property.publish') || $can('project.publish');
-    $canSettings = (bool) $user?->can('settings.update');
-    $canReference = (bool) $user?->can('reference.manage');
-    $pageTitle = trim($__env->yieldContent('title') ?: 'Dashboard');
-    $settingsUrl = $canSettings ? route('admin.settings.index') : null;
-
-    $navGroups = [
-        'Menu' => [
-            ['pattern' => 'admin.dashboard', 'label' => 'Dashboard', 'url' => route('admin.dashboard'), 'icon' => 'dashboard'],
-            ['pattern' => 'admin.notifications.*', 'label' => 'Report', 'url' => route('admin.notifications.index'), 'icon' => 'list'],
-            ['pattern' => 'admin.properties.*', 'label' => 'Properties', 'url' => $can('property.view') ? route('admin.properties.index') : route('admin.dashboard'), 'icon' => 'home'],
-            ['pattern' => 'admin.leads.*', 'label' => 'Consumer', 'url' => $can('lead.view') ? route('admin.leads.index') : route('admin.dashboard'), 'icon' => 'users'],
-        ],
-        'Financial' => array_values(array_filter([
-            $can('lead.view') ? ['pattern' => 'admin.follow-ups.*', 'label' => 'Transactions', 'url' => route('admin.follow-ups.index'), 'icon' => 'document'] : null,
-            $can('lead.view') ? ['pattern' => 'admin.visits.*', 'label' => 'Invoices', 'url' => route('admin.visits.index'), 'icon' => 'inbox'] : null,
-        ])),
-        'Tools' => array_values(array_filter([
-            $canSettings ? ['pattern' => 'admin.settings.*', 'label' => 'Settings', 'url' => $settingsUrl, 'icon' => 'settings'] : null,
-            $user?->can('viewAny', App\Models\User::class) ? ['pattern' => 'admin.staff.*', 'label' => 'Feedback', 'url' => route('admin.staff.index'), 'icon' => 'check-circle'] : null,
-            ['pattern' => 'admin.audit.*', 'label' => 'Help', 'url' => $user?->can('audit.view') ? route('admin.audit.index') : route('admin.dashboard'), 'icon' => 'info'],
-        ])),
-    ];
-
-    $navGroups = array_filter($navGroups, fn($items) => count($items) > 0);
-
-    $openGroups = [];
-    foreach ($navGroups as $group => $items) {
-        foreach ($items as $item) {
-            if (request()->routeIs($item['pattern'])) {
-                $openGroups[] = $group;
-            }
-        }
-    }
+    $navGroups = \App\Support\AdminNavigation::for($user);
+    $currentNav = \App\Support\AdminNavigation::current($navGroups);
+    $pageTitle = html_entity_decode(trim($__env->yieldContent('title') ?: ($currentNav['item']['label'] ?? 'Dashboard')), ENT_QUOTES);
+    $companyName = \App\Models\Setting::get('company_name') ?: 'Urban Haven';
+    $brandLogo = \App\Models\Setting::get('brand_logo');
+    $sidebarLogo = \App\Models\Setting::get('brand_logo_dark');
+    $companyTagline = \App\Models\Setting::get('company_tagline');
+    $brandFavicon = \App\Models\Setting::get('brand_favicon');
 
     $systemWarnings = [];
     if ($user?->isOwnerAdmin()) {
@@ -47,8 +20,8 @@
         }
     }
 
-    $quickAddAreas = $user?->can('create', App\Models\Project::class)
-        ? App\Models\LocationArea::query()->active()->orderBy('name')->get(['id', 'name', 'city'])
+    $quickAddAreas = $user?->can('create', App\Models\Project::class) || $user?->can('reference.manage')
+        ? App\Models\LocationArea::query()->active()->orderBy('name')->get(['id', 'name', 'city', 'country'])
         : collect();
 
     $initials = collect(preg_split('/\s+/', trim((string) $user?->name)))
@@ -64,55 +37,69 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="robots" content="noindex, nofollow">
-        <title>{{ $pageTitle }} — Urban Haven</title>
+        <title>{{ $pageTitle }} — {{ $companyName }} admin</title>
+        @if($brandFavicon)
+            <link rel="icon" href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($brandFavicon) }}">
+        @endif
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="uh-admin antialiased"
-          x-data="uhAdminShell(@js(array_values(array_unique($openGroups))))"
+          x-data="uhAdminShell([])"
           :class="{ 'uh-admin-collapsed': collapsed }"
           @uh-quick-add.window="open($event.detail)"
           @keydown.escape="drawer ? close() : closeMobile()">
         <a class="uh-skip" href="#main">Skip to content</a>
 
         <div class="dd-app-shell">
-
-            {{-- Mobile backdrop --}}
             <div class="uh-admin-backdrop" x-show="mobile" x-cloak @click="closeMobile()" aria-hidden="true"></div>
 
-            {{-- ===================== SIDEBAR ===================== --}}
             <aside id="admin-nav" class="dd-sidebar" :class="{ 'is-open': mobile }" aria-label="Staff navigation">
-
-                {{-- Brand --}}
                 <div class="dd-sidebar-brand">
-                    <a href="{{ route('admin.dashboard') }}" class="dd-brand-link">
-                        <span class="dd-brand-mark" aria-hidden="true">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M3 10L10 3L17 10V17H13V13H7V17H3V10Z" fill="white"/>
-                            </svg>
-                        </span>
-                        <span class="dd-brand-name">Urban Haven</span>
+                    <a href="{{ route('admin.dashboard') }}" class="dd-brand-link" title="{{ $companyName }}">
+                        @if($sidebarLogo)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($sidebarLogo) }}" alt="{{ $companyName }}" class="dd-brand-logo">
+                        @elseif($brandLogo)
+                            <span class="dd-brand-chip">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($brandLogo) }}" alt="{{ $companyName }}" class="dd-brand-logo">
+                            </span>
+                        @else
+                            <span class="dd-brand-mark" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M3 10L10 3L17 10V17H13V13H7V17H3V10Z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="dd-brand-copy">
+                                <span class="dd-brand-name">{{ $companyName }}</span>
+                                @if($companyTagline)
+                                    <span class="dd-brand-tagline">{{ $companyTagline }}</span>
+                                @endif
+                            </span>
+                        @endif
                     </a>
                     <button type="button" class="dd-sidebar-close uh-admin-icon-btn" @click="closeMobile()" aria-label="Close navigation">
                         <x-icon name="close" class="size-5" />
                     </button>
                 </div>
 
-                {{-- Navigation --}}
-                <nav class="dd-nav" x-data>
+                <nav class="dd-nav" x-init="$nextTick(() => {
+                    const active = $el.querySelector('[aria-current=page]');
+                    if (active) {
+                        $el.scrollTop += active.getBoundingClientRect().top - $el.getBoundingClientRect().top - ($el.clientHeight - active.offsetHeight) / 2;
+                    }
+                })">
                     @foreach($navGroups as $group => $items)
-                        @continue(count($items) === 0)
                         <div class="dd-nav-group">
-                            <span class="dd-nav-group-label">{{ strtoupper($group) }}</span>
+                            <span class="dd-nav-group-label">{{ $group }}</span>
                             <ul class="dd-nav-list">
                                 @foreach($items as $item)
-                                    @php($current = request()->routeIs($item['pattern']))
+                                    @php $current = request()->routeIs(...(array) $item['pattern']); @endphp
                                     <li>
                                         <a href="{{ $item['url'] }}"
                                            title="{{ $item['label'] }}"
                                            @if($current) aria-current="page" @endif
                                            @class(['dd-nav-link', 'dd-nav-link-active' => $current])>
-                                            <x-icon :name="$item['icon']" class="dd-nav-icon" />
+                                            <span class="dd-nav-tile"><x-icon :name="$item['icon']" class="dd-nav-icon" /></span>
                                             <span class="dd-nav-label">{{ $item['label'] }}</span>
                                         </a>
                                     </li>
@@ -122,46 +109,68 @@
                     @endforeach
                 </nav>
 
-
-
+                <div class="dd-sidebar-foot">
+                    <a href="{{ route('home') }}" target="_blank" rel="noopener" class="dd-nav-link dd-live-link" title="View live site">
+                        <span class="dd-nav-tile"><x-icon name="external" class="dd-nav-icon" /></span>
+                        <span class="dd-nav-label">View live site</span>
+                    </a>
+                </div>
             </aside>
 
-            {{-- ===================== MAIN SHELL ===================== --}}
             <div class="dd-shell">
-
-                {{-- Header --}}
                 <header class="dd-header">
                     <div class="dd-header-start">
-                        <button type="button" class="uh-admin-icon-btn dd-mobile-toggle" @click="openMobile()"
+                        <button type="button" class="dd-header-icon-btn dd-mobile-toggle" @click="openMobile()"
                                 :aria-expanded="mobile.toString()" aria-controls="admin-nav" aria-label="Open navigation">
-                            <x-icon name="menu" class="size-5" />
+                            <x-icon name="menu" class="size-4" />
                         </button>
-                        <button type="button" class="uh-admin-icon-btn dd-desktop-toggle" @click="toggleCollapsed()"
-                                aria-label="Toggle sidebar">
-                            <x-icon name="menu" class="size-5" />
+                        <button type="button" class="dd-header-icon-btn dd-desktop-toggle" @click="toggleCollapsed()"
+                                :aria-pressed="collapsed.toString()" aria-label="Collapse sidebar">
+                            <x-icon name="menu" class="size-4" />
                         </button>
+                        <nav class="dd-breadcrumb" aria-label="Breadcrumb">
+                            @if($currentNav)
+                                <span class="dd-breadcrumb-group">{{ $currentNav['group'] }}</span>
+                                <x-icon name="chevron-right" class="size-3 text-[var(--dd-faint)]" />
+                                <a href="{{ $currentNav['item']['url'] }}" class="dd-breadcrumb-current">{{ $currentNav['item']['label'] }}</a>
+                            @else
+                                <span class="dd-breadcrumb-current">{{ $pageTitle }}</span>
+                            @endif
+                        </nav>
                     </div>
 
                     <div class="dd-header-end">
-                        <button type="button" class="dd-header-icon-btn" aria-label="Search">
+                        <form method="GET" action="{{ route('admin.search') }}" class="dd-header-search" role="search"
+                              x-data @keydown.window.slash="if (! ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && ! document.activeElement.isContentEditable) { $event.preventDefault(); $refs.search.focus() }">
+                            <x-icon name="search" class="dd-header-search-icon" />
+                            <label for="admin-search" class="sr-only">Search the admin</label>
+                            <input id="admin-search" x-ref="search" type="search" name="q" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}"
+                                   placeholder="Search properties, leads, pages…" autocomplete="off" maxlength="120">
+                            <kbd class="dd-header-search-kbd" aria-hidden="true">/</kbd>
+                        </form>
+                        <a href="{{ route('admin.search') }}" class="dd-header-icon-btn dd-header-search-btn" aria-label="Search">
                             <x-icon name="search" class="size-4" />
-                        </button>
+                        </a>
                         @include('admin.notifications._bell')
 
                         <div class="dd-user-widget" x-data="{ open: false }" @keydown.escape="open = false">
-                            <button type="button" class="dd-user-btn" @click="open = ! open" :aria-expanded="open.toString()">
+                            <button type="button" class="dd-user-btn" @click="open = ! open" :aria-expanded="open.toString()" aria-haspopup="menu">
                                 <span class="dd-avatar">{{ $initials ?: 'S' }}</span>
                                 <span class="dd-user-info">
                                     <span class="dd-user-name">{{ $user->name }}</span>
-                                    <span class="dd-user-role">{{ $user->roles->pluck('label')->first() ?: 'Admin store' }}</span>
+                                    <span class="dd-user-role">{{ $user->roles->pluck('label')->first() ?: 'Staff' }}</span>
                                 </span>
+                                <x-icon name="chevron-down" class="size-3.5 text-[var(--dd-muted)]" />
                             </button>
                             <div class="uh-admin-user-menu" x-show="open" x-cloak x-transition.opacity.duration.120ms @click.outside="open = false">
                                 <p class="uh-admin-user-menu-id">
                                     <span class="font-semibold text-ink">{{ $user->name }}</span>
                                     <span class="mt-0.5 block truncate text-xs text-[var(--color-muted)]">{{ $user->email }}</span>
                                 </p>
-                                <a href="{{ route('home') }}">View public site</a>
+                                @if($user->isOwnerAdmin())
+                                    <a href="{{ route('admin.settings.index') }}">Website settings</a>
+                                @endif
+                                <a href="{{ route('home') }}" target="_blank" rel="noopener">View public site</a>
                                 <form method="POST" action="{{ route('admin.logout') }}">
                                     @csrf
                                     <button type="submit">Sign out</button>
@@ -171,10 +180,9 @@
                     </div>
                 </header>
 
-                {{-- Content --}}
                 <main id="main" class="dd-content">
                     @foreach($systemWarnings as $warning)
-                        <x-ui.alert tone="warn" class="mb-3" style="border-radius:0.75rem; font-size:0.8rem;">{{ $warning }}</x-ui.alert>
+                        <x-ui.alert tone="warn" class="mb-3">{{ $warning }}</x-ui.alert>
                     @endforeach
                     <x-ui.flash />
                     @yield('content')

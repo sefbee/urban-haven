@@ -9,14 +9,30 @@
 @php
     $tourUrl = is_string($tour) && str_starts_with($tour, 'https://') ? $tour : null;
     $views = array_filter([
-        'photos' => ['icon' => 'image', 'label' => $photoCount > 0 ? __('Photos (:count)', ['count' => $photoCount]) : __('Photos')],
+        'photos' => ['icon' => 'image', 'label' => __('Photo')],
         'video' => $video ? ['icon' => 'play', 'label' => __('Video')] : null,
-        'map' => $coordinates ? ['icon' => 'map', 'label' => __('Map')] : null,
+        'map' => ['icon' => 'map', 'label' => __('Map')],
         'tour' => $tourUrl ? ['icon' => 'globe', 'label' => __('360° tour')] : null,
     ]);
 @endphp
 
 <div {{ $attributes->class(['uh-stage', 'has-switch' => count($views) > 1]) }} x-data="{ view: 'photos' }">
+    <div class="uh-stage-switch" role="group" aria-label="{{ __('Media') }}">
+        @foreach($views as $key => $item)
+            <button type="button"
+                    :class="{ 'is-on': view === '{{ $key }}' }" :aria-pressed="(view === '{{ $key }}').toString()"
+                    @if($key === 'map')
+                        @click="view = 'map'; $nextTick(() => window.dispatchEvent(new CustomEvent('uh:refresh-maps')))"
+                    @else
+                        @click="view = '{{ $key }}'"
+                    @endif
+                    @class(['uh-stage-tab', 'is-on' => $loop->first, 'is-available' => $key === 'video'])>
+                <x-icon :name="$item['icon']" class="size-4" />
+                {{ $item['label'] }}
+            </button>
+        @endforeach
+    </div>
+
     <div class="uh-stage-view" x-show="view === 'photos'">
         {{ $slot }}
     </div>
@@ -33,8 +49,8 @@
         </div>
     @endif
 
-    @if($coordinates)
-        <div class="uh-stage-view uh-stage-panel" x-show="view === 'map'" x-cloak>
+    <div class="uh-stage-view uh-stage-panel" x-show="view === 'map'" x-cloak>
+        @if($coordinates)
             <div class="uh-stage-map" role="region" aria-label="{{ __('Map of :title', ['title' => $title]) }}"
                  data-uh-map data-lat="{{ $coordinates['lat'] }}" data-lng="{{ $coordinates['lng'] }}"
                  data-zoom="{{ $coordinates['approximate'] ? 14 : 16 }}"
@@ -47,8 +63,10 @@
                     {{ __('Approximate neighbourhood') }}
                 </p>
             @endif
-        </div>
-    @endif
+        @else
+            <div class="uh-stage-empty"><x-icon name="map" class="size-8" /><span>{{ __('Map location not available') }}</span></div>
+        @endif
+    </div>
 
     @if($tourUrl)
         <div class="uh-stage-view uh-stage-panel is-dark" x-show="view === 'tour'" x-cloak>
@@ -65,21 +83,4 @@
         </div>
     @endif
 
-    @if(count($views) > 1)
-        <div class="uh-stage-switch" role="group" aria-label="{{ __('Media') }}">
-            @foreach($views as $key => $item)
-                <button type="button"
-                        :class="{ 'is-on': view === '{{ $key }}' }" :aria-pressed="(view === '{{ $key }}').toString()"
-                        @if($key === 'map')
-                            @click="view = 'map'; $nextTick(() => window.dispatchEvent(new CustomEvent('uh:refresh-maps')))"
-                        @else
-                            @click="view = '{{ $key }}'"
-                        @endif
-                        @class(['uh-stage-tab', 'is-on' => $loop->first])>
-                    <x-icon :name="$item['icon']" class="size-4" />
-                    {{ $item['label'] }}
-                </button>
-            @endforeach
-        </div>
-    @endif
 </div>

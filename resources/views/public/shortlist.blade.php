@@ -4,10 +4,6 @@
     @include('public.partials.page-head', [
         'title' => __('Your shortlist'),
         'lede' => __('Saved on this device. No account needed.'),
-        'crumbs' => [
-            ['label' => __('Home'), 'url' => route('home')],
-            ['label' => __('Shortlist')],
-        ],
     ])
 
     <div class="uh-container uh-section-tight" x-data="uhSavedList('shortlist', @js(route('saved.cards')))">

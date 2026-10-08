@@ -1,49 +1,49 @@
 @extends('layouts.admin')
-@section('title', 'Menus')
+@section('title', 'Menu management')
+
+@php
+    $parentOptions = $parents->map(fn ($items) => $items->map(fn ($item) => ['id' => $item->id, 'label' => $item->label])->values())->all();
+@endphp
 
 @section('content')
-    <x-ui.page-header compact title="Menus" description="Links in the public header and footer. When a menu has no visible links the site uses its built-in navigation.">
-        <x-slot:eyebrow>Website</x-slot:eyebrow>
+    <x-ui.page-header compact title="Menu management" description="Links in the public header and footer. Add sub-links under a top-level link to build a dropdown. When a menu has no visible links the site uses its built-in navigation.">
+        <x-slot:eyebrow>Content library</x-slot:eyebrow>
     </x-ui.page-header>
 
     <x-ui.admin-related label="Also on the site">
         <a href="{{ route('admin.cms.index') }}">Pages</a>
+        <a href="{{ route('admin.home-sections.index') }}">Home page</a>
         @can('redirect.manage')
             <a href="{{ route('admin.redirects.index') }}">Redirects</a>
         @endcan
     </x-ui.admin-related>
 
-    <div class="grid gap-6 lg:grid-cols-3">
-        <div class="space-y-6 lg:col-span-2">
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="space-y-6">
             @foreach($locations as $location => $label)
+                @php
+                    $links = $menus->get($location, collect());
+                @endphp
                 <section class="uh-panel" aria-labelledby="menu-{{ $location }}">
-                    <h2 id="menu-{{ $location }}" class="uh-h4">{{ $label }}</h2>
-                    @php($links = $items->get($location, collect()))
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 id="menu-{{ $location }}" class="uh-h4">{{ $label }}</h2>
+                        <span class="text-xs text-[var(--color-muted)]">{{ $links->count() }} {{ \Illuminate\Support\Str::plural('link', $links->count()) }}</span>
+                    </div>
                     @if($links->isNotEmpty())
-                        <ul class="mt-3 divide-y divide-[var(--color-line)]">
+                        <ol class="dd-menu-list mt-3">
                             @foreach($links as $item)
-                                <li class="py-3">
-                                    <form method="POST" action="{{ route('admin.menus.update', $item) }}" class="grid items-end gap-3 sm:grid-cols-[1fr_1.4fr_5rem_auto_auto]">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="location" value="{{ $location }}">
-                                        <x-ui.input name="label" label="Label" :value="$item->label" required maxlength="60" :id="'ml-'.$item->id" />
-                                        <x-ui.input name="url" label="Link" :value="$item->url" required maxlength="255" dir="ltr" :id="'mu-'.$item->id" />
-                                        <x-ui.input name="sort_order" label="Order" type="number" min="0" max="999" :value="$item->sort_order" :id="'mo-'.$item->id" />
-                                        <div class="uh-field">
-                                            <input type="hidden" name="is_visible" value="0">
-                                            <label class="uh-check min-h-10"><input type="checkbox" name="is_visible" value="1" @checked($item->is_visible)> <span>Visible</span></label>
-                                        </div>
-                                        <button type="submit" class="uh-btn-outline uh-btn-sm">Save</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('admin.menus.destroy', $item) }}" class="mt-1" x-data="uhConfirm('Remove this link?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="uh-btn-ghost uh-btn-sm px-0 text-[var(--color-danger)]" @click="confirm($event)">Remove</button>
-                                    </form>
-                                </li>
+                                @include('admin.menus._item', ['item' => $item, 'siblings' => $links, 'depth' => 0])
+                                @if($item->children->isNotEmpty())
+                                    <li>
+                                        <ol class="dd-menu-children">
+                                            @foreach($item->children as $child)
+                                                @include('admin.menus._item', ['item' => $child, 'siblings' => $item->children, 'depth' => 1])
+                                            @endforeach
+                                        </ol>
+                                    </li>
+                                @endif
                             @endforeach
-                        </ul>
+                        </ol>
                     @else
                         <p class="mt-3 text-sm text-[var(--color-muted)]">Using the built-in links.</p>
                     @endif
@@ -51,17 +51,28 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('admin.menus.store') }}" class="uh-panel h-fit space-y-3">
+        <form method="POST" action="{{ route('admin.menus.store') }}" class="uh-panel space-y-3 lg:sticky lg:top-20"
+              x-data="{ location: @js(old('location', array_key_first($locations))), parents: @js($parentOptions) }">
             @csrf
             <h2 class="uh-h4">Add a link</h2>
-            <x-ui.select name="location" label="Menu">
+            <x-ui.select name="location" label="Menu" x-model="location">
                 @foreach($locations as $location => $label)
                     <option value="{{ $location }}">{{ $label }}</option>
                 @endforeach
             </x-ui.select>
+            <div class="uh-field">
+                <label class="uh-label" for="new-parent">Sits under</label>
+                <select id="new-parent" name="parent_id" class="uh-select" data-native-select>
+                    <option value="">Top level</option>
+                    <template x-for="parent in (parents[location] || [])" :key="parent.id">
+                        <option :value="parent.id" x-text="parent.label"></option>
+                    </template>
+                </select>
+                @error('parent_id')<p class="uh-error">{{ $message }}</p>@enderror
+            </div>
             <x-ui.input name="label" label="Label" required maxlength="60" />
             <x-ui.input name="url" label="Link" required maxlength="255" dir="ltr" placeholder="/properties?listing_type=sale" hint="An internal path starting with / or a full https:// address." />
-            <x-ui.input name="sort_order" label="Order" type="number" min="0" max="999" optional />
+            <label class="uh-check"><input type="checkbox" name="opens_new_tab" value="1"> <span>Open in a new tab</span></label>
             <input type="hidden" name="is_visible" value="1">
             <button type="submit" class="uh-btn-primary uh-btn-sm uh-btn-block">Add link</button>
         </form>

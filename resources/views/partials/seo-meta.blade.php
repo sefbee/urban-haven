@@ -4,7 +4,10 @@
         $seo ?? [],
     );
     $siteName = \App\Models\Setting::get('company_name', config('app.name'));
-    $verification = config('urbanhaven.seo.google_site_verification');
+    if (empty($meta['image']) && filled($defaultShareImage = \App\Models\Setting::get('brand_og_image'))) {
+        $meta['image'] = \Illuminate\Support\Facades\Storage::disk('public')->url($defaultShareImage);
+    }
+    $verifications = array_unique(array_filter([config('urbanhaven.seo.google_site_verification'), $meta['verification'] ?? null]));
 @endphp
 @if(!empty($meta['description']))
     <meta name="description" content="{{ $meta['description'] }}">
@@ -30,9 +33,9 @@
 @if(!empty($meta['description']))
     <meta name="twitter:description" content="{{ $meta['description'] }}">
 @endif
-@if(filled($verification))
+@foreach($verifications as $verification)
     <meta name="google-site-verification" content="{{ $verification }}">
-@endif
+@endforeach
 <script type="application/ld+json">{!! \App\Support\StructuredData::encode(\App\Support\StructuredData::organization()) !!}</script>
 @foreach($meta['json_ld'] as $schema)
     <script type="application/ld+json">{!! \App\Support\StructuredData::encode($schema) !!}</script>

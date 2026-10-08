@@ -19,8 +19,36 @@ class SearchService implements SearchServiceContract
     public function search(array $filters, int $page, int $perPage): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, (int) config('urbanhaven.search.max_page_size', 24)));
+        $hasCoordinates = isset($filters['lat'], $filters['lng'])
+            && $filters['lat'] !== ''
+            && $filters['lng'] !== '';
+        $results = $this->filtered($filters)
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
 
-        return $this->filtered($filters)
+        if ($results->total() > 0 || ! $hasCoordinates) {
+            return $results;
+        }
+
+        $latitude = (float) $filters['lat'];
+        $longitude = (float) $filters['lng'];
+        $fallbackFilters = $filters;
+        unset($fallbackFilters['lat'], $fallbackFilters['lng'], $fallbackFilters['radius_km']);
+
+        $nearbyResults = $this->filtered($fallbackFilters)
+            ->whereNotNull('lat')
+            ->whereNotNull('lng')
+            ->reorder()
+            ->orderByRaw($this->distanceExpression().' asc', [$latitude, $longitude, $latitude])
+            ->orderByDesc('id')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
+
+        if ($nearbyResults->total() > 0) {
+            return $nearbyResults;
+        }
+
+        return $this->filtered($fallbackFilters)
             ->paginate($perPage, ['*'], 'page', $page)
             ->withQueryString();
     }
@@ -148,10 +176,7 @@ class SearchService implements SearchServiceContract
             $radiusKm = (float) ($filters['radius_km'] ?? 3);
             $query->whereNotNull('lat')
                 ->whereNotNull('lng')
-                ->whereRaw(
-                    '(6371 * acos(least(1, cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat))))) <= ?',
-                    [$latitude, $longitude, $latitude, $radiusKm],
-                );
+                ->whereRaw($this->distanceExpression().' <= ?', [$latitude, $longitude, $latitude, $radiusKm]);
         }
         if (! empty($filters['facing'])) {
             $query->where('facing', $filters['facing']);
@@ -172,6 +197,11 @@ class SearchService implements SearchServiceContract
         }
 
         return $query;
+    }
+
+    private function distanceExpression(): string
+    {
+        return '(6371 * acos(least(1, cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))))';
     }
 
     /**

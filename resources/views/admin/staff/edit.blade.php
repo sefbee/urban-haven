@@ -3,7 +3,7 @@
 
 @section('content')
     <x-ui.page-header compact :title="$staffMember->name">
-        <x-slot:eyebrow>Company · Staff account</x-slot:eyebrow>
+        <x-slot:eyebrow>Administration · User account</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.staff.index') }}">
                 <x-icon name="chevron-left" class="size-4" />
@@ -17,21 +17,24 @@
               class="uh-admin-compose-main" x-data="uhForm" @submit="submit">
             @csrf
             @method('PUT')
-            <div class="uh-admin-stack">
+            <div class="uh-admin-stack dd-form-steps">
                 <section class="uh-panel space-y-4">
+                    <h2 class="uh-h4">Person</h2>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <x-ui.input name="name" label="Full name" :value="$staffMember->name" required />
                         <x-ui.input name="email" label="Work email" type="email" dir="ltr" :value="$staffMember->email" required />
+                        <x-ui.input name="phone" label="Direct phone" type="tel" dir="ltr" :value="$staffMember->phone" optional class="sm:col-span-2"
+                                    hint="Shown as the call number on listings this person is the contact for." />
                     </div>
-                    <x-ui.input name="phone" label="Direct phone" type="tel" dir="ltr" :value="$staffMember->phone" optional
-                                hint="Shown as the call number on listings this person is the contact for." />
-                    <x-ui.input name="password" label="New password" type="password" autocomplete="new-password" optional
-                                hint="Leave blank to keep the current password." />
-                    <x-ui.select name="role" label="Role">
+                </section>
+                <section class="uh-panel space-y-4">
+                    <h2 class="uh-h4">Sign-in and access</h2>
+                    <x-ui.select name="role" label="Role" hint="Roles decide which parts of the desk they can open.">
                         @foreach($roles as $role)
-                            <option value="{{ $role->key }}" @selected($staffMember->hasRole($role->key))>{{ $role->label }}</option>
+                            <option value="{{ $role->key }}" @selected(old('role') ? old('role') === $role->key : $staffMember->hasRole($role->key))>{{ $role->label }}</option>
                         @endforeach
                     </x-ui.select>
+                    @include('admin.staff._password', ['label' => 'New password', 'required' => false, 'hint' => 'Leave blank to keep the current password.'])
                 </section>
             </div>
             <div class="uh-admin-dock">

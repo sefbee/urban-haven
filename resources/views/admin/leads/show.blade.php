@@ -22,7 +22,7 @@
 
 @section('content')
     <x-ui.page-header compact :title="$lead->name">
-        <x-slot:eyebrow>Sales · {{ $lead->typeLabel() }} · #{{ $lead->id }}</x-slot:eyebrow>
+        <x-slot:eyebrow>Communication · {{ $lead->typeLabel() }} · #{{ $lead->id }}</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.leads.index') }}">
                 <x-icon name="chevron-left" class="size-4" />

@@ -8,7 +8,7 @@
 @section('content')
     <div x-data="uhAdminDrawers(@js($drawer))">
         <x-ui.page-header compact title="Redirects" description="Send old or changed URLs to their new address so search rankings and shared links keep working.">
-            <x-slot:eyebrow>Company</x-slot:eyebrow>
+            <x-slot:eyebrow>Website settings</x-slot:eyebrow>
             <x-slot:actions>
                 <form method="GET" class="flex items-center gap-2">
                     <label class="sr-only" for="redirect-search">Search redirects</label>
@@ -36,7 +36,7 @@
 
         <x-ui.admin-related label="Related">
             <a href="{{ route('admin.cms.index') }}">Pages</a>
-            <a href="{{ route('admin.menus.index') }}">Menus</a>
+            <a href="{{ route('admin.menus.index') }}">Menu management</a>
         </x-ui.admin-related>
 
         @if($redirects->isNotEmpty())

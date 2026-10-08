@@ -371,19 +371,21 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSeeInOrder([
                 'Explore properties',
-                'Trending Properties',
-                'Featured Properties',
-                'Gulshan featured sale',
-                'Quiet featured rental',
-                'Explore Properties by Location',
-                'Explore by Property Type',
-                'Latest Properties',
-                'Banani latest sale',
-                'Newest rental floor',
-                'Why Urban Haven?',
-                'Latest Articles & Blog',
+                'Housing & Apartment Projects in Bangladesh',
+                'Featured Real Estate in Bangladesh',
+                'Trending Properties in Bangladesh',
+                'Explore Real Estate in Bangladesh',
+                'Explore Real Estate in Bangladesh type wise',
+                'Latest Property Listings in Bangladesh',
+                'Can’t find what you’re looking for?',
+                'News & Blog Updates',
                 'How to inspect a flat before buying',
+                'asked questions.',
             ])
+            ->assertSee('Gulshan featured sale')
+            ->assertSee('Quiet featured rental')
+            ->assertSee('Banani latest sale')
+            ->assertSee('Newest rental floor')
             ->assertDontSee('Not sure where to start?')
             ->assertDontSee('Explore Urban Haven')
             ->assertSee('Apartment')
@@ -413,7 +415,45 @@ class PropertyDiscoveryTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertViewHas('trending', fn ($trending): bool => $trending->pluck('id')->all() === [$popular->id, $quiet->id, $stale->id]);
+            ->assertViewHas('trending', fn ($trending): bool => $trending->pluck('id')->all() === [$popular->id, $quiet->id, $stale->id])
+            ->assertSee('uh-trending-grid', false)
+            ->assertSee('uh-trending-details', false)
+            ->assertSee('View Details')
+            ->assertDontSee('aria-label="Trending property"', false);
+    }
+
+    public function test_home_housing_section_shows_only_live_residential_homes_and_apartments(): void
+    {
+        $apartment = PropertyType::query()->create([
+            'key' => 'home-apartment',
+            'label' => 'Apartment',
+            'category' => PropertyType::CATEGORY_RESIDENTIAL,
+            'field_profile' => PropertyType::PROFILE_APARTMENT,
+            'is_active' => true,
+        ]);
+        $plot = PropertyType::query()->create([
+            'key' => 'home-plot',
+            'label' => 'Plot',
+            'category' => PropertyType::CATEGORY_RESIDENTIAL,
+            'field_profile' => PropertyType::PROFILE_PLOT,
+            'is_active' => true,
+        ]);
+        $office = PropertyType::query()->create([
+            'key' => 'home-office',
+            'label' => 'Office',
+            'category' => PropertyType::CATEGORY_COMMERCIAL,
+            'field_profile' => PropertyType::PROFILE_COMMERCIAL,
+            'is_active' => true,
+        ]);
+
+        $apartmentListing = $this->publishProperty('Residential apartment', ['property_type_id' => $apartment->id]);
+        $this->publishProperty('Residential plot', ['property_type_id' => $plot->id]);
+        $this->publishProperty('Commercial office', ['property_type_id' => $office->id]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Housing & Apartment Projects in Bangladesh')
+            ->assertViewHas('housingListings', fn ($listings): bool => $listings->pluck('id')->all() === [$apartmentListing->id]);
     }
 
     public function test_home_types_are_grouped_under_main_type_tabs(): void
@@ -426,7 +466,7 @@ class PropertyDiscoveryTest extends TestCase
             ->assertOk()
             ->assertViewHas('typeGroups', fn ($groups): bool => $groups->keys()->all() === [PropertyType::CATEGORY_RESIDENTIAL, PropertyType::CATEGORY_COMMERCIAL]
                 && $groups[PropertyType::CATEGORY_COMMERCIAL]->pluck('label')->all() === ['Office'])
-            ->assertSeeInOrder(['Explore by Property Type', 'Residential', 'Commercial', 'View all', 'Apartment', 'Office'])
+            ->assertSeeInOrder(['Explore Real Estate in Bangladesh type wise', 'Residential', 'Commercial', 'View all', 'Apartment', 'Office'])
             ->assertSee(route('properties.index', ['category' => PropertyType::CATEGORY_RESIDENTIAL]), false)
             ->assertDontSee('Retired type');
     }
@@ -452,19 +492,21 @@ class PropertyDiscoveryTest extends TestCase
 
         $this->get('/')
             ->assertOk()
+            ->assertDontSee('Housing & Apartment Projects in Bangladesh')
             ->assertDontSee('Featured Projects')
-            ->assertDontSee('Featured Properties')
-            ->assertDontSee('Latest Properties')
-            ->assertDontSee('Explore by Property Type')
-            ->assertDontSee('Explore Properties by Location');
+            ->assertDontSee('Featured Real Estate in Bangladesh')
+            ->assertDontSee('Latest Property Listings in Bangladesh')
+            ->assertDontSee('Explore Real Estate in Bangladesh type wise')
+            ->assertDontSee('Explore Real Estate in Bangladesh');
 
         $this->publishProperty('Only a featured sale', ['is_featured' => true, 'listing_type' => 'sale']);
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Featured Properties')
+            ->assertSee('Housing & Apartment Projects in Bangladesh')
+            ->assertSee('Featured Real Estate in Bangladesh')
             ->assertSee('Only a featured sale')
-            ->assertDontSee('Latest Properties');
+            ->assertDontSee('Latest Property Listings in Bangladesh');
     }
 
     public function test_projects_are_not_part_of_the_public_site(): void

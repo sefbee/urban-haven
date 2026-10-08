@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminSearchController;
 use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\Auth\LoginController;
@@ -7,12 +8,15 @@ use App\Http\Controllers\Admin\Auth\MfaController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
+use App\Http\Controllers\Admin\HomeSectionController;
 use App\Http\Controllers\Admin\LeadController as AdminLeadController;
 use App\Http\Controllers\Admin\LeadExportController;
 use App\Http\Controllers\Admin\LocationAreaController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\PageSeoController;
+use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Admin\PropertyController as AdminPropertyController;
@@ -20,11 +24,13 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PublicationController;
 use App\Http\Controllers\Admin\RedirectController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SiteUrlController;
 use App\Http\Controllers\Admin\SiteVisitController as AdminSiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Public\ArticleController;
 use App\Http\Controllers\Public\CmsController;
+use App\Http\Controllers\Public\CustomerAccountController;
 use App\Http\Controllers\Public\FaqController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\LeadController;
@@ -41,6 +47,7 @@ use App\Http\Controllers\Public\ShortlistController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\ToolsController;
 use App\Http\Controllers\Public\TrackingController;
+use App\Support\HomeSections;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -61,6 +68,12 @@ Route::get('/compare', [ShortlistController::class, 'compare'])->name('compare')
 Route::get('/saved/cards', [ShortlistController::class, 'cards'])->middleware('throttle:public-json')->name('saved.cards');
 Route::post('/inquiries', [LeadController::class, 'store'])->middleware('throttle:lead-submissions')->name('inquiries.store');
 Route::post('/visit-requests', [LeadController::class, 'visit'])->middleware('throttle:lead-submissions')->name('visits.store');
+Route::post('/account/register', [CustomerAccountController::class, 'register'])->middleware('throttle:5,1')->name('account.register');
+Route::post('/account/login', [CustomerAccountController::class, 'login'])->middleware('throttle:5,1')->name('account.login');
+Route::middleware('auth')->prefix('account')->name('account.')->group(function (): void {
+    Route::get('/', [CustomerAccountController::class, 'show'])->name('show');
+    Route::post('/logout', [CustomerAccountController::class, 'logout'])->name('logout');
+});
 Route::get('/thank-you', [LeadController::class, 'thankYou'])->name('thank-you');
 Route::post('/track', TrackingController::class)->middleware('throttle:tracking')->name('track');
 Route::get('/media/{media}/download', MediaDownloadController::class)->middleware('throttle:public-json')->name('media.download');
@@ -96,10 +109,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('staff/{staff}/mfa-reset', [StaffController::class, 'resetMfa'])->name('staff.mfa.reset');
         Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit.index');
 
+        Route::get('search', AdminSearchController::class)->name('search');
+
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/theme', [SettingsController::class, 'theme'])->name('settings.theme');
+        Route::get('settings/contact', [SettingsController::class, 'contact'])->name('settings.contact');
+        Route::get('settings/enquiries', [SettingsController::class, 'enquiries'])->name('settings.enquiries');
+        Route::get('settings/analytics', [SettingsController::class, 'analytics'])->name('settings.analytics');
+        Route::get('settings/seo', [SettingsController::class, 'seo'])->name('settings.seo');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::put('settings/social', [SettingsController::class, 'updateSocial'])->name('settings.social');
         Route::post('settings/test-email', [SettingsController::class, 'testEmail'])->middleware('throttle:5,1')->name('settings.test-email');
         Route::get('listing-display', [SettingsController::class, 'listings'])->name('listing-display');
+
+        Route::get('home-sections', [HomeSectionController::class, 'index'])->name('home-sections.index');
+        Route::prefix('home-sections/{section}')->whereIn('section', HomeSections::keys())->name('home-sections.')->group(function () {
+            Route::get('/', [HomeSectionController::class, 'edit'])->name('edit');
+            Route::put('/', [HomeSectionController::class, 'update'])->name('update');
+            Route::post('visibility', [HomeSectionController::class, 'visibility'])->name('visibility');
+            Route::post('move', [HomeSectionController::class, 'move'])->name('move');
+            Route::post('publish', [HomeSectionController::class, 'publish'])->name('publish');
+            Route::post('discard', [HomeSectionController::class, 'discard'])->name('discard');
+            Route::post('reset', [HomeSectionController::class, 'reset'])->name('reset');
+        });
 
         Route::get('areas', [LocationAreaController::class, 'index'])->name('areas.index');
         Route::post('areas', [LocationAreaController::class, 'store'])->name('areas.store');
@@ -113,6 +145,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('amenities', [AmenityController::class, 'index'])->name('amenities.index');
         Route::post('amenities', [AmenityController::class, 'store'])->name('amenities.store');
+        Route::put('amenities/{amenity}', [AmenityController::class, 'update'])->name('amenities.update');
         Route::post('amenities/{amenity}/deactivate', [AmenityController::class, 'deactivate'])->name('amenities.deactivate');
 
         Route::post('settings/areas', [LocationAreaController::class, 'store'])->name('settings.areas.store');
@@ -183,11 +216,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('posts/{post}/publish', [AdminPostController::class, 'publish'])->name('posts.publish');
         Route::post('posts/{post}/unpublish', [AdminPostController::class, 'unpublish'])->name('posts.unpublish');
         Route::post('post-categories', [AdminPostController::class, 'storeCategory'])->name('post-categories.store');
+        Route::get('post-categories', [PostCategoryController::class, 'index'])->name('post-categories.index');
+        Route::put('post-categories/{category}', [PostCategoryController::class, 'update'])->name('post-categories.update');
+        Route::delete('post-categories/{category}', [PostCategoryController::class, 'destroy'])->name('post-categories.destroy');
+
+        Route::get('page-seo', [PageSeoController::class, 'index'])->name('page-seo.index');
+        Route::put('page-seo', [PageSeoController::class, 'update'])->name('page-seo.update');
+        Route::get('site-urls', SiteUrlController::class)->name('site-urls');
 
         Route::resource('faqs', AdminFaqController::class)->except(['show', 'create', 'edit']);
         Route::get('menus', [MenuController::class, 'index'])->name('menus.index');
         Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
         Route::put('menus/{item}', [MenuController::class, 'update'])->name('menus.update');
+        Route::post('menus/{item}/visibility', [MenuController::class, 'visibility'])->name('menus.visibility');
+        Route::post('menus/{item}/move', [MenuController::class, 'move'])->name('menus.move');
         Route::delete('menus/{item}', [MenuController::class, 'destroy'])->name('menus.destroy');
 
         Route::get('redirects', [RedirectController::class, 'index'])->name('redirects.index');

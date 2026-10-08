@@ -9,7 +9,7 @@
 @section('content')
     <x-ui.page-header compact title="Site visits"
                       description="Viewing requests from the public site. Confirm the slot by phone before the visitor travels.">
-        <x-slot:eyebrow>Sales</x-slot:eyebrow>
+        <x-slot:eyebrow>Communication</x-slot:eyebrow>
     </x-ui.page-header>
 
     <x-ui.admin-related label="Next to this">

@@ -12,9 +12,11 @@ class SeoOverride extends Model
     protected $fillable = [
         'seoable_type',
         'seoable_id',
+        'focus_keyword',
         'meta_title',
         'meta_description',
         'og_image_path',
+        'gsc_code',
         'noindex',
         'updated_at',
     ];

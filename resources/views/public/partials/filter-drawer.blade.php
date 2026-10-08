@@ -14,16 +14,24 @@
        x-cloak
        x-bind:class="filtersOpen ? '!flex' : '!hidden'"
        role="dialog" aria-modal="true" aria-labelledby="more-filters-title"
+       @change.debounce.300ms="search(document.getElementById('property-filters'))"
        x-bind:aria-hidden="(!filtersOpen).toString()"
        @click.stop @keydown.escape.stop="closeFilters()">
     <div class="uh-drawer-head">
-        <h2 id="more-filters-title" class="uh-h4">{{ __('More Filters') }}</h2>
+        <div class="uh-drawer-heading">
+            <span class="uh-drawer-mark"><x-icon name="filter" class="size-5" /></span>
+            <div>
+                <p class="uh-drawer-kicker">{{ __('Refine your search') }}</p>
+                <h2 id="more-filters-title" class="uh-h4">{{ __('More Filters') }}</h2>
+            </div>
+        </div>
         <button type="button" class="uh-icon-btn" @click="closeFilters()" aria-label="{{ __('Close filters') }}">
             <x-icon name="close" class="size-5" />
         </button>
     </div>
 
     <div class="uh-drawer-body">
+        <p class="uh-drawer-intro">{{ __('Fine tune your search with the details that matter most.') }}</p>
         <fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Area size') }}</legend>
             <div class="flex flex-wrap gap-1.5">
@@ -44,13 +52,13 @@
         <fieldset class="uh-drawer-group" x-data="{ count: {{ $minBeds !== '' ? (int) $minBeds : 0 }} }">
             <legend class="uh-legend">{{ __('Bedroom') }}</legend>
             <div class="mt-2 flex items-center gap-3">
-                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bedrooms') }}">
+                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1); $nextTick(() => search(document.getElementById('property-filters')))" aria-label="{{ __('Fewer bedrooms') }}">
                     <x-icon name="minus" class="size-4" />
                 </button>
                 <p class="min-w-10 text-center font-medium">
                     <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBeds === '' ? __('Any') : ($minBeds === '5' ? '5+' : $minBeds) }}</span>
                 </p>
-                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bedrooms') }}">
+                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1); $nextTick(() => search(document.getElementById('property-filters')))" aria-label="{{ __('More bedrooms') }}">
                     <x-icon name="plus" class="size-4" />
                 </button>
                 <input type="hidden" form="property-filters" name="min_beds" :value="count || ''" :disabled="count === 0">
@@ -60,13 +68,13 @@
         <fieldset class="uh-drawer-group" x-data="{ count: {{ $minBaths !== '' ? (int) $minBaths : 0 }} }">
             <legend class="uh-legend">{{ __('Bathroom') }}</legend>
             <div class="mt-2 flex items-center gap-3">
-                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1)" aria-label="{{ __('Fewer bathrooms') }}">
+                <button type="button" class="uh-icon-action" @click="count = Math.max(0, count - 1); $nextTick(() => search(document.getElementById('property-filters')))" aria-label="{{ __('Fewer bathrooms') }}">
                     <x-icon name="minus" class="size-4" />
                 </button>
                 <p class="min-w-10 text-center font-medium">
                     <span class="uh-numeric" x-text="count === 0 ? '{{ __('Any') }}' : (count >= 5 ? '5+' : count)">{{ $minBaths === '' ? __('Any') : ($minBaths === '5' ? '5+' : $minBaths) }}</span>
                 </p>
-                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1)" aria-label="{{ __('More bathrooms') }}">
+                <button type="button" class="uh-icon-action" @click="count = Math.min(5, count + 1); $nextTick(() => search(document.getElementById('property-filters')))" aria-label="{{ __('More bathrooms') }}">
                     <x-icon name="plus" class="size-4" />
                 </button>
                 <input type="hidden" form="property-filters" name="min_baths" :value="count || ''" :disabled="count === 0">
@@ -202,6 +210,5 @@
 
     <div class="uh-drawer-foot">
         <a class="uh-btn-text" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
-        <button type="submit" form="property-filters" class="uh-btn-primary flex-1">{{ __('Apply filters') }}</button>
     </div>
 </aside>

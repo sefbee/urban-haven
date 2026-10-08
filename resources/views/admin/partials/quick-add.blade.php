@@ -9,17 +9,17 @@
     <div>
         @if($canReference)
             <x-ui.admin-drawer name="type" title="Add a type">
-                <form method="POST" action="{{ route('admin.property-types.store') }}" class="space-y-4" @submit="submit">
+                <form method="POST" action="{{ route('admin.property-types.store') }}" class="space-y-4" @submit="submit" x-data="uhAutoSlug()">
                     @csrf
                     <p class="text-sm text-[var(--color-muted)]" x-show="error" x-text="error" x-cloak></p>
-                    <x-ui.input name="key" id="quick-type-key" label="Key" required placeholder="apartment" dir="ltr"
-                                hint="Lowercase, no spaces. Used internally." />
-                    <x-ui.input name="label" id="quick-type-label" label="Label" required placeholder="Apartment" />
                     <x-ui.select name="category" id="quick-type-category" label="Main type">
                         @foreach(\App\Models\PropertyType::categoryLabels() as $category => $categoryLabel)
                             <option value="{{ $category }}">{{ $categoryLabel }}</option>
                         @endforeach
                     </x-ui.select>
+                    <x-ui.input name="label" id="quick-type-label" label="Sub-type name" required maxlength="80" @input="fill($event.target.value)" />
+                    <x-ui.input name="key" id="quick-type-key" label="Slug" optional dir="ltr" maxlength="50" x-model="slug" @change="edited()"
+                                hint="Generated from the name." />
                     <x-ui.select name="field_profile" id="quick-type-profile" label="Fields shown" hint="Plots hide bedrooms, bathrooms, balconies and floor.">
                         @foreach(\App\Models\PropertyType::PROFILES as $profile)
                             <option value="{{ $profile }}">{{ ucfirst($profile) }}</option>
@@ -36,8 +36,20 @@
                 <form method="POST" action="{{ route('admin.areas.store') }}" class="space-y-4" @submit="submit">
                     @csrf
                     <p class="text-sm text-[var(--color-muted)]" x-show="error" x-text="error" x-cloak></p>
-                    <x-ui.input name="name" id="quick-area-name" label="Area name" required placeholder="Gulshan 2" />
-                    <x-ui.input name="city" id="quick-area-city" label="City" required value="Dhaka" />
+                    <x-ui.input name="country" id="quick-area-country" label="Country" list="quick-area-countries" required maxlength="80" :value="\App\Models\LocationArea::DEFAULT_COUNTRY" />
+                    <x-ui.input name="city" id="quick-area-city" label="City" list="quick-area-cities" required maxlength="120" :value="$quickAddAreas->pluck('city')->countBy()->sortDesc()->keys()->first()"
+                                hint="Pick an existing city or type a new one." />
+                    <x-ui.input name="name" id="quick-area-name" label="Area name" required maxlength="120" />
+                    <datalist id="quick-area-countries">
+                        @foreach($quickAddAreas->pluck('country')->push(\App\Models\LocationArea::DEFAULT_COUNTRY)->filter()->unique()->sort() as $country)
+                            <option value="{{ $country }}"></option>
+                        @endforeach
+                    </datalist>
+                    <datalist id="quick-area-cities">
+                        @foreach($quickAddAreas->pluck('city')->filter()->unique()->sort() as $city)
+                            <option value="{{ $city }}"></option>
+                        @endforeach
+                    </datalist>
                     <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
                         <x-icon name="plus" class="size-3.5" />
                         Add area
@@ -46,12 +58,12 @@
             </x-ui.admin-drawer>
 
             <x-ui.admin-drawer name="amenity" title="Add an amenity">
-                <form method="POST" action="{{ route('admin.amenities.store') }}" class="space-y-4" @submit="submit">
+                <form method="POST" action="{{ route('admin.amenities.store') }}" class="space-y-4" @submit="submit" x-data="uhAutoSlug()">
                     @csrf
                     <p class="text-sm text-[var(--color-muted)]" x-show="error" x-text="error" x-cloak></p>
-                    <x-ui.input name="key" id="quick-amenity-key" label="Key" required placeholder="lift" dir="ltr"
-                                hint="Lowercase, no spaces. Used internally." />
-                    <x-ui.input name="label" id="quick-amenity-label" label="Label" required placeholder="Lift" />
+                    <x-ui.input name="label" id="quick-amenity-label" label="Amenity name" required maxlength="80" @input="fill($event.target.value)" />
+                    <x-ui.input name="key" id="quick-amenity-key" label="Slug" optional dir="ltr" maxlength="50" x-model="slug" @change="edited()"
+                                hint="Generated from the name." />
                     <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
                         <x-icon name="plus" class="size-3.5" />
                         Add amenity
@@ -67,17 +79,11 @@
                     <p class="text-sm text-[var(--color-muted)]" x-show="error" x-text="error" x-cloak></p>
                     <x-ui.input name="name" id="quick-project-name" label="Project name" required />
                     <x-ui.select name="development_stage" id="quick-project-stage" label="Development stage" required>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="ongoing" selected>Ongoing</option>
-                        <option value="completed">Completed</option>
-                    </x-ui.select>
-                    <x-ui.input name="city" id="quick-project-city" label="City" required value="Dhaka" />
-                    <x-ui.select name="location_area_id" id="quick-project-area" label="Area" optional>
-                        <option value="">Not set</option>
-                        @foreach($quickAddAreas as $area)
-                            <option value="{{ $area->id }}">{{ $area->name }} — {{ $area->city }}</option>
+                        @foreach(\App\Models\Project::STAGE_LABELS as $value => $label)
+                            <option value="{{ $value }}" @selected($value === 'ongoing')>{{ $label }}</option>
                         @endforeach
                     </x-ui.select>
+                    @include('admin.partials.place-picker', ['areas' => $quickAddAreas, 'cityName' => 'city', 'required' => false, 'idPrefix' => 'quick-project', 'allowAdd' => false])
                     <button type="submit" class="uh-btn-primary uh-btn-block" :disabled="submitting">
                         <x-icon name="plus" class="size-3.5" />
                         Add project

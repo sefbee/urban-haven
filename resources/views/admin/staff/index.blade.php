@@ -1,10 +1,10 @@
 @extends('layouts.admin')
-@section('title', 'Staff')
+@section('title', 'Users & roles')
 
 @section('content')
-    <x-ui.page-header compact title="Staff"
+    <x-ui.page-header compact title="Users & roles"
                       description="Accounts that can sign in to this desk, and the role each one holds.">
-        <x-slot:eyebrow>Company</x-slot:eyebrow>
+        <x-slot:eyebrow>Administration</x-slot:eyebrow>
         <x-slot:actions>
             <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.staff.create') }}">
                 <x-icon name="plus" class="size-4" />
