@@ -19,6 +19,7 @@
         ->take(2);
     $phoneHref = \App\Support\PhoneNumber::telHref(\App\Models\Setting::get('phone'));
     $contactEmail = \App\Models\Setting::get('email');
+    $whatsapp = $property->isUnavailable() ? null : $property->whatsappEnquiryUrl();
     $preview = \App\Support\PropertyPreview::for($property);
     $photos = $property->relationLoaded('media') ? $property->galleryImages() : collect();
     if ($property->featured_media_id) {
@@ -137,6 +138,14 @@
 
             <div class="uh-showcase-actions">
                 <div class="uh-showcase-contact">
+                    @if($whatsapp)
+                        <a class="uh-showcase-action-icon" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                           @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif
+                           data-track="whatsapp_click" data-track-location="{{ $listingLayout ? 'list' : 'home_featured' }}"
+                           data-track-property-id="{{ $property->id }}" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
+                            <x-icon name="whatsapp" class="size-5" />
+                        </a>
+                    @endif
                     @if($phoneHref)
                         <a class="uh-showcase-action-icon" href="{{ $phoneHref }}"
                            @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif

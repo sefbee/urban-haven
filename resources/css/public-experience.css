@@ -2849,6 +2849,7 @@ body.uh-home {
         border: 4px solid var(--color-card-surface);
         border-radius: 1.5rem;
         background: var(--color-card-surface);
+        box-shadow: 0 0 0 1px rgb(29 29 31 / 0.06), 0 12px 30px -24px rgb(29 29 31 / 0.45), 0 2px 8px rgb(29 29 31 / 0.05);
     }
 
     .uh-showcase-media {
@@ -2903,11 +2904,6 @@ body.uh-home {
         pointer-events: none;
     }
 
-    .uh-showcase-slide:is([data-slot='prev'], [data-slot='next']) .uh-showcase-location,
-    .uh-showcase-slide:is([data-slot='prev'], [data-slot='next']) .uh-showcase-actions {
-        display: none;
-    }
-
     .uh-showcase-copy {
         position: relative;
         display: flex;
@@ -2917,7 +2913,7 @@ body.uh-home {
         gap: 0.25rem;
         padding: 0.375rem 1.25rem 0.375rem;
         border-radius: 0 0 1.25rem 1.25rem;
-        background: var(--color-card-surface);
+        background: #fff;
     }
 
     .uh-showcase-main {
@@ -5129,14 +5125,14 @@ body.uh-home {
     .uh-explore-type-grid a {
         display: flex;
         min-width: 0;
-        min-height: 3.25rem;
+        min-height: 3rem;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
+        gap: 0.375rem;
+        padding: 0.375rem;
         border: 1px solid var(--uh-line);
         border-radius: 0.75rem;
         color: var(--uh-ink-soft);
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         line-height: 1.25;
         transition: border-color var(--uh-dur-1) var(--uh-ease), background-color var(--uh-dur-1) var(--uh-ease), color var(--uh-dur-1) var(--uh-ease), transform var(--uh-dur-1) var(--uh-ease);
     }
@@ -5151,19 +5147,26 @@ body.uh-home {
 
     .uh-explore-type-icon {
         display: grid;
-        width: 2rem;
-        height: 2rem;
+        width: 1.625rem;
+        height: 1.625rem;
         flex: none;
         place-items: center;
-        border-radius: 0.625rem;
+        border-radius: 0.5rem;
         background: var(--uh-paper);
         color: #836235;
     }
 
+    .uh-explore-type-icon svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
     .uh-explore-type-name {
         min-width: 0;
+        flex: 1;
         white-space: normal;
-        overflow-wrap: anywhere;
+        overflow-wrap: normal;
+        word-break: normal;
         line-height: 1.3;
     }
 
