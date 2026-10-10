@@ -23,7 +23,7 @@
 
 <div @class(['uh-admin-compose', 'is-split' => (bool) $model])>
     <form method="POST" action="{{ $model ? route('admin.projects.update', $model) : route('admin.projects.store') }}"
-          class="uh-admin-compose-main" enctype="multipart/form-data" x-data="uhForm" @submit="submit" data-unsaved-guard>
+          id="project-main-form" class="uh-admin-compose-main" enctype="multipart/form-data" x-data="uhForm" @submit="submit" data-unsaved-guard data-upload-pending-media>
         @csrf
         @if($model) @method('PUT') @endif
         <fieldset class="grid gap-4" @disabled($model && ! $canEdit)>
@@ -112,7 +112,7 @@
             </div>
         @endif
 
-        <section class="uh-panel" @if($model) id="step-media" @endif>
+        <section class="uh-panel" @unless($model) id="step-media" @endunless>
             <h2 class="uh-h4">Video and placement</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
                 <x-ui.input name="video_url" label="Video URL" type="url" dir="ltr" :value="$model->video_url ?? ''" optional hint="YouTube or Vimeo link." />
@@ -128,27 +128,31 @@
             @endif
         </section>
 
-        <div id="step-seo">
-            @include('admin.partials.seo-panel', [
-                'seo' => $model?->seoOverride,
-                'slugName' => 'slug',
-                'slug' => $model->slug ?? null,
-                'baseUrl' => url('/projects'),
-                'titleSource' => 'name',
-                'contentSource' => 'description',
-                'idPrefix' => 'project-seo',
-            ])
-        </div>
+        @unless($model)
+            <div id="step-seo">
+                @include('admin.partials.seo-panel', [
+                    'seo' => null,
+                    'slugName' => 'slug',
+                    'slug' => null,
+                    'baseUrl' => url('/projects'),
+                    'titleSource' => 'name',
+                    'contentSource' => 'description',
+                    'idPrefix' => 'project-seo',
+                ])
+            </div>
+        @endunless
 
         </div>
 
-        <div class="uh-admin-dock">
-            <button type="submit" class="uh-btn-primary" :disabled="submitting">
-                <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                <span x-text="submitting ? 'Saving…' : '{{ $model ? 'Save changes' : 'Create project' }}'">{{ $model ? 'Save changes' : 'Create project' }}</span>
-            </button>
-            <a class="uh-btn-ghost" href="{{ route('admin.projects.index') }}">Cancel</a>
-        </div>
+        @unless($model)
+            <div class="uh-admin-dock">
+                <button type="submit" class="uh-btn-primary" :disabled="submitting">
+                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                    <span x-text="submitting ? 'Saving…' : 'Create project'">Create project</span>
+                </button>
+                <a class="uh-btn-ghost" href="{{ route('admin.projects.index') }}">Cancel</a>
+            </div>
+        @endunless
         </fieldset>
     </form>
 
@@ -166,5 +170,27 @@
 </div>
 
 @if($model)
-    @include('admin.partials.media-manager', ['owner' => $model, 'ownerType' => 'project', 'collections' => ['gallery' => 'Photographs', 'brochure' => 'Brochures'], 'canEdit' => $canEdit])
+    <div id="step-media" class="scroll-mt-24">
+        @include('admin.partials.media-manager', ['owner' => $model, 'ownerType' => 'project', 'collections' => ['gallery' => 'Photographs', 'brochure' => 'Brochures'], 'canEdit' => $canEdit])
+    </div>
+    <div id="step-seo" class="mt-4 scroll-mt-24">
+        @include('admin.partials.seo-panel', [
+            'seo' => $model->seoOverride,
+            'slugName' => 'slug',
+            'slug' => $model->slug,
+            'baseUrl' => url('/projects'),
+            'titleSource' => 'name',
+            'contentSource' => 'description',
+            'idPrefix' => 'project-seo',
+            'formId' => 'project-main-form',
+            'disabled' => ! $canEdit,
+        ])
+    </div>
+    <div class="uh-admin-dock mt-4" x-data="{ submitting: false }" @submit.window="if ($event.target.id === 'project-main-form') submitting = true" @uh:save-reset.window="if ($event.detail?.formId === 'project-main-form') submitting = false">
+        <button type="submit" form="project-main-form" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
+            <span class="uh-spinner" x-show="submitting" x-cloak></span>
+            <span x-text="submitting ? 'Saving…' : 'Save changes'">Save changes</span>
+        </button>
+        <a class="uh-btn-ghost" href="{{ route('admin.projects.index') }}">Cancel</a>
+    </div>
 @endif

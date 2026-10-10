@@ -159,8 +159,12 @@
                             <x-icon name="mail" class="size-5" />
                         </a>
                     @endif
-                    <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5"
-                                  @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif />
+                    @if(! $listingLayout)
+                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5"
+                                      x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" />
+                    @else
+                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5" />
+                    @endif
                 </div>
                 <div class="uh-showcase-link-actions">
                     <button type="button" class="uh-showcase-quick-view"

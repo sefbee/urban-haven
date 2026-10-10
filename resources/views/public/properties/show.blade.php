@@ -328,7 +328,7 @@
                     <section id="contact" class="uh-pd-card uh-pd-contact-info" aria-labelledby="contact-heading"
                              x-data="uhCustomerAccount(@js(route('account.register')), @js(route('account.login')))"
                              @keydown.escape.window="close()">
-                        <h2 id="contact-heading" class="uh-pd-card-title">{{ __('Contact Information') }}</h2>
+                        <h2 id="contact-heading" class="uh-pd-card-title">{{ __('Enquire & Contact') }}</h2>
                         <div class="uh-pd-contact-grid">
                             <div class="uh-pd-contact-form-wrap">
                                 <div class="uh-pd-agent">
@@ -389,7 +389,7 @@
                                             @endif
                                             <button type="submit" class="uh-btn-primary" :disabled="submitting" :aria-busy="submitting.toString()">
                                                 <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                                                <span x-text="submitting ? @js(__('Sending…')) : @js(__('Send enquiry'))">{{ __('Send enquiry') }}</span>
+                                                <span x-text="submitting ? @js(__('Sending…')) : @js(__('Enquire'))">{{ __('Enquire') }}</span>
                                             </button>
                                         </div>
                                     </form>

@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class MediaController extends Controller
 {
@@ -28,6 +29,10 @@ class MediaController extends Controller
             'file' => ['required_without:files', 'file', 'max:'.$maxKb],
             'files' => ['required_without:file', 'array', 'max:20'],
             'files.*' => ['file', 'max:'.$maxKb],
+            'files_meta' => ['sometimes', 'array', 'max:20'],
+            'files_meta.*.alt_text' => ['nullable', 'string', 'max:200'],
+            'files_meta.*.is_public' => ['sometimes', 'boolean'],
+            'files_meta.*.make_cover' => ['sometimes', 'boolean'],
             'owner_type' => ['required', Rule::in(array_keys(self::OWNERS))],
             'owner_id' => ['required', 'integer'],
             'collection' => [
@@ -40,8 +45,42 @@ class MediaController extends Controller
         $owner = $this->owner($validated['owner_type'], (int) $validated['owner_id']);
         $this->authorize('update', $owner);
 
-        $records = collect($request->hasFile('file') ? [$request->file('file')] : $request->file('files'))
-            ->map(fn (UploadedFile $file): Media => $media->store($owner, $file, $validated['collection'] ?? 'gallery', $validated['alt_text'] ?? null));
+        $files = collect($request->hasFile('file') ? [$request->file('file')] : $request->file('files'))->values();
+        $metadata = $validated['files_meta'] ?? [];
+
+        foreach ($files as $index => $file) {
+            $itemMetadata = $metadata[$index] ?? null;
+            if ($itemMetadata && ($itemMetadata['is_public'] ?? false) && blank($itemMetadata['alt_text'] ?? null)) {
+                throw ValidationException::withMessages([
+                    "files_meta.{$index}.alt_text" => 'Add alt text before making this image public.',
+                ]);
+            }
+        }
+
+        $records = $files->map(function (UploadedFile $file, int $index) use ($media, $owner, $validated, $metadata, $request): Media {
+            $itemMetadata = $metadata[$index] ?? null;
+            $record = $media->store(
+                $owner,
+                $file,
+                $validated['collection'] ?? 'gallery',
+                $itemMetadata['alt_text'] ?? ($validated['alt_text'] ?? null),
+            );
+
+            if ($itemMetadata !== null) {
+                $media->updateDetails(
+                    $record,
+                    $itemMetadata['alt_text'] ?? null,
+                    (bool) ($itemMetadata['is_public'] ?? false),
+                    $request->user(),
+                );
+
+                if (! empty($itemMetadata['make_cover']) && $record->collection === 'gallery' && in_array('featured_media_id', $owner->getFillable(), true)) {
+                    $owner->forceFill(['featured_media_id' => $record->id])->save();
+                }
+            }
+
+            return $record;
+        });
         $record = $records->first();
 
         if (! $request->expectsJson()) {
@@ -55,6 +94,12 @@ class MediaController extends Controller
             'url' => $record->isDocument() ? null : $record->url(),
             'thumb_url' => $record->isDocument() ? null : $record->thumbUrl(),
             'is_public' => $record->is_public,
+            'records' => $records->map(fn (Media $item): array => [
+                'id' => $item->id,
+                'url' => $item->isDocument() ? null : $item->url(),
+                'thumb_url' => $item->isDocument() ? null : $item->thumbUrl(),
+                'is_public' => $item->is_public,
+            ])->all(),
         ], 201);
     }
 

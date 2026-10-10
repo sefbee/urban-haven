@@ -41,7 +41,7 @@
 
 <div @class(['uh-admin-compose', 'is-split' => $exists])>
     <form method="POST" action="{{ $exists ? route('admin.properties.update', $property) : route('admin.properties.store') }}"
-          class="uh-admin-compose-main" enctype="multipart/form-data" data-unsaved-guard
+          id="property-main-form" class="uh-admin-compose-main" enctype="multipart/form-data" data-unsaved-guard data-upload-pending-media
           x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
           @submit="submit">
         @csrf
@@ -251,26 +251,30 @@
                 </div>
             </section>
 
-            <div id="step-seo">
-                @include('admin.partials.seo-panel', [
-                    'seo' => $property->seoOverride,
-                    'slugName' => 'slug',
-                    'slug' => $property->slug,
-                    'baseUrl' => url('/properties'),
-                    'titleSource' => 'title',
-                    'contentSource' => 'description',
-                    'idPrefix' => 'property-seo',
-                ])
-            </div>
+            @unless($exists)
+                <div id="step-seo">
+                    @include('admin.partials.seo-panel', [
+                        'seo' => null,
+                        'slugName' => 'slug',
+                        'slug' => null,
+                        'baseUrl' => url('/properties'),
+                        'titleSource' => 'title',
+                        'contentSource' => 'description',
+                        'idPrefix' => 'property-seo',
+                    ])
+                </div>
+            @endunless
 
             </div>
-            <div class="uh-admin-dock">
-                <button type="submit" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
-                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                    <span>{{ $saveLabel }}</span>
-                </button>
-                <a class="uh-btn-ghost" href="{{ route('admin.properties.index') }}">Cancel</a>
-            </div>
+            @unless($exists)
+                <div class="uh-admin-dock">
+                    <button type="submit" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
+                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                        <span>{{ $saveLabel }}</span>
+                    </button>
+                    <a class="uh-btn-ghost" href="{{ route('admin.properties.index') }}">Cancel</a>
+                </div>
+            @endunless
         </fieldset>
     </form>
 
@@ -376,5 +380,25 @@
 @if($exists)
     <div id="step-media" class="scroll-mt-24">
         @include('admin.partials.media-manager', ['owner' => $property, 'ownerType' => 'property', 'canEdit' => $canEdit])
+    </div>
+    <div id="step-seo" class="mt-4 scroll-mt-24">
+        @include('admin.partials.seo-panel', [
+            'seo' => $property->seoOverride,
+            'slugName' => 'slug',
+            'slug' => $property->slug,
+            'baseUrl' => url('/properties'),
+            'titleSource' => 'title',
+            'contentSource' => 'description',
+            'idPrefix' => 'property-seo',
+            'formId' => 'property-main-form',
+            'disabled' => ! $canEdit,
+        ])
+    </div>
+    <div class="uh-admin-dock mt-4" x-data="{ submitting: false }" @submit.window="if ($event.target.id === 'property-main-form') submitting = true" @uh:save-reset.window="if ($event.detail?.formId === 'property-main-form') submitting = false">
+        <button type="submit" form="property-main-form" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
+            <span class="uh-spinner" x-show="submitting" x-cloak></span>
+            <span>{{ $saveLabel }}</span>
+        </button>
+        <a class="uh-btn-ghost" href="{{ route('admin.properties.index') }}">Cancel</a>
     </div>
 @endif

@@ -25,9 +25,7 @@
     $logoLight = $brandUrl(\App\Models\Setting::get('brand_logo'));
     $logoDark = $brandUrl(\App\Models\Setting::get('brand_logo_dark')) ?? $logoLight;
     $logoMobile = $brandUrl(\App\Models\Setting::get('brand_logo_mobile'));
-    $logoFooter = $brandUrl(\App\Models\Setting::get('brand_logo_footer')) ?? $logoLight;
-    $footerHeroImage = \App\Models\CmsBlock::imagesFor('hero')->first()
-        ?? \App\Models\Property::query()->whereHas('media')->latest('id')->first()?->featuredImage();
+    $logoFooter = $brandUrl(\App\Models\Setting::get('brand_logo_footer')) ?? $logoDark;
     $favicon = $brandUrl(\App\Models\Setting::get('brand_favicon'));
     $headerCtaLabel = \App\Models\Setting::get('header_cta_label');
     $headerCtaUrl = \App\Models\Setting::get('header_cta_url') ?: '/contact';
@@ -293,20 +291,8 @@
             @yield('content')
         </main>
 
-        <footer @class(['uh-site-foot', 'has-cover' => $footerHeroImage !== null])>
-            @if($footerHeroImage)
-                <div class="uh-foot-media" aria-hidden="true">
-                    <img src="{{ $footerHeroImage->url(1920) }}"
-                         srcset="{{ $footerHeroImage->url(768) }} 768w, {{ $footerHeroImage->url(1280) }} 1280w, {{ $footerHeroImage->url(1920) }} 1920w"
-                         sizes="100vw"
-                         alt=""
-                         loading="lazy"
-                         decoding="async">
-                </div>
-                <div class="uh-foot-veil" aria-hidden="true"></div>
-            @else
-                <div class="uh-foot-glow" aria-hidden="true"></div>
-            @endif
+        <footer class="uh-site-foot">
+            <div class="uh-foot-glow" aria-hidden="true"></div>
 
             <div class="uh-container relative z-10">
                 <div class="uh-foot-top">

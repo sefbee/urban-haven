@@ -10,6 +10,7 @@ use App\Models\Setting;
 use App\Support\SeoMeta;
 use App\Support\StructuredData;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
@@ -42,7 +43,7 @@ class ProjectController extends Controller
             'media',
             'seoOverride',
             'publicationState',
-            'properties' => fn (Builder $query) => $query->published()
+            'properties' => fn (HasMany $query) => $query->published()
                 ->whereIn('listing_type', Setting::enabledPurposes() ?: ['__none__'])
                 ->with(['propertyType', 'locationArea', 'media', 'units']),
         ]);

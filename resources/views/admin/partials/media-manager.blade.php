@@ -47,17 +47,6 @@
                 <span class="text-xs text-[var(--admin-muted)]" x-text="'(' + itemIds.length + ')'">({{ $items->count() }})</span>
             </div>
 
-            @if($canEdit && $items->isNotEmpty())
-                <div class="flex items-center gap-2">
-                    <button type="button" @click="saveAllDetails()" class="uh-btn-primary uh-btn-sm"
-                            :disabled="batchSubmitting || !hasUnsavedChanges"
-                            title="Persist all pending details (alt text, public visibility, cover) at once">
-                        <span class="uh-spinner" x-show="batchSubmitting" x-cloak></span>
-                        <x-icon name="check" class="size-3.5" x-show="!batchSubmitting && !hasUnsavedChanges" />
-                        <span x-text="batchSubmitting ? 'Saving…' : (hasUnsavedChanges ? 'Save changes' : 'All saved')">Save changes</span>
-                    </button>
-                </div>
-            @endif
         </div>
 
         <p class="uh-admin-media-hint">
@@ -115,19 +104,19 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-2.5">
                     <div>
                         <p class="text-xs font-semibold text-ink">
-                            <span x-text="pendingFiles.length"></span>
-                            <span x-text="pendingFiles.length === 1 ? 'file' : 'photos'"></span> ready to upload
+                            <span x-text="pendingFiles.filter(file => !file.uploaded).length"></span>
+                            <span x-text="pendingFiles.filter(file => !file.uploaded).length === 1 ? 'file' : 'photos'"></span> ready to upload
                             <span class="text-xs font-normal text-muted" x-text="'(' + filesize + ' total)'"></span>
                         </p>
-                        <p class="text-[11px] text-muted">Review selected files before uploading. Remove any unneeded ones.</p>
+                        <p class="text-[11px] text-muted">Set image details before uploading. Uploaded images are saved with these settings.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" class="uh-btn-primary uh-btn-sm" :disabled="submitting" @click="uploadPending()">
+                        <button type="button" class="uh-btn-primary uh-btn-sm" x-show="pendingFiles.some(file => !file.uploaded)" :disabled="submitting" @click="uploadPending()">
                             <span class="uh-spinner" x-show="submitting" x-cloak></span>
                             <x-icon name="upload" class="size-3.5" x-show="!submitting" />
-                            <span x-text="submitting ? 'Uploading…' : ('Upload ' + pendingFiles.length + (pendingFiles.length === 1 ? ' file' : ' photos'))">Upload</span>
+                            <span x-text="submitting ? 'Uploading…' : ('Upload ' + pendingFiles.filter(file => !file.uploaded).length + (pendingFiles.filter(file => !file.uploaded).length === 1 ? ' file' : ' photos'))">Upload</span>
                         </button>
-                        <button type="button" class="uh-btn-ghost uh-btn-sm" :disabled="submitting" @click="clear()">
+                        <button type="button" class="uh-btn-ghost uh-btn-sm" x-show="pendingFiles.some(file => !file.uploaded)" :disabled="submitting" @click="clear()">
                             Cancel
                         </button>
                     </div>
@@ -146,7 +135,30 @@
                             </template>
                             <p class="mt-1 truncate text-[11px] font-medium text-ink" x-text="pf.name" :title="pf.name"></p>
                             <p class="text-[10px] text-muted" x-text="pf.sizeFormatted"></p>
-                            <button type="button" @click="removePending(idx)"
+                            <p class="text-[10px] font-semibold text-forest" x-show="pf.uploaded">Uploaded with settings</p>
+                            @if(! $isDocument)
+                                <div class="mt-2 space-y-2 px-1 text-left" x-show="pf.isImage">
+                                    <label class="uh-label text-[11px]">
+                                        Alt text <span class="text-danger" x-show="pf.is_public">*</span>
+                                        <input type="text" class="uh-input mt-1 text-xs" maxlength="200"
+                                               placeholder="Describe the photograph" x-model="pf.alt_text" :disabled="pf.uploaded">
+                                    </label>
+                                    <div class="flex flex-wrap items-center justify-between gap-1">
+                                        <label class="uh-check text-[11px]">
+                                            <input type="checkbox" x-model="pf.is_public" :disabled="pf.uploaded">
+                                            <span>Public</span>
+                                        </label>
+                                        @if($collection === 'gallery' && $supportsCover)
+                                            <button type="button" class="text-[11px] font-medium text-gold hover:underline"
+                                                    @click="setPendingCover(idx)" :disabled="pf.uploaded"
+                                                    x-text="pf.make_cover ? '★ Cover photo' : 'Set as cover'">
+                                                Set as cover
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+                            <button type="button" @click="removePending(idx)" x-show="!pf.uploaded"
                                     class="absolute -top-1.5 -right-1.5 flex size-4.5 items-center justify-center rounded-full bg-danger text-white shadow-xs hover:bg-danger/80"
                                     aria-label="Remove this file" title="Remove">
                                 <x-icon name="close" class="size-3" />
@@ -221,9 +233,7 @@
                         </div>
 
                         @if($canEdit)
-                            <form method="POST" action="{{ route('admin.media.update', $item) }}" class="uh-admin-media-details">
-                                @csrf
-                                @method('PATCH')
+                            <div class="uh-admin-media-details">
                                 <div class="uh-field">
                                     <label for="alt-{{ $item->id }}" class="uh-label text-xs">
                                         {{ $item->isDocument() ? 'Title' : 'Alt text' }}
@@ -258,24 +268,13 @@
                                         <input type="hidden" name="make_cover" :value="coverId === {{ $item->id }} ? 1 : 0">
                                     @endif
 
-                                    <button type="submit" class="uh-btn-outline uh-btn-sm text-xs py-1 px-2.5">Save</button>
                                 </div>
-                            </form>
+                            </div>
                         @endif
                     </li>
                 @endforeach
             </ul>
 
-            @if($canEdit && $items->count() > 3)
-                <div class="mt-4 flex items-center justify-end gap-2 border-t border-line pt-3">
-                    <button type="button" @click="saveAllDetails()" class="uh-btn-primary uh-btn-sm"
-                            :disabled="batchSubmitting || !hasUnsavedChanges">
-                        <span class="uh-spinner" x-show="batchSubmitting" x-cloak></span>
-                        <x-icon name="check" class="size-3.5" x-show="!batchSubmitting && !hasUnsavedChanges" />
-                        <span x-text="batchSubmitting ? 'Saving…' : (hasUnsavedChanges ? 'Save changes' : 'All saved')">Save changes</span>
-                    </button>
-                </div>
-            @endif
         @elseif(! $canEdit)
             <p class="uh-admin-media-empty">None yet.</p>
         @endif

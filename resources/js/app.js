@@ -1609,6 +1609,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
     pendingFiles: [],
     submitting: false,
     batchSubmitting: false,
+    orderChanged: false,
     dragging: false,
     filename: '',
     filesize: '',
@@ -1630,7 +1631,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             });
         }
         window.addEventListener('beforeunload', (e) => {
-            if (this.hasUnsavedChanges || this.pendingFiles.length > 0) {
+            if (this.hasUnsavedChanges || (this.pendingFiles.some((file) => ! file.uploaded) && ! this.submitting)) {
                 e.preventDefault();
                 e.returnValue = '';
             }
@@ -1679,6 +1680,11 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             size: file.size,
             sizeFormatted: this.formatSize(file.size),
             previewUrl: file.type?.startsWith('image/') ? URL.createObjectURL(file) : null,
+            isImage: file.type?.startsWith('image/') ?? false,
+            alt_text: '',
+            is_public: false,
+            make_cover: false,
+            uploaded: false,
         }));
 
         const totalBytes = files.reduce((total, item) => total + item.size, 0);
@@ -1720,11 +1726,93 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
     },
 
     uploadPending() {
-        if (! this.$refs.file?.form || this.pendingFiles.length === 0) {
+        if (! this.$refs.file?.form || ! this.pendingFiles.some((file) => ! file.uploaded)) {
             return;
         }
         this.submitting = true;
         this.$refs.file.form.requestSubmit();
+    },
+
+    setPendingCover(index) {
+        this.pendingFiles.forEach((file, fileIndex) => {
+            file.make_cover = fileIndex === index;
+        });
+    },
+
+    appendPendingMetadata(formData) {
+        this.pendingFiles.forEach((file, index) => {
+            if (! file.isImage || file.uploaded) {
+                return;
+            }
+
+            formData.append(`files_meta[${index}][alt_text]`, file.alt_text ?? '');
+            formData.append(`files_meta[${index}][is_public]`, file.is_public ? '1' : '0');
+            formData.append(`files_meta[${index}][make_cover]`, file.make_cover ? '1' : '0');
+        });
+    },
+
+    validatePendingSettings() {
+        for (const file of this.pendingFiles) {
+            if (! file.uploaded && file.isImage && file.is_public && ! file.alt_text.trim()) {
+                this.flashNotice('Add alt text before making an image public.', 'danger');
+                return false;
+            }
+        }
+
+        return true;
+    },
+
+    async uploadPendingFiles({ reloadOnSuccess = false } = {}) {
+        const form = this.$refs.file?.form;
+        if (! form || ! this.pendingFiles.some((file) => ! file.uploaded)) {
+            return false;
+        }
+
+        if (! this.validatePendingSettings()) {
+            return false;
+        }
+
+        this.submitting = true;
+        const formData = new FormData(form);
+        this.appendPendingMetadata(formData);
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+                credentials: 'same-origin',
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (! response.ok) {
+                const validationMessage = Object.values(payload.errors ?? {}).flat()[0];
+                throw new Error(validationMessage || payload.message || 'The selected file could not be uploaded.');
+            }
+
+            const uploadedRecords = payload.records ?? [];
+            this.pendingFiles.forEach((file, index) => {
+                if (! file.uploaded) {
+                    file.uploaded = true;
+                    file.mediaId = uploadedRecords[index]?.id ?? null;
+                }
+            });
+            if (this.$refs.file) {
+                this.$refs.file.value = '';
+            }
+            this.submitting = false;
+            if (reloadOnSuccess) {
+                this.flashNotice('Files uploaded with their settings. Continue editing or use Save changes.', 'success');
+            } else {
+                this.flashNotice('Files uploaded with their settings.', 'success');
+            }
+
+            return true;
+        } catch (error) {
+            this.submitting = false;
+            this.flashNotice(error instanceof Error ? error.message : 'The selected file could not be uploaded.', 'danger');
+
+            return false;
+        }
     },
 
     formatSize(bytes) {
@@ -1749,8 +1837,9 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         }
     },
 
-    submit() {
-        this.submitting = true;
+    submit(event) {
+        event.preventDefault();
+        this.uploadPendingFiles({ reloadOnSuccess: true });
     },
 
     isFirst(id) {
@@ -1784,31 +1873,8 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             }
         }
 
-        if (this.reorderUrl) {
-            const token = document.querySelector('meta[name="csrf-token"]')?.content;
-            fetch(this.reorderUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    owner_type: this.ownerType,
-                    owner_id: this.ownerId,
-                    collection: this.collection,
-                    ordered_ids: this.itemIds,
-                }),
-            }).then((res) => {
-                if (res.ok) {
-                    this.flashNotice('Image order updated.', 'success');
-                } else {
-                    this.flashNotice('Failed to update image order.', 'danger');
-                }
-            }).catch(() => {
-                this.flashNotice('Network error while reordering.', 'danger');
-            });
-        }
+        this.orderChanged = true;
+        this.hasUnsavedChanges = true;
     },
 
     setCover(id) {
@@ -1840,9 +1906,9 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         this.hasUnsavedChanges = true;
     },
 
-    saveAllDetails() {
+    async saveAllDetails() {
         if (! this.batchUrl) {
-            return;
+            return false;
         }
 
         for (const id of this.itemIds) {
@@ -1854,8 +1920,12 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
                     inputEl.focus();
                     inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                return;
+                return false;
             }
+        }
+
+        if (! this.hasUnsavedChanges) {
+            return true;
         }
 
         this.batchSubmitting = true;
@@ -1870,26 +1940,54 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         });
 
         const token = document.querySelector('meta[name="csrf-token"]')?.content;
-        fetch(this.batchUrl, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ items: itemsPayload }),
-        }).then((res) => res.json()).then((data) => {
-            this.batchSubmitting = false;
-            if (data.ok) {
-                this.hasUnsavedChanges = false;
-                this.flashNotice(`${data.updated || itemsPayload.length} images updated successfully.`, 'success');
-            } else {
-                this.flashNotice(data.message || 'Failed to save image changes.', 'danger');
+        try {
+            const response = await fetch(this.batchUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ items: itemsPayload }),
+            });
+            const data = await response.json();
+
+            if (! response.ok || ! data.ok) {
+                throw new Error(data.message || 'Failed to save image changes.');
             }
-        }).catch(() => {
+
+            if (this.orderChanged && this.reorderUrl) {
+                const reorderResponse = await fetch(this.reorderUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        owner_type: this.ownerType,
+                        owner_id: this.ownerId,
+                        collection: this.collection,
+                        ordered_ids: this.itemIds,
+                    }),
+                });
+
+                if (! reorderResponse.ok) {
+                    throw new Error('Failed to save image order.');
+                }
+            }
+
+            this.hasUnsavedChanges = false;
+            this.orderChanged = false;
+            this.flashNotice('Image settings saved.', 'success');
+            return true;
+        } catch (error) {
             this.batchSubmitting = false;
-            this.flashNotice('Network error while saving.', 'danger');
-        });
+            this.flashNotice(error instanceof Error ? error.message : 'Network error while saving.', 'danger');
+            return false;
+        } finally {
+            this.batchSubmitting = false;
+        }
     },
 }));
 
@@ -2105,6 +2203,105 @@ document.addEventListener('click', (event) => {
     row.querySelector('.uh-admin-row-main')?.click();
 });
 
+const bootPendingMediaUploads = () => {
+    document.querySelectorAll('form[data-upload-pending-media]').forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+            if (form.dataset.uploadPendingBypass === 'true') {
+                delete form.dataset.uploadPendingBypass;
+                return;
+            }
+
+            if (form.dataset.uploadingPendingMedia === 'true') {
+                event.preventDefault();
+                return;
+            }
+
+            const uploadForms = [...document.querySelectorAll('form.uh-admin-media-upload')]
+                .filter((uploadForm) => uploadForm.querySelector('input[type="file"]')?.files.length > 0);
+            const mediaStates = [...document.querySelectorAll('.uh-admin-media[x-data]')]
+                .map((section) => window.Alpine?.$data(section))
+                .filter(Boolean);
+            const dirtyMediaStates = mediaStates.filter((mediaState) => mediaState.hasUnsavedChanges);
+
+            if (uploadForms.length === 0 && dirtyMediaStates.length === 0) {
+                return;
+            }
+
+            event.preventDefault();
+            form.dataset.uploadingPendingMedia = 'true';
+            const submitter = event.submitter;
+            let activeUploadForm = null;
+
+            try {
+                for (const mediaState of dirtyMediaStates) {
+                    if (! await mediaState.saveAllDetails()) {
+                        throw new Error(mediaState.statusNotice || 'Please fix the image settings before saving.');
+                    }
+                }
+
+                for (const uploadForm of uploadForms) {
+                    activeUploadForm = uploadForm;
+                    const section = uploadForm.closest('.uh-admin-media');
+                    const mediaState = section ? window.Alpine?.$data(section) : null;
+                    if (mediaState && ! mediaState.validatePendingSettings()) {
+                        throw new Error(mediaState.statusNotice || 'Please complete the selected image settings.');
+                    }
+                    if (mediaState) {
+                        mediaState.submitting = true;
+                    }
+
+                    const uploadData = new FormData(uploadForm);
+                    mediaState?.appendPendingMetadata(uploadData);
+
+                    const response = await fetch(uploadForm.action, {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: uploadData,
+                        credentials: 'same-origin',
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (! response.ok) {
+                        const validationMessage = Object.values(payload.errors ?? {}).flat()[0];
+                        throw new Error(validationMessage || payload.message || 'The selected file could not be uploaded.');
+                    }
+
+                    if (mediaState) {
+                        mediaState.clear();
+                    } else {
+                        uploadForm.reset();
+                    }
+                }
+
+                form.dataset.uploadPendingBypass = 'true';
+                delete form.dataset.uploadingPendingMedia;
+                if (submitter) {
+                    form.requestSubmit(submitter);
+                } else {
+                    form.requestSubmit();
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'The selected file could not be uploaded.';
+                const section = activeUploadForm?.closest('.uh-admin-media');
+                const mediaState = section ? window.Alpine?.$data(section) : null;
+                if (mediaState) {
+                    mediaState.submitting = false;
+                    mediaState.flashNotice(message, 'danger');
+                }
+                delete form.dataset.uploadingPendingMedia;
+                const formState = window.Alpine?.$data(form);
+                if (formState && 'submitting' in formState) {
+                    formState.submitting = false;
+                }
+                window.dispatchEvent(new CustomEvent('uh:save-reset', { detail: { formId: form.id } }));
+            }
+        });
+    });
+};
+
 /**
  * Admin forms marked data-unsaved-guard warn before the page is left with edits that were never saved.
  */
@@ -2119,7 +2316,13 @@ const bootUnsavedGuards = () => {
         const mark = () => dirty.add(form);
         form.addEventListener('input', mark);
         form.addEventListener('change', mark);
-        form.addEventListener('submit', () => dirty.clear());
+        form.addEventListener('submit', (event) => {
+            setTimeout(() => {
+                if (! event.defaultPrevented) {
+                    dirty.clear();
+                }
+            }, 0);
+        });
     });
 
     window.addEventListener('beforeunload', (event) => {
@@ -2147,6 +2350,7 @@ const bootUnsavedGuards = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     bootAdminSelects();
+    bootPendingMediaUploads();
     bootUnsavedGuards();
     bootPublicSelects();
     bootMaps();

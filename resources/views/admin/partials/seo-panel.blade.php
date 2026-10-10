@@ -7,6 +7,8 @@
     $seo = $seo ?? null;
     $seo = $seo instanceof \App\Models\SeoOverride ? $seo->only(['focus_keyword', 'meta_title', 'meta_description', 'og_image_path', 'gsc_code', 'noindex']) : (array) $seo;
     $prefix = $prefix ?? '';
+    $formId = $formId ?? null;
+    $disabled = $disabled ?? false;
     $idPrefix = $idPrefix ?? 'seo';
     $slugName = $slugName ?? null;
     $slug = $slug ?? null;
@@ -63,7 +65,7 @@
     <div class="dd-seo-fields">
         <div class="uh-field">
             <label class="uh-label" for="{{ $idPrefix }}-keyword">Focus keyword <span class="uh-label-optional">optional</span></label>
-            <input id="{{ $idPrefix }}-keyword" name="{{ $name('seo_focus_keyword') }}" class="uh-input" maxlength="80" x-model="keyword"
+            <input id="{{ $idPrefix }}-keyword" name="{{ $name('seo_focus_keyword') }}" class="uh-input" maxlength="80" x-model="keyword" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                    placeholder="e.g. apartment for sale in Gulshan">
             @error($key('seo_focus_keyword'))<p class="uh-error">{{ $message }}</p>@enderror
         </div>
@@ -73,7 +75,7 @@
                 <label class="uh-label" for="{{ $idPrefix }}-title">Meta title <span class="uh-label-optional">optional</span></label>
                 <span class="dd-seo-count" :class="titleTone" x-text="(title || autoTitle).length + ' / 60'"></span>
             </div>
-            <input id="{{ $idPrefix }}-title" name="{{ $name('seo_meta_title') }}" class="uh-input" maxlength="{{ \App\Support\SeoFields::TITLE_MAX }}" x-model="title"
+            <input id="{{ $idPrefix }}-title" name="{{ $name('seo_meta_title') }}" class="uh-input" maxlength="{{ \App\Support\SeoFields::TITLE_MAX }}" x-model="title" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                    :placeholder="autoTitle">
             <div class="dd-seo-meter"><span :class="titleTone" :style="'width:' + Math.min(100, (title || autoTitle).length / 60 * 100) + '%'"></span></div>
             @error($key('seo_meta_title'))<p class="uh-error">{{ $message }}</p>@enderror
@@ -85,7 +87,7 @@
                 <span class="dd-seo-count" :class="descriptionTone" x-text="(description || autoDescription).length + ' / 160'"></span>
             </div>
             <textarea id="{{ $idPrefix }}-description" name="{{ $name('seo_meta_description') }}" class="uh-input uh-textarea" rows="3"
-                      maxlength="{{ \App\Support\SeoFields::DESCRIPTION_MAX }}" x-model="description" :placeholder="autoDescription"></textarea>
+                      maxlength="{{ \App\Support\SeoFields::DESCRIPTION_MAX }}" x-model="description" :placeholder="autoDescription" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)></textarea>
             <div class="dd-seo-meter"><span :class="descriptionTone" :style="'width:' + Math.min(100, (description || autoDescription).length / 160 * 100) + '%'"></span></div>
             @error($key('seo_meta_description'))<p class="uh-error">{{ $message }}</p>@enderror
         </div>
@@ -95,9 +97,9 @@
             @if($slugName)
                 <div class="dd-seo-permalink">
                     <span class="dd-seo-permalink-base" dir="ltr">{{ $baseUrl }}</span>
-                    <input id="{{ $idPrefix }}-slug" name="{{ $slugName }}" class="dd-seo-permalink-input" dir="ltr" maxlength="120" x-model="slug"
+            <input id="{{ $idPrefix }}-slug" name="{{ $slugName }}" class="dd-seo-permalink-input" dir="ltr" maxlength="120" x-model="slug" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                            @input="slugEdited()" @blur="slug = slugify(slug)" placeholder="generated-from-the-title" autocomplete="off" spellcheck="false">
-                    <button type="button" class="dd-seo-permalink-btn" @click="regenerate()" title="Generate from the title">
+                    <button type="button" class="dd-seo-permalink-btn" @click="regenerate()" title="Generate from the title" @disabled($disabled)>
                         <x-icon name="refresh" class="size-3.5" />
                         <span class="sr-only">Generate from the title</span>
                     </button>
@@ -116,22 +118,22 @@
 
         <div class="uh-field">
             <label class="uh-label" for="{{ $idPrefix }}-og-image">Open Graph image URL <span class="uh-label-optional">optional</span></label>
-            <input id="{{ $idPrefix }}-og-image" name="{{ $name('seo_og_image_path') }}" class="uh-input" type="url" maxlength="2048" dir="ltr"
+            <input id="{{ $idPrefix }}-og-image" name="{{ $name('seo_og_image_path') }}" class="uh-input" type="url" maxlength="2048" dir="ltr" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                    value="{{ $old('seo_og_image_path', $seo['og_image_path'] ?? '') }}" placeholder="https://example.com/page-share-image.jpg">
             @error($key('seo_og_image_path'))<p class="uh-error">{{ $message }}</p>@enderror
         </div>
 
         <div class="uh-field">
             <label class="uh-label" for="{{ $idPrefix }}-gsc">Google Search Console code <span class="uh-label-optional">optional</span></label>
-            <input id="{{ $idPrefix }}-gsc" name="{{ $name('seo_gsc_code') }}" class="uh-input" maxlength="100" dir="ltr"
+            <input id="{{ $idPrefix }}-gsc" name="{{ $name('seo_gsc_code') }}" class="uh-input" maxlength="100" dir="ltr" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                    value="{{ $old('seo_gsc_code', $seo['gsc_code'] ?? '') }}" placeholder="abc123XYZ_verification-code">
             @error($key('seo_gsc_code'))<p class="uh-error">{{ $message }}</p>@enderror
         </div>
 
         <div>
-            <input type="hidden" name="{{ $name('seo_noindex') }}" value="0">
+            <input type="hidden" name="{{ $name('seo_noindex') }}" value="0" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)>
             <label class="uh-check">
-                <input type="checkbox" name="{{ $name('seo_noindex') }}" value="1" @checked($old('seo_noindex', $seo['noindex'] ?? false))>
+                <input type="checkbox" name="{{ $name('seo_noindex') }}" value="1" @checked($old('seo_noindex', $seo['noindex'] ?? false)) @if($formId) form="{{ $formId }}" @endif @disabled($disabled)>
                 <span>Hide this page from search engines (noindex)</span>
             </label>
         </div>
