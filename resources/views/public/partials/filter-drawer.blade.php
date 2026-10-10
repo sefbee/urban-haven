@@ -14,9 +14,10 @@
        x-cloak
        x-bind:class="filtersOpen ? '!flex' : '!hidden'"
        role="dialog" aria-modal="true" aria-labelledby="more-filters-title"
-       @change.debounce.300ms="search(document.getElementById('property-filters'))"
+       @change.debounce.250ms="search(document.getElementById('property-filters'))"
        x-bind:aria-hidden="(!filtersOpen).toString()"
-       @click.stop @keydown.escape.stop="closeFilters()">
+       @click.stop @keydown.escape.stop="closeFilters()"
+       @keydown.tab.prevent="filtersOpen && $trapFocus($el, $event)">
     <div class="uh-drawer-head">
         <div class="uh-drawer-heading">
             <span class="uh-drawer-mark"><x-icon name="filter" class="size-5" /></span>

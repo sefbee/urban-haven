@@ -6,6 +6,39 @@ import { bootPublicSelects } from './public-selects';
 import { registerSavedStore } from './saved';
 import { bootMaps, refreshMapData, refreshMaps } from './maps';
 
+/**
+ * Trap keyboard focus within a container element.
+ * Call with the container element; returns a handler to attach to keydown.tab.
+ * @param {HTMLElement} container
+ * @param {KeyboardEvent} event
+ */
+const trapFocus = (container, event) => {
+    const focusable = Array.from(
+        container.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+    ).filter((el) => !el.closest('[hidden]') && getComputedStyle(el).display !== 'none');
+
+    if (focusable.length === 0) {
+        return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey) {
+        if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        }
+    } else {
+        if (document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+};
+
 const syncAdminSheets = (name) => {
     document.querySelectorAll('.uh-admin-sheet').forEach((sheet) => {
         sheet.classList.toggle('is-open', Boolean(name) && sheet.dataset.drawer === name);
@@ -92,26 +125,33 @@ Alpine.data('uhGallery', (count = 0) => ({
     count,
     active: 0,
     lightbox: false,
+    _opener: null,
     select(index) {
         this.active = Math.max(0, Math.min(index, this.count - 1));
     },
     next() {
-        this.active = this.count ? (this.active + 1) % this.count : 0;
+        this.active = (this.active + 1) % this.count;
     },
     previous() {
-        this.active = this.count ? (this.active - 1 + this.count) % this.count : 0;
+        this.active = (this.active - 1 + this.count) % this.count;
     },
     open(index = null) {
         if (index !== null) {
-            this.select(index);
+            if (index < 0 || index >= this.count) {
+                console.warn(`uhGallery.open: index ${index} is out of bounds [0, ${this.count})`);
+                return;
+            }
+            this.active = index;
         }
+        this._opener = document.activeElement;
         this.lightbox = true;
-        document.body.style.overflow = 'hidden';
-        this.$nextTick(() => this.$refs.closeLightbox?.focus());
+        document.body.classList.add('overflow-hidden');
+        this.$nextTick(() => this.$el.focus());
     },
     close() {
         this.lightbox = false;
-        document.body.style.overflow = '';
+        document.body.classList.remove('overflow-hidden');
+        this._opener?.focus();
     },
 }));
 
@@ -1261,7 +1301,10 @@ Alpine.data('uhLeadForm', (formName = 'inquiry') => ({
                 track('form_error', { form_name: this.formName, fields: Object.keys(this.errors).join(',') });
             } else if (response.status === 419) {
                 this.error = window.uhCopyText?.('form_expired') || '';
+            } else if (response.status === 429) {
+                this.error = window.uhCopyText?.('form_rate_limit') || '';
             } else {
+                this.errors = payload.errors || {};
                 this.error = payload.message || window.uhCopyText?.('form_send_error') || '';
             }
         } catch {
@@ -1681,6 +1724,8 @@ const bootImageFades = () => {
 
 registerSavedStore(Alpine);
 registerAdminForms(Alpine);
+
+Alpine.magic('trapFocus', () => trapFocus);
 
 window.Alpine = Alpine;
 window.uhTrack = track;

@@ -3,10 +3,14 @@
     $hasErrors = $bag && $bag->any();
 @endphp
 
-@if(session('status') || $hasErrors)
+@if(session('status') || session('error') || $hasErrors)
     <div {{ $attributes->class('space-y-3') }} aria-live="polite">
         @if(session('status'))
             <x-ui.alert tone="success" dismissible>{{ session('status') }}</x-ui.alert>
+        @endif
+
+        @if(session('error'))
+            <x-ui.alert tone="danger" dismissible>{{ session('error') }}</x-ui.alert>
         @endif
 
         @if($hasErrors)

@@ -100,8 +100,16 @@ export const registerSavedStore = (Alpine) => {
         failed: false,
         html: '',
         count: 0,
+        _lastIds: '',
         async init() {
-            this.$watch(`$store.saved.${list}`, () => this.load());
+            this.$watch(`$store.saved.${list}`, (newIds) => {
+                const serialised = JSON.stringify([...newIds].sort((a, b) => a - b));
+                if (serialised === this._lastIds) {
+                    return;
+                }
+                this._lastIds = serialised;
+                this.load();
+            });
             await this.load();
         },
         async load() {

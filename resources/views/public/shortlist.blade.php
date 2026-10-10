@@ -41,7 +41,7 @@
                         <span x-text="($store.saved.compare.length >= 2 ? @js(__('See the differences')) : @js(__('Compare'))) + ' (' + $store.saved.compare.length + ')'">{{ __('Compare') }}</span>
                     </a>
                     <button type="button" class="uh-btn-text is-muted"
-                            @click="if (window.confirm(@js(__('Remove every property from your shortlist?')))) $store.saved.clear('shortlist')">{{ __('Clear all') }}</button>
+                            @click="if (window.confirm(window.uhCopyText('shortlist_clear_confirm'))) $store.saved.clear('shortlist')">{{ __('Clear all') }}</button>
                 </div>
             </div>
             <p class="uh-collection-next" x-show="count >= 2 && $store.saved.compare.length < 2">

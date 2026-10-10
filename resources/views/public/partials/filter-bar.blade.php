@@ -52,10 +52,10 @@
                     <div class="uh-status-popover" x-show="open" x-cloak x-transition.opacity.duration.150ms>
                         <p class="uh-search-group-title">{{ __('Property Status') }}</p>
                         <div class="uh-status-options" role="group" aria-label="{{ __('Property Status') }}">
-                            <button type="button" @click="document.querySelector('#property-filters [name=listing_type]').value = 'sale'; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: 'sale' })); open = false; $nextTick(() => search(document.getElementById('property-filters')))" @class(['is-active' => $listing === 'sale'])>{{ __('For sale') }}</button>
-                            <button type="button" @click="document.querySelector('#property-filters [name=listing_type]').value = 'rent'; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: 'rent' })); open = false; $nextTick(() => search(document.getElementById('property-filters')))" @class(['is-active' => $listing === 'rent'])>{{ __('For rent') }}</button>
+                            <button type="button" @click="$refs.status.value = 'sale'; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: 'sale' })); open = false; $nextTick(() => search($refs.form))" @class(['is-active' => $listing === 'sale'])>{{ __('For sale') }}</button>
+                            <button type="button" @click="$refs.status.value = 'rent'; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: 'rent' })); open = false; $nextTick(() => search($refs.form))" @class(['is-active' => $listing === 'rent'])>{{ __('For rent') }}</button>
                         </div>
-                        <button type="button" class="uh-status-all" @click="document.querySelector('#property-filters [name=listing_type]').value = ''; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: 'sale' })); open = false; $nextTick(() => search(document.getElementById('property-filters')))">{{ __('Any status') }}</button>
+                        <button type="button" class="uh-status-all" @click="$refs.status.value = ''; window.dispatchEvent(new CustomEvent('uh-listing-purpose', { detail: null })); open = false; $nextTick(() => search($refs.form))">{{ __('Any status') }}</button>
                     </div>
                 </div>
             @endif
@@ -98,9 +98,11 @@
                         <p class="uh-search-group-title">{{ __('Price range') }}</p>
                         <div class="uh-price-range" :style="`--from: ${rangeFrom}%; --to: ${rangeTo}%`">
                             <span class="uh-price-range-track" aria-hidden="true"><span class="uh-price-range-fill"></span></span>
-                            <input type="range" min="0" :max="lastStop" step="1" x-model.number="minIndex" @input="slideMin()"
+                            <input type="range" min="0" :max="lastStop" step="1" x-model.number="minIndex"
+                                   @input="slideMin()" @change.stop="search($refs.form)" @blur="search($refs.form)"
                                    aria-label="{{ __('Minimum price') }}" :aria-valuetext="hasMin ? money(min) : @js(__('No minimum'))">
-                            <input type="range" min="0" :max="lastStop" step="1" x-model.number="maxIndex" @input="slideMax()"
+                            <input type="range" min="0" :max="lastStop" step="1" x-model.number="maxIndex"
+                                   @input="slideMax()" @change.stop="search($refs.form)" @blur="search($refs.form)"
                                    aria-label="{{ __('Maximum price') }}" :aria-valuetext="hasMax ? money(max) : @js(__('No maximum'))">
                         </div>
                         <div class="uh-price-range-inputs">

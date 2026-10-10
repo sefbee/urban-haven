@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\StaleRecordException;
 use App\Http\Middleware\ApplySiteSettings;
 use App\Http\Middleware\CaptureFirstTouchAttribution;
 use App\Http\Middleware\EnsureMfaIsSatisfied;
@@ -45,6 +46,17 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->dontFlash(['password', 'password_confirmation', 'current_password', 'code']);
+
+        $exceptions->render(function (StaleRecordException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', 'This record was updated by someone else. Reload and re-apply your changes.');
+        });
 
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {

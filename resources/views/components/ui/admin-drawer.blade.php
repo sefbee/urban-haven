@@ -7,6 +7,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="drawer-{{ $name }}-title"
+    @keydown.tab.prevent="drawer === @js($name) && $trapFocus($el, $event)"
 >
     <div class="uh-admin-sheet-backdrop" @click="close()"></div>
 

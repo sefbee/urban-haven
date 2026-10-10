@@ -12,6 +12,7 @@
             </ul>
         </div>
     @else
+        <p class="mt-2 text-xs text-[var(--color-success)]">All publishing requirements are met.</p>
     @endif
 
     @if($model->publicationState?->review_note && $status === \App\Models\PublicationState::DRAFT)

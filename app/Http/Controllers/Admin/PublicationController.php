@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\CanPublishProperty;
 use App\Contracts\InventoryService;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Property;
 use App\Models\PublicationState;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,9 +44,20 @@ class PublicationController extends Controller
         return back()->with('status', 'Approved.');
     }
 
-    public function publishProperty(Property $property, InventoryService $inventory): RedirectResponse
+    public function publishProperty(Property $property, InventoryService $inventory, CanPublishProperty $canPublish): JsonResponse|RedirectResponse
     {
         $this->authorize('publish', $property);
+
+        $result = $canPublish($property);
+
+        if (! $result['canPublish']) {
+            if (request()->expectsJson()) {
+                return response()->json(['failures' => $result['failures']], 422);
+            }
+
+            return back()->withErrors(['publish' => $result['failures']])->withInput();
+        }
+
         $inventory->publishProperty($property, request()->user());
 
         return back()->with('status', 'Published.');

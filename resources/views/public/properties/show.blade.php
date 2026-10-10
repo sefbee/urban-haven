@@ -140,48 +140,50 @@
             <div class="uh-pd-layout">
                 <x-media-stage class="uh-pd-stage" :title="$property->title" :photo-count="$media->count()"
                                :video="$videoEmbed" :tour="$property->virtual_tour_url" :coordinates="$coordinates">
-                    <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
-                        @if($media->isNotEmpty())
-                            <button type="button" class="uh-pd-shot is-main"
-                                    style="view-transition-name: uh-property-{{ $property->id }}"
-                                    @click="open(0)"
-                                    aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
-                                <img src="{{ $media->first()->url(1280) }}"
-                                     srcset="{{ $media->first()->url(768) }} 768w, {{ $media->first()->url(1280) }} 1280w, {{ $media->first()->url(1920) }} 1920w"
-                                     sizes="(min-width: 1100px) 60vw, 100vw"
-                                     alt="{{ $media->first()->alt(app()->getLocale()) }}"
-                                     fetchpriority="high" decoding="async">
-                            </button>
-                            @foreach($thumbs as $index => $image)
-                                <button type="button" class="uh-pd-shot"
-                                        @click="open({{ $index + 1 }})"
-                                        aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
-                                    <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
-                                    @if($loop->last && $hiddenPhotos > 0)
-                                        <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
-                                    @endif
+                    <div class="uh-pd-gallery-wrap">
+                        <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
+                            @if($media->isNotEmpty())
+                                <button type="button" class="uh-pd-shot is-main"
+                                        style="view-transition-name: uh-property-{{ $property->id }}"
+                                        @click="open(0)"
+                                        aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
+                                    <img src="{{ $media->first()->url(1280) }}"
+                                         srcset="{{ $media->first()->url(768) }} 768w, {{ $media->first()->url(1280) }} 1280w, {{ $media->first()->url(1920) }} 1920w"
+                                         sizes="(min-width: 1100px) 60vw, 100vw"
+                                         alt="{{ $media->first()->alt(app()->getLocale()) }}"
+                                         fetchpriority="high" decoding="async">
                                 </button>
-                            @endforeach
-                            @if($media->count() > 1)
-                                <button type="button" class="uh-pd-gallery-all" @click="open(0)">
-                                    <x-icon name="grid" class="size-4" />
-                                    {{ __('View all :count photos', ['count' => $media->count()]) }}
-                                </button>
+                                @foreach($thumbs as $index => $image)
+                                    <button type="button" class="uh-pd-shot"
+                                            @click="open({{ $index + 1 }})"
+                                            aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
+                                        <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
+                                        @if($loop->last && $hiddenPhotos > 0)
+                                            <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            @else
+                                <div class="uh-pd-shot is-main is-empty">
+                                    <x-icon name="image" class="size-8" />
+                                    <span>{{ __('Photos coming soon') }}</span>
+                                </div>
                             @endif
-                        @else
-                            <div class="uh-pd-shot is-main is-empty">
-                                <x-icon name="image" class="size-8" />
-                                <span>{{ __('Photos coming soon') }}</span>
-                            </div>
+                        </section>
+                        @if($media->count() > 1)
+                            <button type="button" class="uh-pd-gallery-all" @click="open(0)">
+                                <x-icon name="grid" class="size-4" />
+                                {{ __('View all :count photos', ['count' => $media->count()]) }}
+                            </button>
                         @endif
-                    </section>
+                    </div>
                 </x-media-stage>
 
                 <div class="uh-pd-body">
                     <nav class="uh-pd-tabs" x-data="uhSectionTabs" aria-label="{{ __('Property details') }}">
                         <div class="uh-pd-tabs-strip">
                             @foreach($tabs as $anchor => $label)
-                                <a href="#{{ $anchor }}" :data-active="current === '{{ $anchor }}'" @if($loop->first) data-active @endif>{{ $label }}</a>
+                                <a href="#{{ $anchor }}" :class="{ 'is-active': current === '{{ $anchor }}' }" @if($loop->first) class="is-active" @endif>{{ $label }}</a>
                             @endforeach
                         </div>
                     </nav>
@@ -367,7 +369,6 @@
                                             <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ __('I agree to the') }} <a class="uh-link-quiet" href="{{ route('legal') }}">{{ __('Terms of Use and Privacy Policy') }}</a>.</span>
                                         </label>
                                         <p x-cloak x-show="fieldError('consent_given')" class="uh-error" x-text="fieldError('consent_given')"></p>
-                                        @error('consent_given')<p class="uh-error">{{ $message }}</p>@enderror
 
                                         @guest
                                             <label class="uh-check uh-pd-account-check items-start">
@@ -537,8 +538,10 @@
 
         @if($media->isNotEmpty())
             <div x-show="lightbox" x-cloak x-transition.opacity.duration.400ms class="uh-lightbox"
+                 tabindex="-1"
                  role="dialog" aria-modal="true" aria-label="{{ __('Property gallery') }}"
-                 @keydown.escape.window="lightbox && close()" @keydown.left.window="lightbox && previous()" @keydown.right.window="lightbox && next()">
+                 @keydown.escape.window="lightbox && close()" @keydown.left.window="lightbox && previous()" @keydown.right.window="lightbox && next()"
+                 @keydown.tab.prevent="lightbox && $trapFocus($el, $event)">
                 <div class="uh-lightbox-bar">
                     <p class="uh-numeric">
                         <span x-text="active + 1">1</span>

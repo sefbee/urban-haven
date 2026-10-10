@@ -23,6 +23,16 @@ class Lead extends Model
 
     public const CLOSED_STATUSES = ['won', 'lost'];
 
+    public const TRANSITIONS = [
+        'new' => ['contacted', 'qualified', 'visit_scheduled', 'negotiation', 'won', 'lost'],
+        'contacted' => ['qualified', 'visit_scheduled', 'negotiation', 'won', 'lost'],
+        'qualified' => ['visit_scheduled', 'negotiation', 'won', 'lost'],
+        'visit_scheduled' => ['negotiation', 'won', 'lost', 'qualified', 'contacted'],
+        'negotiation' => ['won', 'lost', 'qualified'],
+        'won' => [],
+        'lost' => ['contacted', 'qualified'],
+    ];
+
     public const PRIORITIES = ['high', 'medium', 'low'];
 
     public const TYPES = ['property_inquiry', 'visit_request', 'general_contact', 'campaign'];

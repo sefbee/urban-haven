@@ -70,6 +70,7 @@ class LeadController extends Controller
             return response()->json([
                 'message' => $message,
                 'event' => ['event' => $event, 'lead_type' => $lead->type],
+                'is_repeat_contact' => ! $created,
             ], $created ? 201 : 200);
         }
 

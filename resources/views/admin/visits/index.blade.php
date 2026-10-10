@@ -65,7 +65,12 @@
                                     @php($allowed = \App\Models\SiteVisitRequest::TRANSITIONS[$visit->status] ?? [])
                                     @if($allowed !== [])
                                         <form method="POST" action="{{ route('admin.visits.status', $visit) }}" class="min-w-56 space-y-2"
-                                              x-data="{ status: @js($allowed[0]) }">
+                                              x-data="{ status: @js($allowed[0]) }"
+                                              @submit.prevent="
+                                                const irreversible = ['completed', 'no_show', 'cancelled'];
+                                                if (irreversible.includes(status) && !confirm('Mark this visit as ' + status.replace('_', '-') + '? This cannot be undone.')) return;
+                                                $el.submit();
+                                              ">
                                             @csrf
                                             <select name="status" x-model="status" class="uh-select min-h-9 py-1.5 text-[0.8125rem]"
                                                     aria-label="New status for {{ $visit->lead?->name ?? 'this visit' }}">
@@ -78,11 +83,13 @@
                                                        aria-label="Confirmed visit time"
                                                        value="{{ $visit->preferred_at?->timezone(config('urbanhaven.display_timezone'))->format('Y-m-d\TH:i') }}">
                                             </template>
-                                            <template x-if="status === 'completed' || status === 'no_show' || status === 'cancelled'">
-                                                <textarea name="outcome_note" rows="2" maxlength="2000" class="uh-input py-1.5 text-[0.8125rem]"
-                                                          :required="status === 'completed'" aria-label="Outcome note"
-                                                          :placeholder="status === 'completed' ? 'What happened at the visit?' : 'Optional note'"></textarea>
-                                            </template>
+                                            <textarea name="outcome_note" rows="2" maxlength="2000" class="uh-input py-1.5 text-[0.8125rem]"
+                                                      x-show="status === 'completed' || status === 'no_show' || status === 'cancelled'"
+                                                      :disabled="!(status === 'completed' || status === 'no_show' || status === 'cancelled')"
+                                                      required
+                                                      :required="status === 'completed'"
+                                                      aria-label="Outcome note"
+                                                      :placeholder="status === 'completed' ? 'What happened at the visit?' : 'Optional note'"></textarea>
                                             <button type="submit" class="uh-btn-outline uh-btn-sm">Save</button>
                                         </form>
                                     @else

@@ -23,7 +23,7 @@
             </x-ui.empty>
         </template>
 
-        <div x-show="count >= 2 && html" x-cloak>
+        <div x-show="count >= 2" x-cloak x-effect="if (count < 2) html = ''">
             <div class="transition-opacity" :class="{ 'opacity-60': loading }" :aria-busy="loading.toString()" x-html="html"></div>
         </div>
     </div>

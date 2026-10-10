@@ -138,7 +138,7 @@
                     </thead>
                     <tbody>
                         @foreach($leads as $lead)
-                            <tr class="uh-admin-clickrow">
+                            <tr class="uh-admin-clickrow" data-href="{{ route('admin.leads.show', $lead) }}">
                                 <td>
                                     <a @class(['uh-admin-row-main', 'uh-link-quiet', 'font-semibold' => $lead->is_unread, 'font-medium' => ! $lead->is_unread]) href="{{ route('admin.leads.show', $lead) }}">{{ $lead->name }}</a>
                                     @if($lead->is_unread)<span class="sr-only">(unread)</span><span class="uh-admin-unread-dot ml-1 inline-block size-1.5 rounded-full" aria-hidden="true"></span>@endif

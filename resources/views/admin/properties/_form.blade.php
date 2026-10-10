@@ -1,6 +1,7 @@
 @php
     $exists = $property->exists;
     $canEdit ??= true;
+    $saveLabel ??= 'Save changes';
     $checklist ??= [];
     $selectedAmenities = array_map('intval', (array) old('amenity_ids', $property->amenity_ids ?? []));
     $profiles = $types->mapWithKeys(fn ($type) => [$type->id => $type->field_profile])->all();
@@ -263,15 +264,13 @@
             </div>
 
             </div>
-            @if($canEdit)
-                <div class="uh-admin-dock">
-                    <button type="submit" class="uh-btn-primary" :disabled="submitting">
-                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                        <span>{{ $exists ? 'Save changes' : 'Save draft' }}</span>
-                    </button>
-                    <a class="uh-btn-ghost" href="{{ route('admin.properties.index') }}">Cancel</a>
-                </div>
-            @endif
+            <div class="uh-admin-dock">
+                <button type="submit" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
+                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                    <span>{{ $saveLabel }}</span>
+                </button>
+                <a class="uh-btn-ghost" href="{{ route('admin.properties.index') }}">Cancel</a>
+            </div>
         </fieldset>
     </form>
 
@@ -293,9 +292,15 @@
                                 <option value="{{ $value }}" @selected($property->availability === $value)>{{ $label }}</option>
                             @endforeach
                         </x-ui.select>
-                        <div x-show="value === 'reserved'" x-cloak>
-                            <x-ui.input name="reservation_expires_at" label="Reserved until" type="datetime-local" optional
-                                        hint="Defaults to {{ config('urbanhaven.inventory.reservation_days') }} days from now." />
+                        <div class="uh-field" x-show="value === 'reserved'" x-cloak>
+                            <label class="uh-label" for="f-reservation-expires-at">
+                                {{ __('Reserved until') }}
+                                <span class="uh-label-optional">{{ __('optional') }}</span>
+                            </label>
+                            <input id="f-reservation-expires-at" type="datetime-local"
+                                   ::name="value === 'reserved' ? 'reservation_expires_at' : ''"
+                                   class="uh-input">
+                            <p class="uh-hint">Defaults to {{ config('urbanhaven.inventory.reservation_days') }} days from now.</p>
                         </div>
                         <x-ui.input name="note" label="Note" optional maxlength="255" id="availability-note" />
                         <button type="submit" class="uh-btn-outline uh-btn-sm uh-btn-block">Update availability</button>

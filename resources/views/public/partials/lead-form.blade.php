@@ -97,6 +97,7 @@
         <div>
             <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Mobile number')" type="tel" dir="ltr"
                         inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24"
+                        pattern="01[0-9]{9}"
                         :hint="$compact ? __('01XXXXXXXXX or +country code') : __('Bangladeshi mobile (01XXXXXXXXX) or an international number starting with +')" required />
             {!! $fieldError('phone') !!}
         </div>
@@ -175,9 +176,6 @@
                 <input type="checkbox" name="consent_given" value="1" required @checked(old('consent_given'))>
                 <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ $consentText }}</span>
             </label>
-            @error('consent_given')
-                <p class="uh-error"><span>{{ $message }}</span></p>
-            @enderror
             {!! $fieldError('consent_given') !!}
             {!! $fieldError('submission_token') !!}
         </div>

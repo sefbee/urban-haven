@@ -2,7 +2,8 @@
      class="uh-modal"
      role="dialog" aria-modal="true" aria-labelledby="preview-title"
      :aria-hidden="(!preview).toString()"
-     @click.self="closePreview()">
+     @click.self="closePreview()"
+     @keydown.tab.prevent="preview && trapFocus($el, $event)">
     <div class="uh-dialog uh-preview" @click.stop>
         <div class="uh-preview-media">
             <template x-if="preview?.images?.length">

@@ -26,6 +26,7 @@
         @include('public.partials.property-carousel', ['sizes' => $sizes ?? '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw'])
 
         @unless($priceInBody)
+            <div class="uh-listing-image-price-scrim bg-gradient-to-t from-black/60 to-transparent absolute inset-x-0 bottom-0 h-24 z-[2] pointer-events-none"></div>
             <p class="uh-listing-image-price uh-numeric">{{ $headline }}</p>
         @endunless
 

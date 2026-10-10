@@ -6551,12 +6551,15 @@ body.uh-home {
         padding-bottom: var(--uh-section);
     }
 
-    .uh-pd-gallery {
+    .uh-pd-gallery-wrap {
         position: relative;
         grid-area: gallery;
+        min-width: 0;
+    }
+
+    .uh-pd-gallery {
         display: grid;
         gap: 0.5rem;
-        min-width: 0;
     }
 
     .uh-pd-shot {
@@ -6616,6 +6619,7 @@ body.uh-home {
         position: absolute;
         right: 1rem;
         bottom: 1rem;
+        z-index: 1;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -6635,8 +6639,12 @@ body.uh-home {
     }
 
     @media (width >= 768px) {
-        .uh-pd-gallery {
+        .uh-pd-gallery-wrap {
             height: clamp(22rem, 38vw, 32rem);
+        }
+
+        .uh-pd-gallery {
+            height: 100%;
         }
 
         .uh-pd-shot.is-main {

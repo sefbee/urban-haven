@@ -110,9 +110,11 @@
                 'form_check_fields' => __('Please check the highlighted fields.'),
                 'form_expired' => __('This page has expired. Refresh and try again.'),
                 'form_send_error' => __('We could not send your request. Please try again or call us.'),
+                'form_rate_limit' => __('Too many requests. Please wait a moment and try again.'),
                 'form_offline' => __('You appear to be offline. Check your connection and try again, or call us.'),
                 'account_save_error' => __('We could not save your account. Please try again.'),
                 'account_offline' => __('You appear to be offline. Check your connection and try again.'),
+                'shortlist_clear_confirm' => __('Remove every property from your shortlist?'),
             ]);
             window.uhCopyText = (key, replacements = {}) => Object.entries(replacements).reduce(
                 (text, [name, value]) => text.split(`:${name}`).join(String(value)),
@@ -223,6 +225,7 @@
              x-transition.opacity.duration.250ms
              @uh-menu.window="open = $event.detail; $nextTick(() => open && $refs.close.focus())"
              @keydown.escape.window="if (open) { open = false; $dispatch('uh-menu', false) }"
+             @keydown.tab.prevent="open && $trapFocus($el, $event)"
              x-effect="document.documentElement.style.overflow = open ? 'hidden' : ''"
              role="dialog" aria-modal="true" aria-label="{{ __('Mobile navigation') }}">
             <div class="uh-container flex flex-1 flex-col pb-8">

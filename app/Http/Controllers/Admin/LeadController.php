@@ -40,11 +40,14 @@ class LeadController extends Controller
 
         $this->applyFilters($query, $filters, $user);
 
+        $countQuery = Lead::query()->visibleTo($user);
+        $this->applyFilters($countQuery, $filters, $user);
+
         return view('admin.leads.index', [
             'leads' => $query->salesQueueOrder()->paginate(25)->withQueryString(),
             'filters' => $filters,
             'salesUsers' => $user->canSeeAllLeads() ? User::query()->salesStaff()->orderBy('name')->get(['id', 'name']) : collect(),
-            'overdueCount' => Lead::query()->visibleTo($user)->whereNotIn('status', Lead::CLOSED_STATUSES)->where('next_action_at', '<', now())->count(),
+            'overdueCount' => (clone $countQuery)->whereNotIn('status', Lead::CLOSED_STATUSES)->where('next_action_at', '<', now())->count(),
         ]);
     }
 
@@ -95,6 +98,12 @@ class LeadController extends Controller
         ], [
             'loss_reason.required_if' => 'Choose why this lead was lost.',
         ]);
+
+        $allowed = Lead::TRANSITIONS[$lead->status] ?? [];
+        if (! in_array($validated['status'], $allowed, true)) {
+            return back()->withErrors(['status' => 'That stage transition is not allowed from '.Lead::STATUS_LABELS[$lead->status].'.']);
+        }
+
         $leads->updateStatus($lead, $validated['status'], $request->user(), $validated['loss_reason'] ?? null);
 
         return back()->with('status', 'Stage updated to '.Lead::STATUS_LABELS[$validated['status']].'.');

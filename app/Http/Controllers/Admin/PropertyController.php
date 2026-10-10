@@ -63,12 +63,15 @@ class PropertyController extends Controller
     {
         $this->authorize('create', Property::class);
 
-        return view('admin.properties.create', $this->formData(new Property([
-            'listing_type' => 'sale',
-            'availability' => 'available',
-            'price_mode' => Property::PRICE_FIXED,
-            'area_unit' => 'sqft',
-        ])));
+        return view('admin.properties.create', [
+            ...$this->formData(new Property([
+                'listing_type' => 'sale',
+                'availability' => 'available',
+                'price_mode' => Property::PRICE_FIXED,
+                'area_unit' => 'sqft',
+            ])),
+            'saveLabel' => 'Save draft',
+        ]);
     }
 
     public function store(StorePropertyRequest $request, InventoryService $inventory, MediaService $media): RedirectResponse
@@ -88,10 +91,13 @@ class PropertyController extends Controller
         $this->authorize('view', $property);
         $property->load(['publicationState', 'seoOverride', 'media', 'units', 'statusHistory.actor:id,name', 'propertyType']);
 
+        $user = request()->user();
+
         return view('admin.properties.edit', [
             ...$this->formData($property),
             'checklist' => $inventory->publishChecklist($property),
-            'canEdit' => request()->user()->can('update', $property),
+            'canEdit' => $user->can('update', $property),
+            'saveLabel' => $user->hasPermission('property.publish') ? 'Save changes' : 'Save draft',
         ]);
     }
 
