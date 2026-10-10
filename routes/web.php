@@ -106,6 +106,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'staff.active', 'staff.mfa'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/unread', [NotificationController::class, 'unread'])->name('notifications.unread');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+        Route::get('notifications/{notification}/go', [NotificationController::class, 'go'])->name('notifications.go');
         Route::patch('notifications/{notification}', [NotificationController::class, 'markRead'])->name('notifications.read');
 
         Route::resource('staff', StaffController::class)->except(['show', 'destroy']);

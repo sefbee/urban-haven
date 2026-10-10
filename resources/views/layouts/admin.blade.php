@@ -137,14 +137,62 @@
                     </div>
 
                     <div class="dd-header-end">
-                        <form method="GET" action="{{ route('admin.search') }}" class="dd-header-search" role="search"
-                              x-data @keydown.window.slash="if (! ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && ! document.activeElement.isContentEditable) { $event.preventDefault(); $refs.search.focus() }">
-                            <x-icon name="search" class="dd-header-search-icon" />
-                            <label for="admin-search" class="sr-only">Search the admin</label>
-                            <input id="admin-search" x-ref="search" type="search" name="q" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}"
-                                   placeholder="Search properties, leads, pages…" autocomplete="off" maxlength="120">
-                            <kbd class="dd-header-search-kbd" aria-hidden="true">/</kbd>
-                        </form>
+                        <div class="dd-header-search-wrap" x-data="adminLiveSearch('{{ route('admin.search') }}')" @click.outside="close()" @keydown.escape="close()">
+                            <form method="GET" action="{{ route('admin.search') }}" class="dd-header-search" role="search"
+                                  @submit="if (selectedIndex >= 0 && results[selectedIndex]) { $event.preventDefault(); window.location.href = results[selectedIndex].url; }"
+                                  @keydown.window.slash="if (! ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && ! document.activeElement.isContentEditable) { $event.preventDefault(); $refs.search.focus() }">
+                                <x-icon name="search" class="dd-header-search-icon" />
+                                <label for="admin-search" class="sr-only">Search the admin</label>
+                                <input id="admin-search" x-ref="search" type="search" name="q"
+                                       x-model="q"
+                                       @input="onInput()"
+                                       @focus="if (q.trim().length >= 2) isOpen = true"
+                                       @keydown.arrow-down.prevent="navigate(1)"
+                                       @keydown.arrow-up.prevent="navigate(-1)"
+                                       value="{{ request()->routeIs('admin.search') ? request('q') : '' }}"
+                                       placeholder="Search properties, leads, staff, pages…" autocomplete="off" maxlength="120">
+                                <kbd class="dd-header-search-kbd" aria-hidden="true" x-show="!loading">/</kbd>
+                                <span class="dd-header-search-spinner" x-show="loading" x-cloak></span>
+                            </form>
+
+                            <div class="dd-live-search-dropdown" x-show="isOpen && q.trim().length >= 2" x-cloak x-transition.opacity.duration.100ms>
+                                <template x-if="results.length > 0">
+                                    <div class="dd-live-search-results">
+                                        <template x-for="(item, index) in results" :key="item.url + index">
+                                            <a :href="item.url"
+                                               class="dd-live-search-item"
+                                               :class="{ 'is-selected': selectedIndex === index }"
+                                               @mouseenter="selectedIndex = index">
+                                                <span class="dd-live-search-icon-tile">
+                                                    <span class="size-2 rounded-full bg-blue-600"></span>
+                                                </span>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-medium text-xs text-[var(--dd-ink)] truncate" x-text="item.title"></span>
+                                                        <span class="dd-search-pill" x-text="item.group"></span>
+                                                    </div>
+                                                    <p class="text-[0.6875rem] text-[var(--dd-muted)] truncate mt-0.5" x-show="item.meta" x-text="item.meta"></p>
+                                                </div>
+                                                <x-icon name="chevron-right" class="size-3.5 text-[var(--dd-faint)] flex-shrink-0" />
+                                            </a>
+                                        </template>
+                                        <a :href="'{{ route('admin.search') }}?q=' + encodeURIComponent(q)" class="dd-live-search-foot">
+                                            <span>See all <strong x-text="total"></strong> results for "<span x-text="q"></span>"</span>
+                                            <x-icon name="arrow-right" class="size-3.5" />
+                                        </a>
+                                    </div>
+                                </template>
+                                <template x-if="results.length === 0 && !loading">
+                                    <div class="dd-live-search-empty">
+                                        <p class="text-xs text-[var(--dd-muted)]">No quick results for "<span class="font-semibold text-[var(--dd-ink)]" x-text="q"></span>"</p>
+                                        <a :href="'{{ route('admin.search') }}?q=' + encodeURIComponent(q)" class="dd-live-empty-link">
+                                            Search full database →
+                                        </a>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <a href="{{ route('admin.search') }}" class="dd-header-icon-btn dd-header-search-btn" aria-label="Search">
                             <x-icon name="search" class="size-4" />
                         </a>

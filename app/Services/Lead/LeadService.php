@@ -10,8 +10,10 @@ use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\LeadFollowUp;
 use App\Models\LeadNote;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\LeadAcknowledgementNotification;
+use App\Notifications\NewLeadNotification;
 use App\Support\LeadAttribution;
 use App\Support\PhoneNumber;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -119,6 +121,14 @@ class LeadService implements LeadServiceContract
 
         DB::afterCommit(function () use ($lead, $notifyStaff): void {
             if ($notifyStaff) {
+                $recipients = $lead->assigned_to && $lead->assignee?->is_active
+                    ? collect([$lead->assignee])
+                    : User::query()->where('is_active', true)->whereHas('roles', fn ($q) => $q->where('key', Role::OWNER_ADMIN))->get();
+
+                foreach ($recipients as $recipient) {
+                    $recipient->notifyNow(new NewLeadNotification($lead, databaseOnly: true));
+                }
+
                 NotifyNewLeadJob::dispatch($lead->id);
             }
             AttributeLeadSourceJob::dispatch($lead->id);
@@ -145,6 +155,10 @@ class LeadService implements LeadServiceContract
                 'to_name' => $assignee->name,
             ]);
             $this->auditLogger->record($actor->id, 'lead.assigned', Lead::class, $lead->id, ['assigned_to' => $old?->id], ['assigned_to' => $assignee->id], request()->ip());
+
+            if ($assignee->id !== $actor->id) {
+                $assignee->notifyNow(new NewLeadNotification($lead, databaseOnly: true));
+            }
         });
     }
 

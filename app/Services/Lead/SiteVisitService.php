@@ -59,7 +59,10 @@ class SiteVisitService
             ]);
 
             DB::afterCommit(function () use ($visit, $lead): void {
-                $this->recipients($lead)->each(fn (User $user) => $user->notify(new SiteVisitNotification($visit)));
+                $this->recipients($lead)->each(function (User $user) use ($visit): void {
+                    $user->notifyNow(new SiteVisitNotification($visit, databaseOnly: true));
+                    $user->notify(new SiteVisitNotification($visit, mailOnly: true));
+                });
             });
 
             return $visit;

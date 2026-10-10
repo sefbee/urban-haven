@@ -50,7 +50,8 @@ class NotifyNewLeadJob implements ShouldQueue
                 ->get();
 
         foreach ($recipients as $recipient) {
-            $recipient->notify(new NewLeadNotification($lead));
+            $hasInApp = $recipient->notifications()->where('data->lead_id', $lead->id)->exists();
+            $recipient->notify(new NewLeadNotification($lead, mailOnly: $hasInApp));
         }
 
         $inbox = (string) Setting::get('sales_inbox_email', '');

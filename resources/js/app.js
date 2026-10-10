@@ -1964,6 +1964,129 @@ const bootImageFades = () => {
     });
 };
 
+Alpine.data('adminLiveSearch', (endpoint) => ({
+    endpoint: endpoint,
+    q: '',
+    isOpen: false,
+    loading: false,
+    results: [],
+    total: 0,
+    selectedIndex: -1,
+    debounceTimer: null,
+    onInput() {
+        clearTimeout(this.debounceTimer);
+        const term = this.q.trim();
+        if (term.length < 2) {
+            this.results = [];
+            this.total = 0;
+            this.isOpen = false;
+            this.selectedIndex = -1;
+            return;
+        }
+        this.loading = true;
+        this.isOpen = true;
+        this.debounceTimer = setTimeout(() => {
+            fetch(`${this.endpoint}?q=${encodeURIComponent(term)}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then((r) => r.json())
+            .then((data) => {
+                this.results = data.results || [];
+                this.total = data.total || 0;
+                this.loading = false;
+                this.selectedIndex = this.results.length > 0 ? 0 : -1;
+            })
+            .catch(() => {
+                this.loading = false;
+            });
+        }, 160);
+    },
+    navigate(step) {
+        if (!this.isOpen || this.results.length === 0) {
+            return;
+        }
+        this.selectedIndex = (this.selectedIndex + step + this.results.length) % this.results.length;
+    },
+    close() {
+        this.isOpen = false;
+        this.selectedIndex = -1;
+    }
+}));
+
+Alpine.data('adminNotifications', (unreadUrl, markAllUrl, initialCount = 0) => ({
+    unreadUrl: unreadUrl,
+    markAllUrl: markAllUrl,
+    open: false,
+    unreadCount: initialCount,
+    notifications: [],
+    loading: false,
+    pollTimer: null,
+    init() {
+        this.fetchLatest();
+        this.pollTimer = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.fetchLatest();
+            }
+        }, 30000);
+        window.addEventListener('focus', () => this.fetchLatest());
+    },
+    fetchLatest() {
+        fetch(this.unreadUrl, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then((r) => r.json())
+        .then((data) => {
+            this.unreadCount = data.unread_count ?? this.unreadCount;
+            this.notifications = data.notifications || [];
+        })
+        .catch(() => {});
+    },
+    markAllRead() {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        fetch(this.markAllUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then((r) => r.json())
+        .then(() => {
+            this.unreadCount = 0;
+            this.notifications = [];
+        })
+        .catch(() => {});
+    },
+    markRead(id, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        fetch(`/admin/notifications/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then((r) => r.json())
+        .then((data) => {
+            this.notifications = this.notifications.filter((n) => n.id !== id);
+            if (typeof data.unread_count !== 'undefined') {
+                this.unreadCount = data.unread_count;
+            } else {
+                this.unreadCount = Math.max(0, this.unreadCount - 1);
+            }
+        })
+        .catch(() => {});
+    }
+}));
+
 registerSavedStore(Alpine);
 registerAdminForms(Alpine);
 

@@ -12,13 +12,21 @@ class SiteVisitNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public SiteVisitRequest $visit) {}
+    public function __construct(public SiteVisitRequest $visit, public bool $databaseOnly = false, public bool $mailOnly = false) {}
 
     /**
      * @return list<string>
      */
     public function via(object $notifiable): array
     {
+        if ($this->databaseOnly) {
+            return ['database'];
+        }
+
+        if ($this->mailOnly) {
+            return ['mail'];
+        }
+
         return ['mail', 'database'];
     }
 
@@ -40,7 +48,9 @@ class SiteVisitNotification extends Notification implements ShouldQueue
         return [
             'visit_id' => $this->visit->id,
             'lead_id' => $this->visit->lead_id,
-            'message' => 'A site visit was requested.',
+            'message' => 'Site visit requested'.($this->visit->lead?->name ? ' by '.$this->visit->lead->name : ''),
+            'url' => route('admin.visits.index'),
+            'icon' => 'calendar',
         ];
     }
 }

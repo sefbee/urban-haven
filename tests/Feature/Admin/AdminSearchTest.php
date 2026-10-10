@@ -79,4 +79,38 @@ class AdminSearchTest extends TestCase
 
         $this->actingAs($owner)->get(route('admin.search', ['q' => 'a']))->assertOk()->assertSee('Type at least two characters.');
     }
+
+    public function test_searching_staff_finds_staff_members_and_users_navigation(): void
+    {
+        $owner = User::factory()->create(['name' => 'Manager Admin']);
+        $this->assignRole($owner, Role::OWNER_ADMIN);
+        $staffMember = User::factory()->create(['name' => 'Tanvir Ahmed']);
+        $this->assignRole($staffMember, Role::SALES_USER);
+
+        $this->actingAs($owner)
+            ->get(route('admin.search', ['q' => 'staff']))
+            ->assertOk()
+            ->assertSee('Users &amp; roles', false)
+            ->assertSee('Tanvir Ahmed')
+            ->assertSee(route('admin.staff.edit', $staffMember), false);
+    }
+
+    public function test_search_returns_json_for_ajax_request(): void
+    {
+        $owner = User::factory()->create();
+        $this->assignRole($owner, Role::OWNER_ADMIN);
+        $this->makePublishableProperty(['title' => 'Banani Heights Luxury']);
+
+        $response = $this->actingAs($owner)
+            ->getJson(route('admin.search', ['q' => 'Banani']))
+            ->assertOk();
+
+        $response->assertJsonStructure([
+            'term',
+            'groups',
+            'results',
+            'total',
+        ]);
+        $this->assertNotEmpty($response->json('results'));
+    }
 }
