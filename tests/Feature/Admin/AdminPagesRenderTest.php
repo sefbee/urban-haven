@@ -123,4 +123,20 @@ class AdminPagesRenderTest extends TestCase
             $this->actingAs($editor)->get(route($name))->assertForbidden();
         }
     }
+
+    public function test_admin_layout_renders_sidebar_and_screen_adjustable_page_card(): void
+    {
+        $owner = User::factory()->create();
+        $this->assignRole($owner, Role::OWNER_ADMIN);
+
+        $response = $this->actingAs($owner)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('class="dd-sidebar"', false)
+            ->assertSee('class="dd-brand-badge">Admin</span>', false)
+            ->assertSee('class="dd-sidebar-foot"', false)
+            ->assertSee('View live site')
+            ->assertSee('class="dd-page-canvas"', false)
+            ->assertSee('class="dd-page-card"', false);
+    }
 }

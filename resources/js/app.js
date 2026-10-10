@@ -1487,6 +1487,13 @@ Alpine.data('uhAdminShell', (activeGroups = []) => ({
         this.collapsed = ! this.collapsed;
         window.localStorage.setItem('uh-admin-collapsed', this.collapsed ? '1' : '0');
     },
+    toggleSidebar() {
+        if (window.innerWidth < 768) {
+            this.mobile = ! this.mobile;
+        } else {
+            this.toggleCollapsed();
+        }
+    },
     openMobile() {
         this.mobile = true;
     },
@@ -1588,18 +1595,63 @@ Alpine.data('uhAdminDrawers', (initial = null) => ({
 }));
 
 /**
- * Staff media picker: local preview of the chosen file, then the existing upload form.
+ * Staff media manager: multi-file upload review, reordering, and batch saving.
  */
-Alpine.data('uhMediaUpload', () => ({
+Alpine.data('uhMediaUpload', (config = {}) => ({
+    ownerType: config.ownerType || '',
+    ownerId: config.ownerId || 0,
+    collection: config.collection || 'gallery',
+    reorderUrl: config.reorderUrl || '',
+    batchUrl: config.batchUrl || '',
+    coverId: config.coverId || null,
+    itemIds: Array.isArray(config.itemIds) ? [...config.itemIds] : [],
+    itemsData: {},
+    pendingFiles: [],
     submitting: false,
+    batchSubmitting: false,
     dragging: false,
     filename: '',
     filesize: '',
     preview: '',
     previews: [],
+    statusNotice: '',
+    statusTone: 'info',
+    hasUnsavedChanges: false,
+    statusTimeout: null,
+
+    init() {
+        if (config.items && Array.isArray(config.items)) {
+            config.items.forEach((item) => {
+                this.itemsData[item.id] = {
+                    alt_text: item.alt_text ?? '',
+                    is_public: Boolean(item.is_public),
+                    make_cover: this.coverId === item.id,
+                };
+            });
+        }
+        window.addEventListener('beforeunload', (e) => {
+            if (this.hasUnsavedChanges || this.pendingFiles.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    },
+
+    flashNotice(message, tone = 'info') {
+        this.statusNotice = message;
+        this.statusTone = tone;
+        clearTimeout(this.statusTimeout);
+        if (tone === 'success') {
+            this.statusTimeout = setTimeout(() => {
+                this.statusNotice = '';
+            }, 5000);
+        }
+    },
+
     pick() {
         this.$refs.file?.click();
     },
+
     dropped(event, autoSubmit = false) {
         this.dragging = false;
         const input = this.$refs.file;
@@ -1615,19 +1667,66 @@ Alpine.data('uhMediaUpload', () => ({
         input.files = transfer.files;
         this.chosen(autoSubmit);
     },
+
     chosen(autoSubmit = false) {
         const files = [...(this.$refs.file?.files ?? [])];
-        const file = files[0];
+        this.pendingFiles.forEach((pf) => pf.previewUrl && URL.revokeObjectURL(pf.previewUrl));
         this.previews.forEach((url) => URL.revokeObjectURL(url));
-        this.filename = files.length > 1 ? `${files.length} files` : (file?.name ?? '');
-        this.filesize = file ? this.formatSize(files.reduce((total, item) => total + item.size, 0)) : '';
-        this.previews = files.filter((item) => item.type?.startsWith('image/')).slice(0, 12).map((item) => URL.createObjectURL(item));
+
+        this.pendingFiles = files.map((file, idx) => ({
+            id: 'pf_' + idx + '_' + Math.random().toString(36).substring(2, 7),
+            name: file.name,
+            size: file.size,
+            sizeFormatted: this.formatSize(file.size),
+            previewUrl: file.type?.startsWith('image/') ? URL.createObjectURL(file) : null,
+        }));
+
+        const totalBytes = files.reduce((total, item) => total + item.size, 0);
+        this.filename = files.length > 1 ? `${files.length} files` : (files[0]?.name ?? '');
+        this.filesize = files.length > 0 ? this.formatSize(totalBytes) : '';
+        this.previews = this.pendingFiles.filter((pf) => pf.previewUrl).slice(0, 12).map((pf) => pf.previewUrl);
         this.preview = this.previews[0] ?? '';
-        if (autoSubmit && file && this.$refs.file?.form) {
-            this.submitting = true;
-            this.$refs.file.form.requestSubmit();
+
+        if (autoSubmit && files.length > 0 && this.$refs.file?.form) {
+            this.uploadPending();
         }
     },
+
+    removePending(index) {
+        if (! this.$refs.file || index < 0 || index >= this.pendingFiles.length) {
+            return;
+        }
+        const pf = this.pendingFiles[index];
+        if (pf && pf.previewUrl) {
+            URL.revokeObjectURL(pf.previewUrl);
+        }
+        this.pendingFiles.splice(index, 1);
+
+        const currentFiles = [...(this.$refs.file.files ?? [])];
+        currentFiles.splice(index, 1);
+        const transfer = new DataTransfer();
+        currentFiles.forEach((f) => transfer.items.add(f));
+        this.$refs.file.files = transfer.files;
+
+        if (this.pendingFiles.length === 0) {
+            this.clear();
+        } else {
+            const totalBytes = currentFiles.reduce((total, item) => total + item.size, 0);
+            this.filename = currentFiles.length > 1 ? `${currentFiles.length} files` : (currentFiles[0]?.name ?? '');
+            this.filesize = this.formatSize(totalBytes);
+            this.previews = this.pendingFiles.filter((p) => p.previewUrl).slice(0, 12).map((p) => p.previewUrl);
+            this.preview = this.previews[0] ?? '';
+        }
+    },
+
+    uploadPending() {
+        if (! this.$refs.file?.form || this.pendingFiles.length === 0) {
+            return;
+        }
+        this.submitting = true;
+        this.$refs.file.form.requestSubmit();
+    },
+
     formatSize(bytes) {
         if (bytes >= 1048576) {
             return `${(bytes / 1048576).toFixed(1)} MB`;
@@ -1635,8 +1734,11 @@ Alpine.data('uhMediaUpload', () => ({
 
         return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     },
+
     clear() {
+        this.pendingFiles.forEach((pf) => pf.previewUrl && URL.revokeObjectURL(pf.previewUrl));
         this.previews.forEach((url) => URL.revokeObjectURL(url));
+        this.pendingFiles = [];
         this.filename = '';
         this.filesize = '';
         this.preview = '';
@@ -1646,8 +1748,148 @@ Alpine.data('uhMediaUpload', () => ({
             this.$refs.file.value = '';
         }
     },
+
     submit() {
         this.submitting = true;
+    },
+
+    isFirst(id) {
+        return this.itemIds.length > 0 && this.itemIds[0] === id;
+    },
+
+    isLast(id) {
+        return this.itemIds.length > 0 && this.itemIds[this.itemIds.length - 1] === id;
+    },
+
+    moveItem(id, direction) {
+        const index = this.itemIds.indexOf(id);
+        if (index === -1) {
+            return;
+        }
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= this.itemIds.length) {
+            return;
+        }
+
+        const temp = this.itemIds[index];
+        this.itemIds[index] = this.itemIds[targetIndex];
+        this.itemIds[targetIndex] = temp;
+
+        const currentEl = document.getElementById('media-item-' + id);
+        if (currentEl && currentEl.parentNode) {
+            if (direction === -1 && currentEl.previousElementSibling) {
+                currentEl.parentNode.insertBefore(currentEl, currentEl.previousElementSibling);
+            } else if (direction === 1 && currentEl.nextElementSibling) {
+                currentEl.parentNode.insertBefore(currentEl.nextElementSibling, currentEl);
+            }
+        }
+
+        if (this.reorderUrl) {
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            fetch(this.reorderUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    owner_type: this.ownerType,
+                    owner_id: this.ownerId,
+                    collection: this.collection,
+                    ordered_ids: this.itemIds,
+                }),
+            }).then((res) => {
+                if (res.ok) {
+                    this.flashNotice('Image order updated.', 'success');
+                } else {
+                    this.flashNotice('Failed to update image order.', 'danger');
+                }
+            }).catch(() => {
+                this.flashNotice('Network error while reordering.', 'danger');
+            });
+        }
+    },
+
+    setCover(id) {
+        this.coverId = id;
+        Object.keys(this.itemsData).forEach((k) => {
+            if (this.itemsData[k]) {
+                this.itemsData[k].make_cover = (parseInt(k, 10) === id);
+            }
+        });
+        this.hasUnsavedChanges = true;
+        this.flashNotice('Cover image selected. Click "Save changes" to persist.', 'info');
+    },
+
+    updateItemAlt(id, value) {
+        if (! this.itemsData[id]) {
+            this.itemsData[id] = { alt_text: value, is_public: false, make_cover: this.coverId === id };
+        } else {
+            this.itemsData[id].alt_text = value;
+        }
+        this.hasUnsavedChanges = true;
+    },
+
+    updateItemPublic(id, value) {
+        if (! this.itemsData[id]) {
+            this.itemsData[id] = { alt_text: '', is_public: value, make_cover: this.coverId === id };
+        } else {
+            this.itemsData[id].is_public = value;
+        }
+        this.hasUnsavedChanges = true;
+    },
+
+    saveAllDetails() {
+        if (! this.batchUrl) {
+            return;
+        }
+
+        for (const id of this.itemIds) {
+            const item = this.itemsData[id];
+            if (item && item.is_public && (! item.alt_text || ! item.alt_text.trim())) {
+                this.flashNotice('Please add descriptive alt text to all public images before saving.', 'danger');
+                const inputEl = document.getElementById('alt-' + id);
+                if (inputEl) {
+                    inputEl.focus();
+                    inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+        }
+
+        this.batchSubmitting = true;
+        const itemsPayload = this.itemIds.map((id) => {
+            const data = this.itemsData[id] || {};
+            return {
+                id: id,
+                alt_text: data.alt_text ?? '',
+                is_public: data.is_public ? 1 : 0,
+                make_cover: (this.coverId === id) ? 1 : 0,
+            };
+        });
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+        fetch(this.batchUrl, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ items: itemsPayload }),
+        }).then((res) => res.json()).then((data) => {
+            this.batchSubmitting = false;
+            if (data.ok) {
+                this.hasUnsavedChanges = false;
+                this.flashNotice(`${data.updated || itemsPayload.length} images updated successfully.`, 'success');
+            } else {
+                this.flashNotice(data.message || 'Failed to save image changes.', 'danger');
+            }
+        }).catch(() => {
+            this.batchSubmitting = false;
+            this.flashNotice('Network error while saving.', 'danger');
+        });
     },
 }));
 

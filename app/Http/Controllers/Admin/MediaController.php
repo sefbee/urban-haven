@@ -79,6 +79,39 @@ class MediaController extends Controller
             : back()->with('status', 'Image details saved.');
     }
 
+    public function batchUpdate(Request $request, MediaService $media): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'max:100'],
+            'items.*.id' => ['required', 'integer', 'exists:media,id'],
+            'items.*.alt_text' => ['nullable', 'string', 'max:200'],
+            'items.*.is_public' => ['required', 'boolean'],
+            'items.*.make_cover' => ['sometimes', 'boolean'],
+        ]);
+
+        $savedCount = 0;
+        foreach ($validated['items'] as $itemData) {
+            /** @var Media|null $medium */
+            $medium = Media::query()->find($itemData['id']);
+            if (! $medium) {
+                continue;
+            }
+
+            $this->authorize('update', $medium->mediable);
+            $media->updateDetails($medium, $itemData['alt_text'] ?? null, (bool) $itemData['is_public'], $request->user());
+
+            if (! empty($itemData['make_cover']) && $medium->collection === 'gallery' && in_array('featured_media_id', $medium->mediable->getFillable(), true)) {
+                $medium->mediable->forceFill(['featured_media_id' => $medium->id])->save();
+            }
+
+            $savedCount++;
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['ok' => true, 'updated' => $savedCount])
+            : back()->with('status', $savedCount === 1 ? 'Image details saved.' : "{$savedCount} image details saved.");
+    }
+
     public function reorder(Request $request, MediaService $media): JsonResponse
     {
         $validated = $request->validate([

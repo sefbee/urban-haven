@@ -70,16 +70,16 @@
                                 </svg>
                             </span>
                             <span class="dd-brand-copy">
-                                <span class="dd-brand-name">{{ $companyName }}</span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="dd-brand-name">{{ $companyName }}</span>
+                                    <span class="dd-brand-badge">Admin</span>
+                                </span>
                                 @if($companyTagline)
                                     <span class="dd-brand-tagline">{{ $companyTagline }}</span>
                                 @endif
                             </span>
                         @endif
                     </a>
-                    <button type="button" class="dd-sidebar-close uh-admin-icon-btn" @click="closeMobile()" aria-label="Close navigation">
-                        <x-icon name="close" class="size-5" />
-                    </button>
                 </div>
 
                 <nav class="dd-nav" x-init="$nextTick(() => {
@@ -120,12 +120,9 @@
             <div class="dd-shell flex min-h-0 min-w-0 flex-1 flex-col">
                 <header class="dd-header">
                     <div class="dd-header-start">
-                        <button type="button" class="dd-header-icon-btn dd-mobile-toggle" @click="openMobile()"
-                                :aria-expanded="mobile.toString()" aria-controls="admin-nav" aria-label="Open navigation">
-                            <x-icon name="menu" class="size-4" />
-                        </button>
-                        <button type="button" class="dd-header-icon-btn dd-desktop-toggle" @click="toggleCollapsed()"
-                                :aria-pressed="collapsed.toString()" aria-label="Collapse sidebar">
+                        <button type="button" class="dd-header-icon-btn dd-sidebar-toggle" @click="toggleSidebar()"
+                                :aria-expanded="mobile.toString()" :aria-pressed="collapsed.toString()"
+                                aria-controls="admin-nav" aria-label="Toggle navigation">
                             <x-icon name="menu" class="size-4" />
                         </button>
                         <nav class="dd-breadcrumb" aria-label="Breadcrumb">
@@ -181,11 +178,15 @@
                 </header>
 
                 <main id="main" class="dd-content min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
-                    @foreach($systemWarnings as $warning)
-                        <x-ui.alert tone="warn" class="mb-3">{{ $warning }}</x-ui.alert>
-                    @endforeach
-                    <x-ui.flash />
-                    @yield('content')
+                    <div class="dd-page-canvas">
+                        @foreach($systemWarnings as $warning)
+                            <x-ui.alert tone="warn" class="mb-4">{{ $warning }}</x-ui.alert>
+                        @endforeach
+                        <x-ui.flash />
+                        <div class="dd-page-card">
+                            @yield('content')
+                        </div>
+                    </div>
                 </main>
             </div>
         </div>

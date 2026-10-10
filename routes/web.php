@@ -184,6 +184,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('projects/{project}/return', [PublicationController::class, 'returnProject'])->name('projects.return');
 
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
+        Route::patch('media', [MediaController::class, 'batchUpdate'])->name('media.batch-update');
         Route::put('media/reorder', [MediaController::class, 'reorder'])->name('media.reorder');
         Route::patch('media/{medium}', [MediaController::class, 'update'])->name('media.update');
         Route::delete('media/{medium}', [MediaController::class, 'destroy'])->name('media.destroy');

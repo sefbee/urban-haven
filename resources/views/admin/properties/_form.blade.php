@@ -34,7 +34,7 @@
 
 <nav class="dd-steps" aria-label="Form sections">
     @foreach($steps as $anchor => $label)
-        @continue($anchor === 'media' && ($exists || ! $canEdit))
+        @continue($anchor === 'media' && ! $exists)
         <a href="#step-{{ $anchor }}">{{ $label }}</a>
     @endforeach
 </nav>
@@ -374,5 +374,7 @@
 </div>
 
 @if($exists)
-    @include('admin.partials.media-manager', ['owner' => $property, 'ownerType' => 'property', 'canEdit' => $canEdit])
+    <div id="step-media" class="scroll-mt-24">
+        @include('admin.partials.media-manager', ['owner' => $property, 'ownerType' => 'property', 'canEdit' => $canEdit])
+    </div>
 @endif

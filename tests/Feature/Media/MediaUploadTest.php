@@ -110,4 +110,65 @@ class MediaUploadTest extends TestCase
         $this->assertSame(0, $second->fresh()->sort_order);
         $this->assertSame(1, $first->fresh()->sort_order);
     }
+
+    public function test_batch_update_persists_multiple_media_and_sets_cover(): void
+    {
+        Storage::fake('public');
+        $property = $this->makeProperty();
+        $user = User::factory()->create();
+        $this->assignRole($user, Role::OWNER_ADMIN);
+        $service = app(MediaService::class);
+        $first = $service->store($property, UploadedFile::fake()->image('a.jpg'), 'gallery');
+        $second = $service->store($property, UploadedFile::fake()->image('b.jpg'), 'gallery');
+
+        $this->actingAs($user)
+            ->patchJson(route('admin.media.batch-update'), [
+                'items' => [
+                    [
+                        'id' => $first->id,
+                        'alt_text' => 'Living room with natural light',
+                        'is_public' => true,
+                        'make_cover' => false,
+                    ],
+                    [
+                        'id' => $second->id,
+                        'alt_text' => 'Master bedroom overview',
+                        'is_public' => true,
+                        'make_cover' => true,
+                    ],
+                ],
+            ])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'updated' => 2]);
+
+        $this->assertSame('Living room with natural light', $first->fresh()->alt());
+        $this->assertTrue($first->fresh()->is_public);
+        $this->assertSame('Master bedroom overview', $second->fresh()->alt());
+        $this->assertTrue($second->fresh()->is_public);
+        $this->assertSame($second->id, $property->fresh()->featured_media_id);
+    }
+
+    public function test_reorder_endpoint_updates_media_sort_order(): void
+    {
+        Storage::fake('public');
+        $property = $this->makeProperty();
+        $user = User::factory()->create();
+        $this->assignRole($user, Role::OWNER_ADMIN);
+        $service = app(MediaService::class);
+        $first = $service->store($property, UploadedFile::fake()->image('a.jpg'), 'gallery');
+        $second = $service->store($property, UploadedFile::fake()->image('b.jpg'), 'gallery');
+
+        $this->actingAs($user)
+            ->putJson(route('admin.media.reorder'), [
+                'owner_type' => 'property',
+                'owner_id' => $property->id,
+                'collection' => 'gallery',
+                'ordered_ids' => [$second->id, $first->id],
+            ])
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertSame(0, $second->fresh()->sort_order);
+        $this->assertSame(1, $first->fresh()->sort_order);
+    }
 }
