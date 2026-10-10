@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @php
-    $template = $page->template ?: 'default';
+    $template = $page->slug === 'contact' ? 'contact' : ($page->slug === 'about' ? 'about' : ($page->template ?: 'default'));
     $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
     $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);
     $email = \App\Models\Setting::get('email') ?: ($contactBlock['email'] ?? null);

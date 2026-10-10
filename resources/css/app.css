@@ -2486,8 +2486,149 @@ body.uh-admin .select2-container--default .select2-results__option--selected {
 
 body.uh-auth {
     min-height: 100vh;
-    background: #f0f2f8;
+    background: #eaf0f8;
     color: var(--color-ink);
+}
+
+.uh-auth-shell {
+    display: grid;
+    min-height: 100vh;
+    grid-template-columns: minmax(32rem, 1fr) minmax(0, 1fr);
+}
+
+.uh-auth-panel {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    padding: 1.5rem clamp(1.5rem, 5.9vw, 5rem) 1.25rem;
+    background: linear-gradient(135deg, #e5edf8 0%, #f5f8fc 48%, #eaf0f7 100%);
+}
+
+.uh-auth-brand {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.55rem;
+    color: #17233d;
+    text-decoration: none;
+}
+
+.uh-auth-brand-mark {
+    position: relative;
+    display: flex;
+    height: 2.8rem;
+    align-items: end;
+    gap: 0.22rem;
+    padding: 0.25rem;
+    border-bottom: 0.22rem solid #18284f;
+    transform: skewY(-23deg);
+}
+
+.uh-auth-brand-mark span {
+    display: block;
+    width: 0.27rem;
+    background: #243a79;
+}
+
+.uh-auth-brand-mark span:nth-child(1) { height: 1.3rem; background: #a52a35; }
+.uh-auth-brand-mark span:nth-child(2) { height: 1.75rem; }
+.uh-auth-brand-mark span:nth-child(3) { height: 2.2rem; background: #168653; }
+
+.uh-auth-brand-copy { display: grid; gap: 0.05rem; }
+.uh-auth-brand-copy strong { font-size: 0.8rem; font-weight: 800; letter-spacing: -0.04em; }
+.uh-auth-brand-copy small { font-size: 0.47rem; font-weight: 600; letter-spacing: 0.025em; }
+
+.uh-auth-content {
+    display: grid;
+    flex: 1;
+    place-items: center;
+}
+
+.uh-auth-panel .uh-auth-card {
+    width: min(100%, 28rem);
+    margin-top: 0;
+    padding: 2rem;
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 1.25rem 2.5rem rgb(36 56 86 / 0.1);
+}
+
+.uh-auth-panel .uh-h3 {
+    color: #17233d;
+    font-size: 1.65rem;
+    font-weight: 750;
+    letter-spacing: -0.055em;
+}
+
+.uh-auth-panel .uh-auth-form { display: flex; flex-direction: column; gap: 1.35rem; }
+.uh-auth-input-wrap { position: relative; display: block; }
+.uh-auth-input-wrap .uh-input {
+    height: 3.1rem;
+    padding: 0 2.9rem 0 1.1rem;
+    border: 1px solid #cbd7e8;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: #344767;
+    font-size: 0.9rem;
+}
+.uh-auth-input-wrap .uh-input::placeholder { color: #536988; opacity: 1; }
+.uh-auth-input-wrap > svg,
+.uh-auth-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    color: #8294b1;
+    transform: translateY(-50%);
+}
+.uh-auth-password-toggle { display: inline-flex; border: 0; background: transparent; padding: 0; }
+.uh-auth-remember { display: flex; align-items: center; gap: 0.45rem; color: #344767; font-size: 0.82rem; }
+.uh-auth-remember input { width: 1rem; height: 1rem; accent-color: #2457e6; }
+.uh-auth-panel .uh-auth-submit {
+    min-height: 3rem;
+    border-radius: 9999px;
+    background: linear-gradient(100deg, #2864f0, #1d4ed8);
+    box-shadow: 0 0.6rem 1.2rem rgb(37 89 224 / 0.24);
+    font-size: 0.9rem;
+}
+
+.uh-auth-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #617895;
+    font-size: 0.72rem;
+}
+.uh-auth-footer a { color: #344767; font-weight: 700; text-decoration: none; }
+.uh-auth-footer a:hover { text-decoration: underline; }
+
+.uh-auth-visual {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #0d397a url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85') center / cover no-repeat;
+}
+.uh-auth-visual::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgb(10 43 96 / 0.38), transparent 55%, rgb(0 13 30 / 0.2));
+    content: '';
+}
+.uh-auth-visual-building {
+    position: absolute;
+    inset: 0 0 0 48%;
+    border-left: 1px solid rgb(181 212 255 / 0.28);
+    background: repeating-linear-gradient(90deg, transparent 0 4.8rem, rgb(5 20 45 / 0.45) 4.85rem 5rem), repeating-linear-gradient(0deg, transparent 0 8.2rem, rgb(5 20 45 / 0.42) 8.25rem 8.4rem);
+    box-shadow: -1.5rem 0 3rem rgb(0 13 30 / 0.28);
+    opacity: 0.58;
+    transform: skewY(-1deg);
+}
+
+@media (max-width: 767px) {
+    .uh-auth-shell { grid-template-columns: 1fr; }
+    .uh-auth-panel { min-height: 100svh; padding: 1.25rem 1.25rem 1rem; }
+    .uh-auth-visual { display: none; }
+    .uh-auth-panel .uh-auth-card { padding: 1.5rem; }
 }
 
 .uh-auth-mark {

@@ -9,23 +9,31 @@
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="uh-auth flex min-h-screen flex-col antialiased">
-        <div class="flex flex-1 items-center justify-center px-4 py-10">
-            <div class="w-full max-w-md">
-                <div class="text-center">
-                    <span class="uh-auth-mark" aria-hidden="true">UH</span>
-                    <p class="mt-4 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-[var(--color-gold-ink)]">Urban Haven</p>
-                    <p class="mt-1 text-xs text-[var(--color-muted)]">Properties Ltd. · Operations</p>
+    <body class="uh-auth min-h-screen antialiased">
+        <main class="uh-auth-shell">
+            <section class="uh-auth-panel" aria-label="Staff sign in">
+                <a class="uh-auth-brand" href="{{ url('/') }}" aria-label="Urban Haven home">
+                    <span class="uh-auth-brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="uh-auth-brand-copy">
+                        <strong>URBAN HAVEN</strong>
+                        <small>PROPERTIES &amp; DEVELOPMENT</small>
+                    </span>
+                </a>
+
+                <div class="uh-auth-content">
+                    <div class="uh-auth-card">
+                        @yield('card')
+                    </div>
                 </div>
 
-                <div class="uh-auth-card">
-                    @yield('card')
-                </div>
-
-                <p class="mt-6 text-center text-xs text-[var(--color-muted)]">
-                    <a class="transition hover:text-ink" href="{{ url('/') }}">Return to the public site</a>
-                </p>
-            </div>
-        </div>
+                <footer class="uh-auth-footer">
+                    <span>© {{ date('Y') }} Urban Haven. All rights reserved.</span>
+                    <a href="{{ url('/#contact') }}">Contact</a>
+                </footer>
+            </section>
+            <aside class="uh-auth-visual" aria-hidden="true">
+                <div class="uh-auth-visual-building"></div>
+            </aside>
+        </main>
     </body>
 </html>

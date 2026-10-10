@@ -13,6 +13,7 @@
      @keydown.escape.window="open = false">
     <button type="button" {{ $attributes->class($buttonClass) }}
             @click.stop="open = ! open"
+            aria-label="{{ __('Share') }}"
             :aria-label="open ? @js(__('Close share options')) : @js(__('Share'))"
             :aria-expanded="open.toString()"
             aria-haspopup="dialog" title="{{ __('Share') }}">

@@ -26,6 +26,8 @@
     $logoDark = $brandUrl(\App\Models\Setting::get('brand_logo_dark')) ?? $logoLight;
     $logoMobile = $brandUrl(\App\Models\Setting::get('brand_logo_mobile'));
     $logoFooter = $brandUrl(\App\Models\Setting::get('brand_logo_footer')) ?? $logoLight;
+    $footerHeroImage = \App\Models\CmsBlock::imagesFor('hero')->first()
+        ?? \App\Models\Property::query()->whereHas('media')->latest('id')->first()?->featuredImage();
     $favicon = $brandUrl(\App\Models\Setting::get('brand_favicon'));
     $headerCtaLabel = \App\Models\Setting::get('header_cta_label');
     $headerCtaUrl = \App\Models\Setting::get('header_cta_url') ?: '/contact';
@@ -291,17 +293,38 @@
             @yield('content')
         </main>
 
-        <footer class="uh-site-foot">
-            <div class="uh-container">
+        <footer @class(['uh-site-foot', 'has-cover' => $footerHeroImage !== null])>
+            @if($footerHeroImage)
+                <div class="uh-foot-media" aria-hidden="true">
+                    <img src="{{ $footerHeroImage->url(1920) }}"
+                         srcset="{{ $footerHeroImage->url(768) }} 768w, {{ $footerHeroImage->url(1280) }} 1280w, {{ $footerHeroImage->url(1920) }} 1920w"
+                         sizes="100vw"
+                         alt=""
+                         loading="lazy"
+                         decoding="async">
+                </div>
+                <div class="uh-foot-veil" aria-hidden="true"></div>
+            @else
+                <div class="uh-foot-glow" aria-hidden="true"></div>
+            @endif
+
+            <div class="uh-container relative z-10">
                 <div class="uh-foot-top">
-                    <a href="{{ route('home') }}" class="uh-brand">
-                        @if($logoFooter)
-                            <img class="uh-brand-logo-img" src="{{ $logoFooter }}" alt="{{ $companyName }}">
-                        @else
-                            <span class="uh-wordmark">{{ $companyName }}</span>
-                        @endif
-                    </a>
-                    <p class="uh-foot-line">{{ $footerNote }}</p>
+                    <div>
+                        <a href="{{ route('home') }}" class="uh-brand">
+                            @if($logoFooter)
+                                <img class="uh-brand-logo-img" src="{{ $logoFooter }}" alt="{{ $companyName }}">
+                            @else
+                                <span class="uh-wordmark">{{ $companyName }}</span>
+                            @endif
+                        </a>
+                        <p class="uh-foot-line">{{ $footerNote }}</p>
+                    </div>
+                    <div class="uh-foot-cta">
+                        <x-ui.pill-link variant="light" :href="route('properties.index')">
+                            {{ __('Explore properties') }}
+                        </x-ui.pill-link>
+                    </div>
                 </div>
 
                 <div class="uh-foot-columns">
@@ -334,13 +357,13 @@
                         <ul class="uh-foot-list">
                             @if(filled($contactPhone))
                                 <li>
-                                    <a href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="footer">
+                                    <a class="uh-foot-phone-link" href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="footer">
                                         <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
                                     </a>
                                 </li>
                             @endif
                             @if($whatsappHref)
-                                <li><a href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="footer">{{ __('WhatsApp') }}</a></li>
+                                <li><a class="uh-foot-whatsapp-link" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="footer">{{ __('WhatsApp') }}</a></li>
                             @endif
                             @if(filled($contactEmail))
                                 <li><a class="break-all" href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></li>
