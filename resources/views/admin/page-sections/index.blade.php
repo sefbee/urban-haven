@@ -30,7 +30,9 @@
     <ol class="dd-hs-list mt-5" aria-label="Homepage sections in display order">
         @foreach($blocks as $section => $block)
             @php $definition = $definitions[$section]; @endphp
-            @php $content = \App\Support\HomeSections::resolve($section, $block->content); @endphp
+            @php $contentClass = match($page) { 'home' => \App\Support\HomeSections::class, 'about' => \App\Support\AboutPageSections::class, 'contact' => \App\Support\ContactPageSections::class, 'articles' => \App\Support\ArticlesPageSections::class }; @endphp
+            @php $content = $contentClass::resolve($section, $block->content); @endphp
+            
             <li @class(['dd-hs-card', 'is-hidden' => ! $block->is_visible])>
                 <span class="dd-hs-number" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                 <span class="dd-hs-icon" aria-hidden="true"><x-icon :name="$icons[$section] ?? 'grid'" class="size-5" /></span>
