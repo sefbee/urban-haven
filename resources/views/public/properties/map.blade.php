@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-    <div class="uh-mapview" data-list-url="{{ route('properties.index') }}" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
+    <div class="uh-mapview" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
          :class="{
             'is-map-full': mapMode === 'full',
             'is-map-hidden': mapMode === 'hidden',
@@ -30,6 +30,14 @@
                      data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
                      data-attribution="{{ config('urbanhaven.maps.attribution') }}"
                      data-src="{{ $mapDataUrl }}"></div>
+                <button type="button" 
+                        class="absolute bottom-4 right-4 z-[1000] flex size-10 items-center justify-center bg-white rounded-md shadow-[0_2px_8px_rgb(0,0,0,0.1)] border border-gray-200 text-gray-700 hover:text-black hover:bg-gray-50 transition-colors"
+                        @click="mapMode = (mapMode === 'full' ? 'split' : 'full'); $nextTick(() => { window.dispatchEvent(new Event('uh:refresh-maps')); setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300); })"
+                        :aria-label="mapMode === 'full' ? '{{ __('Exit full screen map') }}' : '{{ __('Show full screen map') }}'"
+                        :title="mapMode === 'full' ? '{{ __('Exit full screen map') }}' : '{{ __('Show full screen map') }}'">
+                    <x-icon name="minimize" class="size-4" x-show="mapMode === 'full'" x-cloak />
+                    <x-icon name="expand" class="size-4" x-show="mapMode !== 'full'" />
+                </button>
                 @if(count($purposes) > 1)
                     <p class="uh-map-legend" aria-hidden="true">
                         <span><i></i>{{ __('For sale') }}</span>
@@ -40,17 +48,26 @@
 
             <button type="button" 
                     class="absolute top-1/2 -right-5 z-[600] flex h-12 w-5 items-center justify-center rounded-r-md bg-white text-slate-600 shadow-md border border-l-0 border-gray-200 hover:text-slate-900 transition-colors -translate-y-1/2"
-                    :class="mapMode === 'full' ? '-right-5' : '-right-5 lg:-right-10'"
-                    @click="mapMode = (mapMode === 'full' ? 'split' : 'full'); $nextTick(() => { window.dispatchEvent(new Event('uh:refresh-maps')); setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300); })"
-                    :aria-label="mapMode === 'full' ? 'Show side panel' : 'Collapse side panel'"
-                    :title="mapMode === 'full' ? 'Show side panel' : 'Collapse side panel'">
-                <x-icon name="chevron-right" class="size-3" x-show="mapMode === 'split'" />
-                <x-icon name="chevron-left" class="size-3" x-show="mapMode === 'full'" x-cloak />
+                    x-show="mapMode === 'split'" x-cloak
+                    @click="mapMode = 'hidden'"
+                    aria-label="{{ __('Hide map') }}" title="{{ __('Hide map') }}">
+                <x-icon name="chevron-left" class="size-3" />
             </button>
 
         </section>
 
         <section class="uh-mapview-list" aria-labelledby="map-title">
+            <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[1500]" x-show="mapMode === 'hidden'" x-cloak>
+                <button type="button" 
+                        class="flex items-center gap-3 bg-black text-white rounded-full pl-5 pr-1.5 py-1.5 shadow-lg hover:bg-gray-900 transition-colors"
+                        @click="mapMode = 'split'; $nextTick(() => { window.dispatchEvent(new Event('uh:refresh-maps')); setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300); })"
+                        aria-label="{{ __('Show map') }}">
+                    <span class="font-medium text-[0.9375rem]">{{ __('Show map') }}</span>
+                    <span class="bg-white text-black rounded-full size-8 flex items-center justify-center">
+                        <i class="fa-solid fa-map"></i>
+                    </span>
+                </button>
+            </div>
             <div class="uh-mapview-results">
                 <div class="uh-results-bar">
                     <p class="uh-results-count" aria-live="polite">
