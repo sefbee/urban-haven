@@ -26,9 +26,9 @@ class MediaController extends Controller
         $maxKb = max((int) config('urbanhaven.media.max_image_kb'), (int) config('urbanhaven.media.max_brochure_kb'));
         $validated = $request->validate([
             'file' => ['required_without:files', 'file', 'max:'.$maxKb],
-            'files' => ['required_without:file', 'array', 'max:20'],
+            'files' => ['required_without:file', 'array', 'max:100'],
             'files.*' => ['file', 'max:'.$maxKb],
-            'files_meta' => ['sometimes', 'array', 'max:20'],
+            'files_meta' => ['sometimes', 'array', 'max:100'],
             'files_meta.*.alt_text' => ['nullable', 'string', 'max:200'],
             'files_meta.*.is_public' => ['sometimes', 'boolean'],
             'files_meta.*.make_cover' => ['sometimes', 'boolean'],
@@ -91,6 +91,8 @@ class MediaController extends Controller
                 'url' => $item->isDocument() ? null : $item->url(),
                 'thumb_url' => $item->isDocument() ? null : $item->thumbUrl(),
                 'is_public' => $item->is_public,
+                'original_filename' => $item->original_filename,
+                'size_bytes' => (int) $item->size_bytes,
             ])->all(),
         ], 201);
     }

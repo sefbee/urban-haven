@@ -78,15 +78,27 @@
                     <h2 id="blocks-heading">Shared site blocks</h2>
                     <p>{{ $canPublish ? 'Text reused across the public site. Changes go live as soon as you save; hidden blocks fall back to the built-in text.' : 'Text reused across the public site. Your changes are saved as a draft until a publisher approves them.' }}</p>
                 </div>
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'home']) }}">
-                    <x-icon name="home" class="size-4" />
-                    Homepage sections
-                </a>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'home']) }}">
+                        <x-icon name="home" class="size-4" />
+                        Homepage sections
+                    </a>
+                    <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'about']) }}">
+                        About sections
+                    </a>
+                    <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'contact']) }}">
+                        Contact sections
+                    </a>
+                    <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'articles']) }}">
+                        Articles sections
+                    </a>
+                </div>
             </div>
 
             <div class="grid items-start gap-4 lg:grid-cols-2">
                 @foreach($blocks as $block)
-                    @php($fields = \Illuminate\Support\Arr::dot($block->draft_content ?? $block->content ?? []))
+                    @php($rawFields = \Illuminate\Support\Arr::dot($block->draft_content ?? $block->content ?? []))
+                    @php($fields = array_filter($rawFields, fn ($value): bool => ! is_array($value)))
                     <div id="block-{{ $block->key }}" class="uh-panel scroll-mt-24">
                         <form method="POST" action="{{ route('admin.cms.blocks.update', $block) }}" x-data="uhForm" @submit="submit">
                             @csrf
@@ -114,7 +126,7 @@
                                             @if(is_string($value) && mb_strlen($value) > 90)
                                                 <textarea id="{{ $fieldId }}" class="uh-textarea" name="{{ $fieldName }}" rows="3" maxlength="2000">{{ $value }}</textarea>
                                             @else
-                                                <input id="{{ $fieldId }}" class="uh-input" name="{{ $fieldName }}" value="{{ $value }}" maxlength="2000">
+                                                <input id="{{ $fieldId }}" class="uh-input" name="{{ $fieldName }}" value="{{ is_scalar($value) ? (string) $value : '' }}" maxlength="2000">
                                             @endif
                                         </div>
                                     @endforeach

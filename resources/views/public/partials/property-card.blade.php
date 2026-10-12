@@ -52,8 +52,8 @@
 
         @if($showShortlist)
             <span class="uh-listing-tools" style="position: absolute; z-index: 50; pointer-events: auto;">
-                <x-save-button :property="$property" />
-                <x-save-button :property="$property" list="compare" />
+                <x-save-button :property="$property" class="uh-card-shortlist-action" />
+                <x-save-button :property="$property" list="compare" class="uh-card-compare-action" />
             </span>
         @endif
     </div>

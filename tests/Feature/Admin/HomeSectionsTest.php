@@ -16,9 +16,9 @@ class HomeSectionsTest extends TestCase
     public function test_index_lists_every_section_with_built_in_defaults(): void
     {
         $this->actingAs($this->staff(Role::OWNER_ADMIN))
-            ->get(route('admin.home-sections.index'))
+            ->get(route('admin.page-sections.index', ['page' => 'home']))
             ->assertOk()
-            ->assertSeeInOrder(['Hero', 'Trending properties', 'Featured properties', 'Frequently asked questions']);
+            ->assertSeeInOrder(['Hero', 'Housing & apartment listings', 'Featured developments', 'Featured properties']);
 
         $this->assertSame(count(HomeSections::keys()), CmsBlock::query()->whereIn('key', HomeSections::blockKeys())->count());
         $this->assertFalse(CmsBlock::query()->where('key', 'about')->value('is_visible'));
@@ -29,9 +29,11 @@ class HomeSectionsTest extends TestCase
         CmsBlock::query()->create(['key' => 'hero', 'label' => 'Hero', 'content' => ['title' => 'Live title'], 'is_visible' => true, 'updated_at' => now()]);
 
         $this->actingAs($this->staff(Role::OWNER_ADMIN))
-            ->get(route('admin.home-sections.edit', 'hero'))
+            ->get(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'hero']))
             ->assertOk()
-            ->assertSee('Live title');
+            ->assertSee('Live title')
+            ->assertSee('Background photos')
+            ->assertDontSee('role="tab"', false);
 
         $this->assertSame('Live title', CmsBlock::query()->where('key', 'hero')->value('content')['title']);
     }
@@ -48,20 +50,23 @@ class HomeSectionsTest extends TestCase
     {
         $owner = $this->staff(Role::OWNER_ADMIN);
 
-        $this->actingAs($owner)->put(route('admin.home-sections.update', 'why'), ['content' => [
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => [
             'title' => 'Why choose us',
             'body' => 'We know Dhaka.',
             'link_label' => '',
             'link_url' => '/about',
             'items' => [
                 ['icon' => 'shield', 'title' => 'Verified listings', 'text' => 'Every listing checked.'],
-                ['icon' => 'check-circle', 'title' => '', 'text' => ''],
+                ['icon' => 'check-circle', 'title' => 'Personal service', 'text' => 'Direct guidance.'],
             ],
-        ]])->assertRedirect(route('admin.home-sections.edit', 'why'));
+        ]])->assertRedirect(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'why']));
 
         $content = CmsBlock::query()->where('key', 'about')->value('content');
         $this->assertSame('Why choose us', $content['title']);
-        $this->assertEquals([['icon' => 'shield', 'title' => 'Verified listings', 'text' => 'Every listing checked.']], $content['items']);
+        $this->assertEquals([
+            ['icon' => 'shield', 'title' => 'Verified listings', 'text' => 'Every listing checked.'],
+            ['icon' => 'check-circle', 'title' => 'Personal service', 'text' => 'Direct guidance.'],
+        ], $content['items']);
         $this->assertSame('More about us', HomeSections::resolve('why', $content)['link_label'], 'Empty fields fall back to defaults.');
     }
 
@@ -69,13 +74,13 @@ class HomeSectionsTest extends TestCase
     {
         $owner = $this->staff(Role::OWNER_ADMIN);
 
-        $this->actingAs($owner)->put(route('admin.home-sections.update', 'trending'), ['content' => ['title' => '', 'limit' => 99]])
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'trending']), ['content' => ['title' => '', 'limit' => 99]])
             ->assertSessionHasErrors(['content.title', 'content.limit']);
 
-        $this->actingAs($owner)->put(route('admin.home-sections.update', 'hero'), ['content' => ['title' => 'Hi', 'cta_url' => 'https://evil.example']])
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'hero']), ['content' => ['title' => 'Hi', 'cta_url' => 'https://evil.example']])
             ->assertSessionHasErrors('content.cta_url');
 
-        $this->actingAs($owner)->put(route('admin.home-sections.update', 'why'), ['content' => ['title' => 'Hi', 'items' => [['icon' => 'not-an-icon', 'title' => 'A']]]])
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => ['title' => 'Hi', 'items' => [['icon' => 'not-an-icon', 'title' => 'A']]]])
             ->assertSessionHasErrors('content.items.0.icon');
     }
 
@@ -84,17 +89,17 @@ class HomeSectionsTest extends TestCase
         $editor = $this->staff(Role::CONTENT_EDITOR);
         HomeSections::blocks();
 
-        $this->actingAs($editor)->put(route('admin.home-sections.update', 'trending'), ['content' => ['title' => 'Hot right now', 'limit' => 6]])->assertRedirect();
+        $this->actingAs($editor)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'trending']), ['content' => ['title' => 'Hot right now', 'limit' => 6]])->assertRedirect();
 
         $block = CmsBlock::query()->where('key', 'home_trending')->first();
         $this->assertSame('Trending Properties', $block->content['title']);
         $this->assertSame('Hot right now', $block->draft_content['title']);
 
-        $this->actingAs($editor)->post(route('admin.home-sections.visibility', 'trending'))->assertForbidden();
-        $this->actingAs($editor)->post(route('admin.home-sections.move', 'trending'), ['direction' => 'up'])->assertForbidden();
-        $this->actingAs($editor)->post(route('admin.home-sections.publish', 'trending'))->assertForbidden();
+        $this->actingAs($editor)->post(route('admin.page-sections.visibility', ['page' => 'home', 'section' => 'trending']))->assertForbidden();
+        $this->actingAs($editor)->post(route('admin.page-sections.move', ['page' => 'home', 'section' => 'trending']), ['direction' => 'up'])->assertForbidden();
+        $this->actingAs($editor)->post(route('admin.page-sections.publish', ['page' => 'home', 'section' => 'trending']))->assertForbidden();
 
-        $this->actingAs($this->staff(Role::OWNER_ADMIN))->post(route('admin.home-sections.publish', 'trending'))->assertRedirect();
+        $this->actingAs($this->staff(Role::OWNER_ADMIN))->post(route('admin.page-sections.publish', ['page' => 'home', 'section' => 'trending']))->assertRedirect();
         $this->assertSame('Hot right now', $block->fresh()->content['title']);
     }
 
@@ -102,20 +107,20 @@ class HomeSectionsTest extends TestCase
     {
         $owner = $this->staff(Role::OWNER_ADMIN);
 
-        $this->actingAs($owner)->post(route('admin.home-sections.visibility', 'faq'))->assertRedirect();
+        $this->actingAs($owner)->post(route('admin.page-sections.visibility', ['page' => 'home', 'section' => 'faq']))->assertRedirect();
         $this->assertFalse(CmsBlock::query()->where('key', 'home_faq')->value('is_visible'));
         $this->assertArrayNotHasKey('faq', HomeSections::visible());
 
-        $this->actingAs($owner)->post(route('admin.home-sections.move', 'featured'), ['direction' => 'up'])->assertRedirect();
-        $this->assertSame(['hero', 'featured', 'trending'], array_slice(HomeSections::blocks()->keys()->all(), 0, 3));
+        $this->actingAs($owner)->post(route('admin.page-sections.move', ['page' => 'home', 'section' => 'featured']), ['direction' => 'up'])->assertRedirect();
+        $this->assertSame(['hero', 'housing', 'featured', 'projects'], array_slice(HomeSections::blocks()->keys()->all(), 0, 4));
 
-        $this->actingAs($owner)->post(route('admin.home-sections.move', 'hero'), ['direction' => 'up'])->assertRedirect();
+        $this->actingAs($owner)->post(route('admin.page-sections.move', ['page' => 'home', 'section' => 'hero']), ['direction' => 'up'])->assertRedirect();
         $this->assertSame('hero', HomeSections::blocks()->keys()->first());
     }
 
     public function test_unknown_sections_return_not_found(): void
     {
-        $this->actingAs($this->staff(Role::OWNER_ADMIN))->get('/admin/home-sections/nope')->assertNotFound();
+        $this->actingAs($this->staff(Role::OWNER_ADMIN))->get('/admin/page-sections/home/nope')->assertNotFound();
     }
 
     public function test_home_section_blocks_are_not_repeated_on_the_pages_screen(): void

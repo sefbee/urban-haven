@@ -57,7 +57,9 @@
         </section>
 
         <section class="uh-mapview-list" aria-labelledby="map-title">
-            <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[1500]" x-show="mapMode === 'hidden'" x-cloak>
+            <div class="fixed left-1/2 -translate-x-1/2 z-[1500] transition-[bottom] duration-200"
+                 :style="{ bottom: $store.saved.compare.length > 1 ? ($store.saved.notice ? '8rem' : '5.25rem') : ($store.saved.notice ? '5.25rem' : '2rem') }"
+                 x-show="mapMode === 'hidden'" x-cloak>
                 <button type="button" 
                         class="flex items-center gap-3 bg-black text-white rounded-full pl-5 pr-1.5 py-1.5 shadow-lg hover:bg-gray-900 transition-colors"
                         @click="mapMode = 'split'; $nextTick(() => { window.dispatchEvent(new Event('uh:refresh-maps')); setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300); })"

@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\UpdateCmsPageRequest;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use App\Services\Cms\CmsService;
-use App\Support\HomeSections;
 use App\Support\SeoFields;
 use App\Support\SeoMeta;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +24,7 @@ class CmsPageController extends Controller
 
         return view('admin.cms.pages.index', [
             'pages' => CmsPage::query()->with('publicationState')->orderBy('title')->get(),
-            'blocks' => CmsBlock::query()->whereNotIn('key', HomeSections::blockKeys())->orderBy('sort_order')->orderBy('label')->get(),
+            'blocks' => CmsBlock::query()->whereNotIn('key', CmsBlock::pageSectionKeys())->orderBy('sort_order')->orderBy('label')->get(),
             'canPublish' => request()->user()->hasPermission('cms.publish'),
         ]);
     }

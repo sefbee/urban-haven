@@ -135,6 +135,11 @@ export const registerSavedStore = (Alpine) => {
                 }
                 this.count = payload.ids.length;
                 this.html = payload.html;
+                this.$nextTick?.(() => {
+                    if (this.$el) {
+                        Alpine.initTree(this.$el);
+                    }
+                });
             } catch {
                 this.failed = true;
             } finally {

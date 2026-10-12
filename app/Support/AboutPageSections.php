@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 final class AboutPageSections
 {
     public const ICONS = HomeSections::ICONS;
-    
+
     public static function definitions(): array
     {
         return [
@@ -39,6 +39,11 @@ final class AboutPageSections
                 'fields' => [
                     'eyebrow' => ['label' => 'Story label', 'type' => 'text', 'max' => 80, 'default' => 'Our Story'],
                     'title' => ['label' => 'Story heading', 'type' => 'text', 'max' => 140, 'default' => 'A New Standard in Property Experience'],
+                    'quote' => ['label' => 'Story quote', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'quote_kicker' => ['label' => 'Story quote eyebrow', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'quote_label' => ['label' => 'Story quote attribution', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Discover Our Properties'],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
                     'stat_one_value' => ['label' => 'Stat 1 Value', 'type' => 'text', 'max' => 40, 'default' => '10+'],
                     'stat_one_label' => ['label' => 'Stat 1 Label', 'type' => 'text', 'max' => 100, 'default' => 'Years of Combined Experience'],
                     'stat_two_value' => ['label' => 'Stat 2 Value', 'type' => 'text', 'max' => 40, 'default' => '25+'],
@@ -47,7 +52,7 @@ final class AboutPageSections
                     'stat_three_label' => ['label' => 'Stat 3 Label', 'type' => 'text', 'max' => 100, 'default' => 'Client Consultations'],
                     'stat_four_value' => ['label' => 'Stat 4 Value', 'type' => 'text', 'max' => 40, 'default' => '100%'],
                     'stat_four_label' => ['label' => 'Stat 4 Label', 'type' => 'text', 'max' => 100, 'default' => 'Commitment to Transparency'],
-                ]
+                ],
             ],
             'purpose' => [
                 'block' => 'about_purpose',
@@ -60,7 +65,7 @@ final class AboutPageSections
                     'mission_text' => ['label' => 'Mission text', 'type' => 'textarea', 'max' => 300, 'default' => 'To simplify the property journey through expert guidance, transparent communication and carefully selected real-estate opportunities.'],
                     'vision_title' => ['label' => 'Vision title', 'type' => 'text', 'max' => 80, 'default' => 'Vision'],
                     'vision_text' => ['label' => 'Vision text', 'type' => 'textarea', 'max' => 300, 'default' => 'To become a trusted real-estate name in Bangladesh, known for quality properties, lasting relationships and responsible growth.'],
-                ]
+                ],
             ],
             'values' => [
                 'block' => 'about_values',
@@ -70,27 +75,32 @@ final class AboutPageSections
                     'eyebrow' => ['label' => 'Values label', 'type' => 'text', 'max' => 80, 'default' => 'What Guides Us'],
                     'title' => ['label' => 'Values heading', 'type' => 'text', 'max' => 140, 'default' => 'Values Behind Every Decision'],
                     'intro' => ['label' => 'Values introduction', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'value_one_icon' => ['label' => 'First value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'shield'],
                     'value_one_title' => ['label' => 'First value heading', 'type' => 'text', 'max' => 80, 'default' => 'Integrity'],
                     'value_one_text' => ['label' => 'First value text', 'type' => 'textarea', 'max' => 240, 'default' => 'We communicate clearly and act responsibly.'],
+                    'value_two_icon' => ['label' => 'Second value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'users'],
                     'value_two_title' => ['label' => 'Second value heading', 'type' => 'text', 'max' => 80, 'default' => 'Client First'],
                     'value_two_text' => ['label' => 'Second value text', 'type' => 'textarea', 'max' => 240, 'default' => 'Every recommendation begins with your needs.'],
+                    'value_three_icon' => ['label' => 'Third value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'sparkle'],
                     'value_three_title' => ['label' => 'Third value heading', 'type' => 'text', 'max' => 80, 'default' => 'Quality'],
                     'value_three_text' => ['label' => 'Third value text', 'type' => 'textarea', 'max' => 240, 'default' => 'We focus on properties with lasting value.'],
+                    'value_four_icon' => ['label' => 'Fourth value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'refresh'],
                     'value_four_title' => ['label' => 'Fourth value heading', 'type' => 'text', 'max' => 80, 'default' => 'Long-Term Partnership'],
                     'value_four_text' => ['label' => 'Fourth value text', 'type' => 'textarea', 'max' => 240, 'default' => 'Our relationship continues beyond the transaction.'],
-                ]
+                ],
             ],
             'choose' => [
                 'block' => 'about_choose',
                 'label' => 'Why Choose Us',
                 'summary' => 'Reasons to choose us.',
+                'images' => true,
                 'fields' => [
                     'eyebrow' => ['label' => 'Why Choose Us label', 'type' => 'text', 'max' => 80, 'default' => 'Why Choose Us'],
                     'title' => ['label' => 'Why Choose Us heading', 'type' => 'text', 'max' => 140, 'default' => 'Property Guidance You Can Rely On'],
                     'list' => ['label' => 'Why Choose Us list (one per line)', 'type' => 'textarea', 'max' => 500, 'default' => "Carefully selected property portfolio\nClear and transparent communication\nDedicated property consultants\nSupport from enquiry to handover\nLocal market knowledge"],
                     'cta_label' => ['label' => 'Why Choose button text', 'type' => 'text', 'max' => 40, 'default' => 'Talk to Our Team'],
                     'cta_url' => ['label' => 'Why Choose button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
-                ]
+                ],
             ],
             'approach' => [
                 'block' => 'about_approach',
@@ -107,7 +117,7 @@ final class AboutPageSections
                     'approach_three_text' => ['label' => 'Step 3 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We arrange visits and provide complete information.'],
                     'approach_four_title' => ['label' => 'Step 4 title', 'type' => 'text', 'max' => 80, 'default' => 'Support'],
                     'approach_four_text' => ['label' => 'Step 4 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We guide you through the decision and handover.'],
-                ]
+                ],
             ],
             'team' => [
                 'block' => 'about_team',
@@ -117,7 +127,20 @@ final class AboutPageSections
                 'fields' => [
                     'eyebrow' => ['label' => 'Team label', 'type' => 'text', 'max' => 80, 'default' => 'Our People'],
                     'title' => ['label' => 'Team heading', 'type' => 'text', 'max' => 140, 'default' => 'Meet the Team Behind Urban Haven'],
-                ]
+                    'members' => [
+                        'label' => 'Team members (optional - leave empty to display active staff)',
+                        'type' => 'repeater',
+                        'max' => 8,
+                        'default' => [],
+                        'item_label' => 'member',
+                        'fields' => [
+                            'name' => ['label' => 'Name', 'type' => 'text', 'max' => 80, 'required' => true],
+                            'role' => ['label' => 'Role / Designation', 'type' => 'text', 'max' => 80, 'required' => true],
+                            'image_url' => ['label' => 'Photo URL', 'type' => 'text', 'max' => 500],
+                            'linkedin_url' => ['label' => 'LinkedIn / Profile URL', 'type' => 'text', 'max' => 255],
+                        ],
+                    ],
+                ],
             ],
             'cta' => [
                 'block' => 'about_cta',
@@ -129,11 +152,13 @@ final class AboutPageSections
                     'body' => ['label' => 'Body text', 'type' => 'textarea', 'max' => 300, 'default' => 'Speak with our team and discover an opportunity that matches your goals.'],
                     'label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Book a Consultation'],
                     'url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
-                ]
+                    'secondary_label' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => 'Contact Us'],
+                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                ],
             ],
         ];
     }
-    
+
     private const HIDDEN_BY_DEFAULT = [];
 
     public static function definition(string $section): array
@@ -198,6 +223,8 @@ final class AboutPageSections
                 $block->forceFill(['sort_order' => ($position + 1) * 10, 'updated_at' => now()])->save();
             }
         }
+
+        TaggedCache::flush(['cms', 'aboutpage']);
     }
 
     public static function defaults(string $section): array

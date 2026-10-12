@@ -42,6 +42,30 @@ class CompareTradeoffsTest extends TestCase
         $this->assertNull(CompareTradeoffs::formattedPricePerSqft(new Property(['price' => 1_000_000, 'area_value' => null, 'area_unit' => 'sqft'])));
     }
 
+    public function test_compare_views_use_theme_color_variables_and_no_hardcoded_teal_or_emerald(): void
+    {
+        $compareBlade = file_get_contents(resource_path('views/public/compare.blade.php'));
+        $savedCompareBlade = file_get_contents(resource_path('views/public/partials/saved-compare.blade.php'));
+
+        $this->assertStringNotContainsString('teal-', $compareBlade);
+        $this->assertStringNotContainsString('emerald-', $compareBlade);
+        $this->assertStringNotContainsString('teal-', $savedCompareBlade);
+        $this->assertStringNotContainsString('emerald-', $savedCompareBlade);
+
+        $this->assertStringContainsString('var(--color-accent)', $compareBlade);
+        $this->assertStringContainsString('var(--color-accent)', $savedCompareBlade);
+        $this->assertStringContainsString('var(--uh-paper)', $savedCompareBlade);
+        $this->assertStringContainsString('var(--uh-ink)', $savedCompareBlade);
+    }
+
+    public function test_public_layout_does_not_render_header_cta_button(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/public.blade.php'));
+
+        $this->assertStringNotContainsString('uh-bar-cta', $layout);
+        $this->assertStringNotContainsString('$headerCtaLabel', $layout);
+    }
+
     private function sale(int $price, int $sqft, int $bedrooms): Property
     {
         return new Property([

@@ -47,10 +47,6 @@ class MediaService implements MediaServiceContract
     {
         $altText = $altText !== null ? trim($altText) : null;
 
-        if ($isPublic && ! $media->isDocument() && blank($altText)) {
-            throw ValidationException::withMessages(['alt_text' => 'Describe the image before making it public.']);
-        }
-
         $old = ['alt' => $media->alt(), 'is_public' => $media->is_public];
 
         $media->forceFill([

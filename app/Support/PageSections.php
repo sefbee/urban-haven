@@ -5,9 +5,6 @@ namespace App\Support;
 use App\Models\CmsBlock;
 use Illuminate\Database\Eloquent\Collection;
 
-use App\Models\CmsBlock;
-use Illuminate\Database\Eloquent\Collection;
-
 /**
  * Every homepage section, its editable fields and their built-in defaults. Each section
  * is stored as one CMS block, so order, visibility and drafts reuse the block workflow.

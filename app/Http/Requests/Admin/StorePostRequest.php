@@ -48,13 +48,13 @@ class StorePostRequest extends FormRequest
             'related_post_ids' => ['nullable', 'array', 'max:6'],
             'related_post_ids.*' => ['integer', 'exists:posts,id'],
             'cover_images' => $this->isMethod('POST')
-                ? ['nullable', 'array', 'max:20']
+                ? ['nullable', 'array', 'max:100']
                 : ['prohibited'],
             'cover_images.*' => $this->isMethod('POST')
                 ? ['image', 'mimes:jpg,jpeg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')]
                 : ['prohibited'],
             'cover_images_meta' => $this->isMethod('POST')
-                ? ['sometimes', 'array', 'max:20']
+                ? ['sometimes', 'array', 'max:100']
                 : ['prohibited'],
             'cover_images_meta.*.alt_text' => $this->isMethod('POST')
                 ? ['nullable', 'string', 'max:200']

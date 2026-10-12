@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\AboutPageSections;
+use App\Support\ArticlesPageSections;
+use App\Support\ContactPageSections;
+use App\Support\HomeSections;
 use App\Support\TaggedCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -56,12 +60,29 @@ class CmsBlock extends Model
         return $this->morphMany(Media::class, 'mediable')->orderBy('sort_order');
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (self $block): void {
+            TaggedCache::flush(['cms', 'homepage', 'aboutpage', 'contactpage', 'articlespage', 'menus', 'sitemap']);
+        });
+
+        static::deleted(function (self $block): void {
+            TaggedCache::flush(['cms', 'homepage', 'aboutpage', 'contactpage', 'articlespage', 'menus', 'sitemap']);
+        });
+    }
+
     /**
-     * Blocks that carry uploaded images (the homepage hero background).
+     * Blocks that carry uploaded images.
      */
     public function acceptsImage(): bool
     {
-        return $this->key === 'hero';
+        return $this->key === 'hero' || in_array($this->key, [
+            'about_hero',
+            'about_story',
+            'about_choose',
+            'contact_office',
+            'articles_promo',
+        ], true);
     }
 
     /**
@@ -80,5 +101,20 @@ class CmsBlock extends Model
     public static function imagesFor(string $key): Collection
     {
         return self::query()->with('media')->where('key', $key)->where('is_visible', true)->first()?->images() ?? new Collection;
+    }
+
+    /**
+     * Keys of blocks managed by dedicated page section editors.
+     *
+     * @return list<string>
+     */
+    public static function pageSectionKeys(): array
+    {
+        return array_values(array_unique(array_merge(
+            HomeSections::blockKeys(),
+            AboutPageSections::blockKeys(),
+            ContactPageSections::blockKeys(),
+            ArticlesPageSections::blockKeys(),
+        )));
     }
 }

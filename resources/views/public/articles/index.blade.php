@@ -6,31 +6,35 @@
 
 @section('content')
     <main class="uh-container uh-articles-page">
-        <header class="uh-editorial-masthead">
-            <div>
-                <p class="uh-editorial-overline">{{ $articlesSections['masthead']['eyebrow'] ?? __('Urban Haven Journal') }}</p>
-                <h1 class="uh-editorial-title">{{ $activeCategory?->name ?? ($articlesSections['masthead']['title'] ?? __('Explore News, Insights and Videos')) }}</h1>
-                <p class="uh-editorial-intro">{{ $articlesSections['masthead']['intro'] ?? __('Ideas, places and perspectives shaping the way Bangladesh lives.') }}</p>
-            </div>
+        @if(isset($articlesSections['masthead']))
+            <header class="uh-editorial-masthead">
+                <div>
+                    <p class="uh-editorial-overline">{{ $articlesSections['masthead']['eyebrow'] ?? __('Urban Haven Journal') }}</p>
+                    <h1 class="uh-editorial-title">{{ $activeCategory?->name ?? ($articlesSections['masthead']['title'] ?? __('Explore News, Insights and Videos')) }}</h1>
+                    <p class="uh-editorial-intro">{{ $articlesSections['masthead']['intro'] ?? __('Ideas, places and perspectives shaping the way Bangladesh lives.') }}</p>
+                </div>
 
-            @if($categories->isNotEmpty())
-                <nav class="uh-editorial-categories" aria-label="{{ __('Article categories') }}">
-                    <a href="{{ route('articles.index') }}" @class(['is-active' => ! $activeCategory])>{{ __('All stories') }}</a>
-                    @foreach($categories as $category)
-                        <a href="{{ route('articles.index', ['category' => $category->slug]) }}"
-                           @class(['is-active' => $activeCategory?->is($category)])>{{ $category->name }}</a>
-                    @endforeach
-                </nav>
-            @endif
-        </header>
+                @if($categories->isNotEmpty())
+                    <nav class="uh-editorial-categories" aria-label="{{ __('Article categories') }}">
+                        <a href="{{ route('articles.index') }}" @class(['is-active' => ! $activeCategory])>{{ __('All stories') }}</a>
+                        @foreach($categories as $category)
+                            <a href="{{ route('articles.index', ['category' => $category->slug]) }}"
+                               @class(['is-active' => $activeCategory?->is($category)])>{{ $category->name }}</a>
+                        @endforeach
+                    </nav>
+                @endif
+            </header>
+        @endif
 
         @if($posts->isNotEmpty())
-            @if(! $activeCategory && $posts->onFirstPage() && $posts->count() >= 5)
+            @php
+                $showcaseCategories = $categories->take($articlesSections['categories']['limit'] ?? 6);
+            @endphp
+            @if($featuredPosts->isNotEmpty())
                 @php
-                    $mainPost = $posts->first();
-                    $topRightPosts = $posts->slice(1, 2);
-                    $bottomRightPosts = $posts->slice(3, 4);
-                    $showcaseCategories = $categories->take(6);
+                    $mainPost = $featuredPosts->first();
+                    $topRightPosts = $featuredPosts->slice(1, 2);
+                    $bottomRightPosts = $featuredPosts->slice(3);
                 @endphp
 
                 <section class="uh-editorial-feature" aria-label="{{ __('Featured articles') }}">
@@ -81,7 +85,7 @@
                                             <span class="uh-editorial-image-placeholder"></span>
                                         @endif
                                     </span>
-                                    <span class="uh-editorial-brief-copy">
+                                    <span class="uh-editorial-card-copy">
                                         <span class="uh-editorial-card-title">{{ $post->title }}</span>
                                         <span class="uh-editorial-date">{{ $post->publicationState?->published_at?->format('M d, Y') }}</span>
                                     </span>
@@ -90,18 +94,29 @@
                         </div>
                     </div>
                 </section>
+            @endif
 
-                <a href="{{ route('properties.index') }}" class="uh-editorial-promo group">
-                    <span class="uh-editorial-promo-image" aria-hidden="true">
-                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=85" alt="" loading="lazy">
-                    </span>
-                    <span class="uh-editorial-promo-copy">
-                        <span class="uh-editorial-overline">{{ __('Find your next address') }}</span>
-                        <span class="uh-editorial-promo-title">{{ __('A better way to find your place.') }}</span>
-                        <span class="uh-editorial-promo-link">{{ __('Explore properties') }} <x-icon name="arrow-right" class="size-4" /></span>
-                    </span>
-                </a>
+                @if(isset($articlesSections['promo']))
+                    @php
+                        $promoImage = \App\Models\CmsBlock::imagesFor('articles_promo')->first();
+                    @endphp
+                    <a href="{{ $articlesSections['promo']['cta_url'] ?? route('properties.index') }}" class="uh-editorial-promo group">
+                        <span class="uh-editorial-promo-image" aria-hidden="true">
+                            @if($promoImage)
+                                <img src="{{ $promoImage->url(1400) }}" alt="" loading="lazy">
+                            @else
+                                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=85" alt="" loading="lazy">
+                            @endif
+                        </span>
+                        <span class="uh-editorial-promo-copy">
+                            <span class="uh-editorial-overline">{{ $articlesSections['promo']['eyebrow'] ?? __('Find your next address') }}</span>
+                            <span class="uh-editorial-promo-title">{{ $articlesSections['promo']['title'] ?? __('A better way to find your place.') }}</span>
+                            <span class="uh-editorial-promo-link">{{ $articlesSections['promo']['cta_label'] ?? __('Explore properties') }} <x-icon name="arrow-right" class="size-4" /></span>
+                        </span>
+                    </a>
+                @endif
 
+                @if(isset($articlesSections['categories']) && ! $activeCategory)
                 @foreach($showcaseCategories as $index => $category)
                     @php
                         $categoryPosts = $showcasePosts->get($category->id, collect());
@@ -187,11 +202,9 @@
                         </section>
                     @endif
                 @endforeach
-
-                @if($posts->hasPages())
-                    <div class="uh-pagination-wrap">{{ $posts->onEachSide(1)->links() }}</div>
                 @endif
-            @else
+
+            @if(isset($articlesSections['grid']))
                 <section class="uh-editorial-listing-grid" aria-label="{{ __('Articles') }}">
                     @foreach($posts as $post)
                         <a href="{{ route('articles.show', $post->slug) }}" class="uh-editorial-card group">

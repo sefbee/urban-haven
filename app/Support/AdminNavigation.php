@@ -28,27 +28,19 @@ final class AdminNavigation
             try {
                 $pages = CmsPage::query()->orderBy('title')->get();
                 foreach ($pages as $page) {
-                    if ($page->template === 'about' || $page->template === 'contact') {
-                        $url = route('admin.page-sections.index', ['page' => $page->template]);
-                        $icon = $page->template === 'about' ? 'user-group' : 'phone';
-                        $dynamicPages[$page->template] = self::item(
-                            'admin.page-sections.*.'.$page->template,
-                            $page->title,
-                            $url,
-                            $icon,
-                            fn () => request()->route('page') === $page->template
-                        );
-                    } else {
-                        $url = route('admin.cms.edit', $page);
-                        $icon = 'document-text';
-                        $dynamicPages[$page->id] = self::item(
-                            'admin.cms.edit.'.$page->id,
-                            $page->title,
-                            $url,
-                            $icon,
-                            fn () => request()->url() === $url
-                        );
+                    if (in_array($page->slug, ['about', 'contact', 'blog'], true)
+                        || in_array($page->template, ['about', 'contact'], true)) {
+                        continue;
                     }
+
+                    $url = route('admin.cms.edit', $page);
+                    $dynamicPages[$page->id] = self::item(
+                        'admin.cms.edit.'.$page->id,
+                        $page->title,
+                        $url,
+                        $page->menu_icon ?: 'document',
+                        fn () => request()->url() === $url
+                    );
                 }
             } catch (\Throwable $e) {
                 // Ignore DB issues during setup/migration
@@ -70,21 +62,24 @@ final class AdminNavigation
 
         $pagesGroup = [];
         if ($canCms) {
-            $pagesGroup[] = self::item('admin.page-sections.*', 'Home', route('admin.page-sections.index', ['page' => 'home']), 'home');
+            $pagesGroup[] = self::item('admin.page-sections.*', 'Home', route('admin.page-sections.index', ['page' => 'home']), 'home', fn () => request()->route('page') === 'home');
+            $pagesGroup[] = self::item('admin.page-sections.*', 'Contact', route('admin.page-sections.index', ['page' => 'contact']), 'phone', fn () => request()->route('page') === 'contact');
+            $pagesGroup[] = self::item('admin.page-sections.*', 'About Urban Haven', route('admin.page-sections.index', ['page' => 'about']), 'user-group', fn () => request()->route('page') === 'about');
+            $pagesGroup[] = self::item('admin.page-sections.*', 'Blog', route('admin.page-sections.index', ['page' => 'articles']), 'document', fn () => request()->route('page') === 'articles');
             foreach ($orderedDynamicPages as $dp) {
                 $pagesGroup[] = $dp;
             }
+            $pagesGroup[] = self::item('admin.faqs.*', 'FAQ page', route('admin.faqs.index'), 'info');
             if ($can('cms.publish')) {
                 $pagesGroup[] = self::item('admin.menus.*', 'Menu management', route('admin.menus.index'), 'menu');
             }
-            $pagesGroup[] = self::item('admin.cms.*', 'Custom pages', route('admin.cms.index'), 'document');
-            $pagesGroup[] = self::item('admin.faqs.*', 'FAQ page', route('admin.faqs.index'), 'info');
+            $pagesGroup[] = self::item(['admin.cms.index', 'admin.cms.create', 'admin.cms.store'], 'Custom pages', route('admin.cms.index'), 'document');
         }
-            if ($user->can('viewAny', Post::class)) {
-                $pagesGroup[] = self::item('admin.page-sections.*.articles', 'Articles page', route('admin.page-sections.index', ['page' => 'articles']), 'document-text', fn() => request()->route('page') === 'articles');
-                $pagesGroup[] = self::item('admin.posts.*', 'Articles content', route('admin.posts.index'), 'list');
-                $pagesGroup[] = self::item('admin.post-categories.*', 'Article categories', route('admin.post-categories.index'), 'tag');
-            }
+        $articleGroup = [];
+        if ($user->can('viewAny', Post::class)) {
+            $articleGroup[] = self::item('admin.posts.*', 'Articles content', route('admin.posts.index'), 'list');
+            $articleGroup[] = self::item('admin.post-categories.*', 'Article categories', route('admin.post-categories.index'), 'tag');
+        }
 
         $groups = [
             'Dashboard' => [
@@ -98,11 +93,12 @@ final class AdminNavigation
                 $canReference ? self::item('admin.amenities.*', 'Amenities', route('admin.amenities.index'), 'sparkle') : null,
             ],
             'Website pages' => $pagesGroup,
+            'Articles' => $articleGroup,
             'SEO & Marketing' => [
                 $canCms ? self::item('admin.site-urls', 'Pages & slugs', route('admin.site-urls'), 'link') : null,
                 $can('cms.publish') ? self::item('admin.page-seo.*', 'Page SEO', route('admin.page-seo.index'), 'globe') : null,
             ],
-            
+
             'Communication' => [
                 $can('lead.view') ? self::item('admin.leads.*', 'Leads & enquiries', route('admin.leads.index'), 'inbox') : null,
                 $can('lead.view') ? self::item('admin.follow-ups.*', 'Follow-ups', route('admin.follow-ups.index'), 'clock') : null,
@@ -148,7 +144,7 @@ final class AdminNavigation
 
         foreach ($groups as $group => $items) {
             foreach ($items as $item) {
-                if (request()->routeIs(...(array) $item['pattern'])) {
+                if (! isset($item['matcher']) && request()->routeIs(...(array) $item['pattern'])) {
                     return ['group' => $group, 'item' => $item];
                 }
             }

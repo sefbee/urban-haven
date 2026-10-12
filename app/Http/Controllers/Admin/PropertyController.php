@@ -79,7 +79,11 @@ class PropertyController extends Controller
         $property = $inventory->createProperty($this->attributes($request), $request->user());
         SeoFields::sync($property, $request->validated());
 
-        if ($request->hasFile('photograph')) {
+        if ($request->hasFile('photographs')) {
+            foreach ($request->file('photographs') as $file) {
+                $media->store($property, $file, 'gallery', $request->validated('photograph_alt'));
+            }
+        } elseif ($request->hasFile('photograph')) {
             $media->store($property, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
         }
 

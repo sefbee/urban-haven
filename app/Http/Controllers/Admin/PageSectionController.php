@@ -11,6 +11,7 @@ use App\Support\AboutPageSections;
 use App\Support\ArticlesPageSections;
 use App\Support\ContactPageSections;
 use App\Support\HomeSections;
+use App\Support\TaggedCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -96,6 +97,7 @@ class PageSectionController extends Controller
         $block = $sectionsClass::blocks()->get($section);
 
         $block->forceFill(['is_visible' => ! $block->is_visible, 'updated_at' => now()])->save();
+        TaggedCache::flush(['cms', 'homepage', 'aboutpage', 'contactpage', 'articlespage', 'menus', 'sitemap']);
         $audit->record($request->user()->id, $block->is_visible ? 'cms.section_shown' : 'cms.section_hidden', CmsBlock::class, $block->id, null, ['key' => $block->key], $request->ip());
 
         return back()->with('status', $definition['label'].($block->is_visible ? ' is now shown on the page.' : ' is now hidden from the page.'));
@@ -121,6 +123,7 @@ class PageSectionController extends Controller
             $order[$swap] = $section;
             $order[$current] = $temp;
             $sectionsClass::reorder($order);
+            TaggedCache::flush(['cms', 'homepage', 'aboutpage', 'contactpage', 'articlespage', 'menus', 'sitemap']);
         }
 
         return back()->with('status', 'Page sections reordered.');

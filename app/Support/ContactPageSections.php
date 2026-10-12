@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 final class ContactPageSections
 {
     public const ICONS = HomeSections::ICONS;
-    
+
     public static function definitions(): array
     {
         return [
@@ -30,7 +30,7 @@ final class ContactPageSections
                 'images' => true,
                 'fields' => [
                     'title' => ['label' => 'Office details heading', 'type' => 'text', 'max' => 80, 'default' => 'Corporate Office'],
-                ]
+                ],
             ],
             'direct' => [
                 'block' => 'contact_direct',
@@ -39,11 +39,24 @@ final class ContactPageSections
                 'fields' => [
                     'title' => ['label' => 'Direct contact heading', 'type' => 'text', 'max' => 80, 'default' => 'Direct Contact'],
                     'intro' => ['label' => 'Direct contact intro', 'type' => 'textarea', 'max' => 300, 'default' => 'Reach out to our agents directly for immediate assistance with any property inquiries.'],
-                ]
-            ]
+                ],
+            ],
+            'cta' => [
+                'block' => 'contact_cta',
+                'label' => 'Bottom Call to Action',
+                'summary' => 'Bottom banner inviting visitors to schedule a consultation or browse properties.',
+                'fields' => [
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => 'Ready to Make Your Next Property Move?'],
+                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Schedule a confidential consultation with our real-estate team and let us guide you home.'],
+                    'primary_cta' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => 'Book a Consultation'],
+                    'primary_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => '#page-form-heading'],
+                    'secondary_cta' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => 'Browse Properties'],
+                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
+                ],
+            ],
         ];
     }
-    
+
     private const HIDDEN_BY_DEFAULT = [];
 
     public static function definition(string $section): array
@@ -108,6 +121,8 @@ final class ContactPageSections
                 $block->forceFill(['sort_order' => ($position + 1) * 10, 'updated_at' => now()])->save();
             }
         }
+
+        TaggedCache::flush(['cms', 'contactpage']);
     }
 
     public static function defaults(string $section): array

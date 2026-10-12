@@ -12,6 +12,7 @@
 
 <main class="bg-white pb-0">
     {{-- Hero Section --}}
+    @if(isset($contactSections['hero']))
     <div class="group flex flex-col lg:flex-row min-h-[550px] 2xl:min-h-[650px] overflow-hidden">
         <div class="w-full lg:w-1/2 bg-[var(--color-dominant)] flex items-center justify-center p-8 sm:p-12 lg:p-16 xl:p-24 relative z-10">
             {{-- Subtle background decoration --}}
@@ -22,40 +23,44 @@
             <div class="w-full max-w-xl relative">
                 <div class="inline-flex items-center gap-3 mb-5">
                     <span class="w-8 h-px bg-[var(--color-accent)]"></span>
-                    <p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ __('Let\'s connect') }}</p>
+                    <p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ $contactSections['hero']['eyebrow'] ?? __('Let\'s connect') }}</p>
                 </div>
                 <h1 class="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4rem] font-display text-[var(--color-body-text)] text-balance transition-all duration-700">
-                    {{ $page->title ?: __('Let’s Find the Right Property for You.') }}
+                    {{ $contactSections['hero']['title'] ?? ($page->title ?: __('Let’s Find the Right Property for You.')) }}
                 </h1>
                 <p class="mt-6 text-[15px] sm:text-base leading-relaxed text-[var(--color-muted-text)] max-w-[480px]">
-                    {{ filled(trim(strip_tags((string) $page->body)))
+                    {{ $contactSections['hero']['intro'] ?? (filled(trim(strip_tags((string) $page->body)))
                         ? trim(strip_tags((string) $page->body))
-                        : __('Whether you\'re looking to buy, sell or invest, our property specialists are ready to guide you.') }}
+                        : __('Whether you\'re looking to buy, sell or invest, our property specialists are ready to guide you.')) }}
                 </p>
 
             </div>
         </div>
         <div class="w-full lg:w-1/2 h-[400px] lg:h-auto relative overflow-hidden">
             <div class="absolute inset-0 bg-[var(--color-secondary)]/10 mix-blend-multiply z-10 transition-opacity duration-700 group-hover:opacity-0"></div>
-            <img src="{{ $contactImage?->url(1920) ?? 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=85' }}"
-                 alt="{{ $contactImage?->alt(app()->getLocale()) ?: __('Contemporary home surrounded by greenery') }}"
+            @php
+                $heroPhoto = \App\Models\CmsBlock::imagesFor('contact_office')->first() ?? $contactImage;
+            @endphp
+            <img src="{{ $heroPhoto?->url(1920) ?? 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=85' }}"
+                 alt="{{ $heroPhoto?->alt(app()->getLocale()) ?: __('Contemporary home surrounded by greenery') }}"
                  class="absolute inset-0 size-full object-cover object-center transition-transform duration-[2000ms] ease-out group-hover:scale-105">
         </div>
     </div>
+    @endif
 
     {{-- How Can We Help Section --}}
-    <section class="py-24 px-4 sm:px-6 lg:px-8 bg-white border-b border-[#f3f0ea]/50 relative overflow-hidden">
+    <section class="py-24 px-4 sm:px-6 lg:px-8 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
         <div class="max-w-7xl mx-auto relative z-10">
             <div class="text-center max-w-2xl mx-auto">
                 <x-icon name="sparkles" class="size-6 text-[var(--color-accent)] mx-auto mb-4 opacity-50" />
-                <h2 class="text-3xl sm:text-4.5xl font-display text-[var(--color-body-text)]">{{ __('How Can We Help?') }}</h2>
+                <h2 class="text-3xl sm:text-4.5xl font-display text-[var(--color-body-text)]">{{ $contactSections['hero']['heading'] ?? __('How Can We Help?') }}</h2>
                 <p class="mt-4 text-[16px] text-[var(--color-muted-text)]">{{ __('Choose the most convenient way to connect with our team of property specialists.') }}</p>
             </div>
             
             <div class="mt-16 grid gap-6 md:grid-cols-3 max-w-[1050px] mx-auto">
                 {{-- Call Us --}}
-                <div class="group rounded-2xl border border-[#eaeaea] bg-white p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[#eaeaea] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
+                <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="phone" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
                     <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Call Us') }}</h3>
@@ -64,8 +69,8 @@
                 </div>
                 
                 {{-- Email Us (elevated) --}}
-                <div class="group rounded-2xl border border-[#eaeaea] border-t-[3px] border-t-[var(--color-accent)] bg-white p-8 xl:p-10 shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] hover:-translate-y-4 relative transform md:-translate-y-2 text-center flex flex-col items-center z-10">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[#eaeaea] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
+                <div class="group rounded-2xl border border-[var(--color-divider)] border-t-[3px] border-t-[var(--color-accent)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] hover:-translate-y-4 relative transform md:-translate-y-2 text-center flex flex-col items-center z-10">
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="mail" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
                     <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Email Us') }}</h3>
@@ -74,8 +79,8 @@
                 </div>
                 
                 {{-- Visit Our Office --}}
-                <div class="group rounded-2xl border border-[#eaeaea] bg-white p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
-                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[#eaeaea] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
+                <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="pin" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
                     <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Visit Our Office') }}</h3>
@@ -101,62 +106,14 @@
                     {{ __('Share a few details and our team will contact you with relevant property options.') }}
                 </p>
                 
-                <form class="mt-12 grid gap-x-8 gap-y-7 sm:grid-cols-2">
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Full Name') }} <span class="text-red-500">*</span></label>
-                        <input type="text" placeholder="{{ __('Enter your full name') }}" class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[var(--color-body-text)] placeholder:text-[#a09a90] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300">
-                    </div>
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Phone Number') }} <span class="text-red-500">*</span></label>
-                        <input type="tel" placeholder="{{ __('+880 1XXX-XXXXXX') }}" class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[var(--color-body-text)] placeholder:text-[#a09a90] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300">
-                    </div>
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Email Address') }}</label>
-                        <input type="email" placeholder="{{ __('you@example.com') }}" class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[var(--color-body-text)] placeholder:text-[#a09a90] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300">
-                    </div>
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('I\'m Interested In') }} <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <select data-uh-select class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[#7a746b] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300 appearance-none pr-10">
-                                <option value="">{{ __('Select an option') }}</option>
-                                <option value="buy">{{ __('Buying a property') }}</option>
-                                <option value="rent">{{ __('Renting a property') }}</option>
-                                <option value="sell">{{ __('Selling my property') }}</option>
-                            </select>
-                            <x-icon name="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-[#a09a90] pointer-events-none transition-transform group-focus-within:rotate-180 group-focus-within:text-[var(--color-accent)]" />
-                        </div>
-                    </div>
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Preferred Location') }}</label>
-                        <input type="text" placeholder="{{ __('e.g. Dhaka, Gulshan, Banani') }}" class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[var(--color-body-text)] placeholder:text-[#a09a90] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300">
-                    </div>
-                    <div class="group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Budget Range') }}</label>
-                        <div class="relative">
-                            <select data-uh-select class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-3.5 text-[14px] text-[#7a746b] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none transition-all duration-300 appearance-none pr-10">
-                                <option value="">{{ __('Select an option') }}</option>
-                                <option value="1">{{ __('Below BDT 1 Crore') }}</option>
-                                <option value="2">{{ __('BDT 1 - 3 Crore') }}</option>
-                                <option value="3">{{ __('Above BDT 3 Crore') }}</option>
-                            </select>
-                            <x-icon name="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-[#a09a90] pointer-events-none transition-transform group-focus-within:rotate-180 group-focus-within:text-[var(--color-accent)]" />
-                        </div>
-                    </div>
-                    <div class="sm:col-span-2 group relative">
-                        <label class="block text-[13px] font-semibold text-[var(--color-body-text)] mb-2 transition-colors group-focus-within:text-[var(--color-accent)]">{{ __('Message') }}</label>
-                        <textarea rows="4" placeholder="{{ __('Tell us about your requirements, preferred property type, budget, or any specific details...') }}" class="w-full rounded-lg bg-[var(--color-dominant)]/50 border border-[#e4ddd3] px-4 py-4 text-[14px] text-[var(--color-body-text)] placeholder:text-[#a09a90] focus:bg-white focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[var(--color-accent)]/10 outline-none resize-none transition-all duration-300"></textarea>
-                    </div>
-                    <div class="sm:col-span-2 flex items-start gap-3 mt-2">
-                        <input type="checkbox" id="privacy-consent" class="mt-0.5 h-4.5 w-4.5 shrink-0 rounded border-[#d3cbc0] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors cursor-pointer">
-                        <label for="privacy-consent" class="text-[13px] text-[var(--color-muted-text)] cursor-pointer select-none">{{ __('I agree to the') }} <a href="#" class="text-[var(--color-accent)] font-medium underline decoration-[var(--color-accent)]/30 underline-offset-4 hover:decoration-[var(--color-accent)] transition-colors">{{ __('privacy policy') }}</a>.</label>
-                    </div>
-                    <div class="sm:col-span-2 mt-6">
-                        <button type="button" class="group inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-secondary)] px-9 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-[#1f2623] hover:shadow-[0_8px_20px_rgba(13,17,16,0.15)] hover:-translate-y-0.5 w-full sm:w-auto">
-                            {{ __('Send Enquiry') }} 
-                            <x-icon name="arrow-right" class="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-                        </button>
-                    </div>
-                </form>
+                <div class="mt-8">
+                    @include('public.partials.lead-form', [
+                        'leadType' => 'general_contact',
+                        'showSuggestedVisitTimes' => false,
+                        'showVisitNotes' => false,
+                        'showNextSteps' => false,
+                    ])
+                </div>
             </div>
 
             {{-- Sidebar --}}
@@ -164,12 +121,15 @@
                 {{-- Decorative gradient background --}}
                 <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[var(--color-accent)]/10 via-night to-night pointer-events-none"></div>
 
+                @php
+                    $officeImage = \App\Models\CmsBlock::imagesFor('contact_office')->first();
+                @endphp
                 <div class="h-[260px] w-full relative overflow-hidden">
                     <div class="absolute inset-0 bg-[var(--color-secondary)]/20 mix-blend-multiply z-10"></div>
-                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=85" alt="Office Interior" class="absolute inset-0 size-full object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-110">
+                    <img src="{{ $officeImage?->url(800) ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=85' }}" alt="{{ $officeImage?->alt(app()->getLocale()) ?: __('Office Interior') }}" class="absolute inset-0 size-full object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-110">
                 </div>
                 <div class="p-8 sm:p-10 flex-1 flex flex-col relative text-white z-10">
-                    <h3 class="font-display text-[32px] text-white">{{ __('Visit Urban Haven') }}</h3>
+                    <h3 class="font-display text-[32px] text-white">{{ $contactSections['office']['title'] ?? __('Visit Urban Haven') }}</h3>
                     
                     <div class="mt-10 space-y-8 flex-1">
                         <div class="flex gap-5 group/item">
@@ -196,6 +156,9 @@
                             </div>
                             <div>
                                 <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $contactSections['direct']['title'] ?? __('Direct Contact') }}</h4>
+                                @if(filled($contactSections['direct']['intro'] ?? null))
+                                    <p class="mt-1.5 text-[14px] text-white/70 leading-relaxed">{{ $contactSections['direct']['intro'] }}</p>
+                                @endif
                                 <a href="tel:{{ preg_replace('/[^0-9+]/', '', $phone ?? '') }}" class="mt-1.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $phone ?? '+880 1XXX-XXXXXX' }}</a>
                                 <a href="mailto:{{ $email ?? '' }}" class="mt-0.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $email ?? 'info@urbanhavenbd.com' }}</a>
                             </div>
@@ -268,6 +231,7 @@
     </section>
 
     {{-- Bottom CTA Section --}}
+    @if(isset($contactSections['cta']))
     <section class="bg-[var(--color-secondary)] py-24 lg:py-32 relative overflow-hidden group">
         {{-- Animated Gold line art pattern at background --}}
         <div class="absolute bottom-0 right-0 opacity-30 pointer-events-none transform transition-transform duration-[3000ms] ease-out group-hover:scale-105 group-hover:-translate-y-4">
@@ -283,17 +247,18 @@
         
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[1fr_auto] gap-12 items-center relative z-10">
             <div class="max-w-2xl">
-                <h2 class="text-[2.25rem] sm:text-[3.25rem] leading-[1.05] font-display text-white text-balance">{{ __('Ready to Make Your Next Property Move?') }}</h2>
-                <p class="mt-6 text-[17px] text-white/75 leading-relaxed">{{ __('Schedule a confidential consultation with our real-estate team and let us guide you home.') }}</p>
+                <h2 class="text-[2.25rem] sm:text-[3.25rem] leading-[1.05] font-display text-white text-balance">{{ $contactSections['cta']['title'] ?? __('Ready to Make Your Next Property Move?') }}</h2>
+                <p class="mt-6 text-[17px] text-white/75 leading-relaxed">{{ $contactSections['cta']['intro'] ?? __('Schedule a confidential consultation with our real-estate team and let us guide you home.') }}</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-5">
-                <a href="#page-form-heading" class="group/btn inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_25px_rgba(166,132,86,0.3)] hover:-translate-y-1">
-                    {{ __('Book a Consultation') }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                <a href="{{ $contactSections['cta']['primary_url'] ?? '#page-form-heading' }}" class="group/btn inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_25px_rgba(166,132,86,0.3)] hover:-translate-y-1">
+                    {{ $contactSections['cta']['primary_cta'] ?? __('Book a Consultation') }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </a>
-                <a href="{{ route('properties.index') }}" class="group/btn2 inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1">
-                    {{ __('Browse Properties') }}
+                <a href="{{ $contactSections['cta']['secondary_url'] ?? route('properties.index') }}" class="group/btn2 inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1">
+                    {{ $contactSections['cta']['secondary_cta'] ?? __('Browse Properties') }}
                 </a>
             </div>
         </div>
     </section>
+    @endif
 </main>

@@ -171,4 +171,58 @@ class MediaUploadTest extends TestCase
         $this->assertSame(0, $second->fresh()->sort_order);
         $this->assertSame(1, $first->fresh()->sort_order);
     }
+
+    public function test_multiple_rounds_of_photo_uploads_accumulate_without_removing_previous_photos(): void
+    {
+        Storage::fake('public');
+        $property = $this->makeProperty();
+        $user = User::factory()->create();
+        $this->assignRole($user, Role::OWNER_ADMIN);
+
+        // First round: upload 2 photos
+        $response1 = $this->actingAs($user)
+            ->postJson(route('admin.media.store'), [
+                'files' => [
+                    UploadedFile::fake()->image('photo_1.jpg', 800, 600),
+                    UploadedFile::fake()->image('photo_2.jpg', 800, 600),
+                ],
+                'owner_type' => 'property',
+                'owner_id' => $property->id,
+                'collection' => 'gallery',
+            ])
+            ->assertCreated()
+            ->assertJsonStructure([
+                'id',
+                'records' => [
+                    '*' => ['id', 'url', 'thumb_url', 'is_public', 'original_filename', 'size_bytes'],
+                ],
+            ]);
+
+        $this->assertCount(2, $response1->json('records'));
+        $this->assertSame(2, $property->media()->where('collection', 'gallery')->count());
+
+        // Second round: upload 3 more photos
+        $response2 = $this->actingAs($user)
+            ->postJson(route('admin.media.store'), [
+                'files' => [
+                    UploadedFile::fake()->image('photo_3.jpg', 800, 600),
+                    UploadedFile::fake()->image('photo_4.jpg', 800, 600),
+                    UploadedFile::fake()->image('photo_5.jpg', 800, 600),
+                ],
+                'owner_type' => 'property',
+                'owner_id' => $property->id,
+                'collection' => 'gallery',
+            ])
+            ->assertCreated();
+
+        $this->assertCount(3, $response2->json('records'));
+
+        // All 5 photos exist and belong to the property gallery
+        $allMedia = $property->media()->where('collection', 'gallery')->orderBy('sort_order')->get();
+        $this->assertCount(5, $allMedia);
+        $this->assertSame(
+            ['photo_1.jpg', 'photo_2.jpg', 'photo_3.jpg', 'photo_4.jpg', 'photo_5.jpg'],
+            $allMedia->pluck('original_filename')->all()
+        );
+    }
 }

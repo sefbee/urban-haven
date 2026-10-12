@@ -94,8 +94,8 @@
                     aria-label="{{ __('Save :title to shortlist', ['title' => $property->title]) }}"
                     class="uh-icon-action uh-showcase-favorite"
                     @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
-                <x-icon name="heart" class="size-4" x-show="!$store.saved.has('shortlist', {{ $property->id }})" />
-                <x-icon name="heart-solid" class="size-4 text-brass" x-show="$store.saved.has('shortlist', {{ $property->id }})" x-cloak />
+                <x-icon name="heart" class="size-5 uh-saved-action-icon" x-show="!$store.saved.has('shortlist', {{ $property->id }})" />
+                <x-icon name="heart-solid" class="size-5 uh-saved-action-icon" x-show="$store.saved.has('shortlist', {{ $property->id }})" x-cloak />
             </button>
                 <button type="button" x-data
                         @click.prevent.stop="$store.saved.toggle('compare', {{ $property->id }})"
@@ -104,8 +104,8 @@
                         aria-label="{{ __('Add :title to compare', ['title' => $property->title]) }}"
                         @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => ! $listingLayout && ! $gridLayout])
                         @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
-                    <i class="fa-duotone fa-code-compare" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
-                    <i class="fa-duotone fa-code-compare text-brass" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                    <i class="fa-duotone fa-code-compare uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
+                    <i class="fa-duotone fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
                 </button>
             </div>
 

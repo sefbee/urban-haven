@@ -10,42 +10,50 @@
 @layer components {
 
 body.uh-home {
-    /* 60/30/10 brand roles, overridden from saved settings in the public layout. */
-    --color-dominant: #f3f0ea;
-    --color-secondary: #0d1110;
-    --color-accent: #1a3328;
+    /* 60/30/10 brand roles (6-Colour Palette Rule), overridden from saved settings in the public layout. */
+    --color-primary-1: #f3f0ea;
+    --color-primary-2: #ffffff;
+    --color-secondary-1: #0d1110;
+    --color-secondary-2: #6e675f;
+    --color-accent-1: #1a3328;
+    --color-accent-2: #c3a06a;
+
+    --color-dominant: var(--color-primary-1);
+    --color-secondary: var(--color-secondary-1);
+    --color-accent: var(--color-accent-1);
     --color-dominant-text: #1e293b;
     --color-secondary-text: #ffffff;
-    --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
-    --color-page-background: var(--color-dominant);
-    --color-card-surface: var(--color-dominant);
-    --color-body-text: var(--color-secondary);
-    --color-muted-text: color-mix(in srgb, var(--color-body-text) 58%, white);
-    --color-divider: color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant));
-    --color-hero-overlay: var(--color-secondary);
+    --color-accent-hover: color-mix(in srgb, var(--color-accent-1) 85%, black);
+    --color-accent-2-hover: color-mix(in srgb, var(--color-accent-2) 85%, black);
+    --color-page-background: var(--color-primary-1);
+    --color-card-surface: var(--color-primary-2);
+    --color-body-text: var(--color-secondary-1);
+    --color-muted-text: var(--color-secondary-2);
+    --color-divider: color-mix(in srgb, var(--color-secondary-2) 30%, var(--color-primary-1));
+    --color-hero-overlay: var(--color-secondary-1);
     --color-hero-overlay-opacity: 0.3;
     --color-slider-title: var(--color-body-text);
     --color-slider-subtitle: var(--color-muted-text);
-    --color-carousel-arrow: var(--color-accent);
-    --color-carousel-dot: var(--color-accent);
-    --color-mobile-nav-background: var(--color-dominant);
-    --color-mobile-active-highlight: var(--color-accent);
-    --color-notification-badge: var(--color-accent);
+    --color-carousel-arrow: var(--color-accent-1);
+    --color-carousel-dot: var(--color-accent-1);
+    --color-mobile-nav-background: var(--color-primary-2);
+    --color-mobile-active-highlight: var(--color-accent-1);
+    --color-notification-badge: var(--color-accent-2);
 
     --uh-white: var(--color-card-surface);
     --uh-paper: var(--color-card-surface);
-    --uh-paper-2: color-mix(in srgb, var(--color-card-surface) 88%, var(--color-secondary));
-    --uh-night: var(--color-secondary);
+    --uh-paper-2: color-mix(in srgb, var(--color-card-surface) 88%, var(--color-secondary-1));
+    --uh-night: var(--color-secondary-1);
     --uh-ink: var(--color-body-text);
     --uh-ink-soft: color-mix(in srgb, var(--color-body-text) 78%, white);
     --uh-muted: var(--color-muted-text);
     --uh-faint: color-mix(in srgb, var(--color-muted-text) 68%, white);
     --uh-on-night: var(--color-secondary-text);
     --uh-on-night-muted: color-mix(in srgb, var(--color-secondary-text) 72%, transparent);
-    --uh-accent: var(--color-accent);
-    --uh-accent-ring: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    --uh-accent: var(--color-accent-1);
+    --uh-accent-ring: color-mix(in srgb, var(--color-accent-1) 18%, transparent);
     --uh-line: var(--color-divider);
-    --uh-line-strong: color-mix(in srgb, var(--color-divider) 65%, var(--color-secondary));
+    --uh-line-strong: color-mix(in srgb, var(--color-divider) 65%, var(--color-secondary-1));
 
     /* Geometry */
     --uh-radius-sm: 6px;
@@ -77,23 +85,23 @@ body.uh-home {
 
     /* Shared component tokens, mapped onto the public palette. */
     --font-display: var(--font-sans);
-    --color-ink: var(--color-secondary);
+    --color-ink: var(--color-secondary-1);
     --color-night: var(--uh-night);
     --color-ivory: var(--uh-on-night);
     --color-limestone: var(--uh-white);
-    --color-brass: var(--uh-accent);
-    --color-brass-ink: var(--uh-accent);
-    --color-forest: var(--color-accent);
-    --color-moss: var(--color-accent);
+    --color-brass: var(--color-accent-2);
+    --color-brass-ink: color-mix(in srgb, var(--color-accent-2) 80%, black);
+    --color-forest: var(--color-accent-1);
+    --color-moss: var(--color-accent-1);
     --color-hero: var(--uh-night);
-    --color-emerald: var(--color-accent);
+    --color-emerald: var(--color-accent-1);
     --color-emerald-bright: var(--color-accent-hover);
-    --color-gold: var(--uh-accent);
-    --color-gold-ink: var(--uh-accent);
-    --color-gold-soft: color-mix(in srgb, var(--color-accent) 14%, var(--color-dominant));
-    --color-sand: var(--color-dominant);
-    --color-cream: var(--color-dominant);
-    --color-paper: var(--color-dominant);
+    --color-gold: var(--color-accent-2);
+    --color-gold-ink: color-mix(in srgb, var(--color-accent-2) 80%, black);
+    --color-gold-soft: color-mix(in srgb, var(--color-accent-2) 15%, var(--color-primary-1));
+    --color-sand: var(--color-primary-1);
+    --color-cream: var(--color-primary-1);
+    --color-paper: var(--color-primary-2);
     --color-line: var(--uh-line);
     --color-line-strong: var(--uh-line-strong);
     --color-muted: var(--uh-muted);
@@ -1214,16 +1222,48 @@ body.uh-home {
         opacity: 1;
     }
 
+    .uh-bar-compare,
+    .uh-bar-shortlist {
+        position: relative;
+        opacity: 1;
+    }
+
+    .uh-bar-compare .uh-bar-action-icon,
+    .uh-bar-shortlist .uh-bar-action-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        font-size: 1.25rem;
+    }
+
+    .uh-bar-compare .uh-bar-action-icon {
+        color: #2563eb;
+        --fa-primary-color: #2563eb;
+        --fa-secondary-color: #93c5fd;
+        --fa-primary-opacity: 1;
+        --fa-secondary-opacity: 0.75;
+    }
+
+    .uh-bar-shortlist .uh-bar-action-icon {
+        color: #e11d48;
+        --fa-primary-color: #e11d48;
+        --fa-secondary-color: #fda4af;
+        --fa-primary-opacity: 1;
+        --fa-secondary-opacity: 0.75;
+    }
+
     .uh-bar-count {
+        position: absolute;
+        top: 0.125rem;
+        right: 0.125rem;
         display: inline-grid;
-        min-width: 1.25rem;
-        min-height: 1.25rem;
+        min-width: 0.95rem;
+        min-height: 0.95rem;
         place-items: center;
-        padding: 0 0.25rem;
+        padding: 0 0.15rem;
         border-radius: var(--uh-pill);
         background: var(--color-notification-badge);
         color: var(--color-secondary-text);
-        font-size: 0.75rem;
+        font-size: 0.625rem;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
     }
@@ -3356,13 +3396,13 @@ body.uh-home {
 
     .uh-showcase-highlight-mark {
         left: 0.625rem;
-        color: #ffd23f;
+        color: var(--color-accent-2);
         filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
     }
 
     .uh-showcase-highlight-mark svg {
         fill: currentColor;
-        stroke: #fff3c4;
+        stroke: var(--color-accent-2);
         stroke-width: 1;
     }
 
@@ -4180,13 +4220,13 @@ body.uh-home {
 
     .uh-trending-section .uh-listing-trending-mark {
         left: 0.625rem;
-        color: #ffd23f;
+        color: var(--color-accent-2);
         filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
     }
 
     .uh-trending-section .uh-listing-trending-mark svg {
         fill: currentColor;
-        stroke: #fff3c4;
+        stroke: var(--color-accent-2);
         stroke-width: 1;
     }
 
@@ -4228,9 +4268,9 @@ body.uh-home {
     }
 
     .uh-trending-section .uh-listing-highlight.is-featured {
-        border-color: #f4c62b;
-        background: #f4c62b;
-        color: #272116;
+        border-color: var(--color-accent-2);
+        background: var(--color-accent-2);
+        color: #111111;
     }
 
     .uh-trending-section .uh-listing-highlight.is-rent {
@@ -4358,13 +4398,13 @@ body.uh-home {
         top: 0.75rem;
         left: 0.75rem;
         z-index: 3;
-        color: #ffd23f;
+        color: var(--color-accent-2);
         filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
     }
 
     .uh-listing-row-star svg {
         fill: currentColor;
-        stroke: #fff3c4;
+        stroke: var(--color-accent-2);
         stroke-width: 1;
     }
 
@@ -4395,8 +4435,8 @@ body.uh-home {
     }
 
     .uh-listing-row-badge.is-featured {
-        background: #ffd23f;
-        color: #272116;
+        background: var(--color-accent-2);
+        color: #111111;
     }
 
     .uh-listing-row-badge.is-type {
@@ -4654,9 +4694,45 @@ body.uh-home {
         letter-spacing: -0.025em;
     }
 
+    .uh-home-project-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 20rem));
+        justify-content: center;
+        align-items: start;
+        gap: 1.25rem;
+    }
+
+    .uh-home-project-grid .uh-project {
+        border-radius: 1.5rem 0.75rem 1.5rem 1.5rem;
+    }
+
+    .uh-home-project-grid .uh-project-frame {
+        aspect-ratio: 16 / 9;
+    }
+
+    .uh-home-project-grid .uh-project:nth-child(even) {
+        border-radius: 0.75rem 1.5rem 1.5rem 1.5rem;
+    }
+
+    .uh-home-project-grid .uh-project-body {
+        gap: 0.375rem;
+        padding: 0.875rem 1rem 1rem;
+    }
+
+    .uh-home-project-grid .uh-project-meta {
+        font-size: 0.8125rem;
+    }
+
+    .uh-home-project-grid .uh-project.is-feature .uh-project-name {
+        font-size: clamp(1.375rem, 2.5vw, 1.625rem);
+    }
+
     @media (width >= 768px) {
         .uh-project.is-feature .uh-project-frame {
             aspect-ratio: 21 / 9;
+        }
+
+        .uh-home-project-grid .uh-project-frame {
+            aspect-ratio: 5 / 2;
         }
     }
 
@@ -7139,6 +7215,12 @@ body.uh-home {
         width: 1.75rem;
         height: 1.75rem;
         object-fit: contain;
+    }
+
+    .uh-pd-amenities i {
+        color: var(--uh-accent);
+        font-size: 1.75rem;
+        line-height: 1;
     }
 
     @media (width >= 640px) {
@@ -10961,4 +11043,45 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
 
 .uh-listing-body:hover .uh-listing-title span {
     color: var(--uh-primary);
+}
+
+.uh-listing-tools .uh-card-shortlist-action,
+.uh-listing-tools .uh-card-shortlist-action[aria-pressed='true'],
+.uh-showcase-tools .uh-showcase-favorite,
+.uh-showcase-tools .uh-showcase-favorite[aria-pressed='true'] {
+    color: #e11d48;
+}
+
+.uh-listing-tools .uh-card-compare-action,
+.uh-listing-tools .uh-card-compare-action[aria-pressed='true'],
+.uh-showcase-tools .uh-showcase-compare,
+.uh-showcase-tools .uh-showcase-compare[aria-pressed='true'] {
+    color: #2563eb;
+}
+
+.uh-listing-tools .uh-saved-action-icon,
+.uh-showcase-tools .uh-saved-action-icon {
+    display: inline-block;
+    width: 1.375rem;
+    height: 1.375rem;
+    font-size: 1.375rem;
+    line-height: 1;
+}
+
+.uh-listing-tools .uh-card-shortlist-action .uh-saved-action-icon,
+.uh-showcase-tools .uh-showcase-favorite .uh-saved-action-icon {
+    color: #e11d48;
+    --fa-primary-color: #e11d48;
+    --fa-secondary-color: #fda4af;
+    --fa-primary-opacity: 1;
+    --fa-secondary-opacity: 0.75;
+}
+
+.uh-listing-tools .uh-card-compare-action .uh-saved-action-icon,
+.uh-showcase-tools .uh-showcase-compare .uh-saved-action-icon {
+    color: #2563eb;
+    --fa-primary-color: #2563eb;
+    --fa-secondary-color: #93c5fd;
+    --fa-primary-opacity: 1;
+    --fa-secondary-opacity: 0.75;
 }

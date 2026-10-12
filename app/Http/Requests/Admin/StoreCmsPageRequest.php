@@ -32,6 +32,7 @@ class StoreCmsPageRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'slug' => SeoFields::slugRules('cms_pages', $page instanceof CmsPage ? $page : null, SeoFields::RESERVED_SLUGS),
             'template' => ['nullable', Rule::in(CmsPage::TEMPLATES)],
+            'menu_icon' => ['sometimes', 'string', Rule::in(array_keys(CmsPage::MENU_ICONS))],
             'body' => ['nullable', 'string', 'max:200000'],
             'layout_content' => ['nullable', 'array:hero_eyebrow,hero_title,hero_intro,hero_quote,hero_quote_kicker,hero_quote_label,hero_badge,hero_primary_cta,hero_primary_url,hero_secondary_cta,hero_secondary_url,story_eyebrow,story_title,values_eyebrow,values_title,values_intro,value_one_title,value_one_text,value_two_title,value_two_text,value_three_title,value_three_text,cta_eyebrow,cta_title,cta_body,cta_label,cta_url'],
             'layout_content.hero_eyebrow' => ['nullable', 'string', 'max:80'],

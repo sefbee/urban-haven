@@ -24,9 +24,9 @@
             <span x-text="$store.saved.has('shortlist', {{ $id }}) ? @js(__('Saved')) : @js(__('Save'))">{{ __('Save') }}</span>
         @endif
     @elseif($isCompare)
-        <x-icon name="compare" class="size-4" />
+        <x-icon name="compare" class="size-5 uh-saved-action-icon" />
     @else
-        <x-icon name="heart" class="size-4" x-show="!$store.saved.has('shortlist', {{ $id }})" />
-        <x-icon name="heart-solid" class="size-4 text-brass" x-show="$store.saved.has('shortlist', {{ $id }})" x-cloak />
+        <x-icon name="heart" class="size-5 uh-saved-action-icon" x-show="!$store.saved.has('shortlist', {{ $id }})" />
+        <x-icon name="heart-solid" class="size-5 uh-saved-action-icon" x-show="$store.saved.has('shortlist', {{ $id }})" x-cloak />
     @endif
 </button>

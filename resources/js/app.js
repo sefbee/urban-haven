@@ -1065,28 +1065,115 @@ Alpine.data('uhThemeEditor', (initialTheme = {}) => ({
     error: '',
     success: '',
     errors: {},
+    presets: [
+        {
+            name: 'Classic Haven',
+            desc: 'Limestone canvas, crisp surface, forest & warm brass',
+            brand: {
+                primary_1: '#f3f0ea',
+                primary_2: '#ffffff',
+                secondary_1: '#0d1110',
+                secondary_2: '#6e675f',
+                accent_1: '#1a3328',
+                accent_2: '#c3a06a',
+            },
+        },
+        {
+            name: 'Architectural Slate',
+            desc: 'Alabaster, pure white, midnight & cobalt blue',
+            brand: {
+                primary_1: '#f8f9fa',
+                primary_2: '#ffffff',
+                secondary_1: '#141824',
+                secondary_2: '#6c757d',
+                accent_1: '#1d4ed8',
+                accent_2: '#d97706',
+            },
+        },
+        {
+            name: 'Warm Terracotta',
+            desc: 'Sand dune, warm ivory, espresso & rich terracotta',
+            brand: {
+                primary_1: '#faf5ee',
+                primary_2: '#fffdf9',
+                secondary_1: '#1c1917',
+                secondary_2: '#78716c',
+                accent_1: '#c2410c',
+                accent_2: '#ca8a04',
+            },
+        },
+        {
+            name: 'Modern Monochrome',
+            desc: 'Chalk canvas, jet black, emerald & champagne',
+            brand: {
+                primary_1: '#f1f3f5',
+                primary_2: '#ffffff',
+                secondary_1: '#111111',
+                secondary_2: '#555555',
+                accent_1: '#064e3b',
+                accent_2: '#d4af37',
+            },
+        },
+        {
+            name: 'Coastal Haven',
+            desc: 'Sea salt, pure white, deep navy & ocean cyan',
+            brand: {
+                primary_1: '#f0f4f8',
+                primary_2: '#ffffff',
+                secondary_1: '#0f172a',
+                secondary_2: '#64748b',
+                accent_1: '#0284c7',
+                accent_2: '#ea580c',
+            },
+        },
+    ],
+    applyPreset(preset) {
+        Object.entries(preset.brand).forEach(([key, val]) => {
+            this.setBrand(key, val);
+        });
+        this.success = `Applied "${preset.name}" preset. Remember to save colors.`;
+    },
     setBrand(key, value) {
-        this.theme.brand[key] = value.toLowerCase();
+        const val = (value || '').toLowerCase();
+        this.theme.brand[key] = val;
+        if (key === 'primary_1') this.theme.brand.dominant = val;
+        if (key === 'secondary_1') this.theme.brand.secondary = val;
+        if (key === 'accent_1') this.theme.brand.accent = val;
         this.clearMessages();
     },
     setAdvanced(group, key, value) {
-        this.theme.advanced[group][key] = value.toLowerCase();
+        this.theme.advanced[group][key] = (value || '').toLowerCase();
         this.clearMessages();
     },
     pickerColor(value, fallback) {
         return /^#[0-9a-f]{6}$/i.test(value || '') ? value : fallback;
     },
     pickerFallback(group, key) {
-        const brand = this.theme.brand;
+        const brand = this.theme.brand || {};
         const fallbacks = {
-            surfaces_text: { page_background: 'dominant', card_surface: 'dominant', primary_text: 'secondary', muted_text: 'secondary', border: 'dominant' },
-            hero_slider: { overlay_color: 'secondary', slider_title: 'secondary', slider_subtitle: 'secondary', carousel_arrow: 'accent', carousel_dot: 'accent' },
-            mobile_nav: { drawer_background: 'dominant', active_tab_highlight: 'accent', badge_fill: 'accent' },
-        };
-        const keyColors = {
+            surfaces_text: {
+                page_background: 'primary_1',
+                card_surface: 'primary_2',
+                primary_text: 'secondary_1',
+                muted_text: 'secondary_2',
+                border: 'secondary_2',
+            },
+            hero_slider: {
+                overlay_color: 'secondary_1',
+                slider_title: 'secondary_1',
+                slider_subtitle: 'secondary_2',
+                carousel_arrow: 'accent_1',
+                carousel_dot: 'accent_1',
+            },
+            mobile_nav: {
+                drawer_background: 'primary_2',
+                active_tab_highlight: 'accent_1',
+                badge_fill: 'accent_2',
+            },
         };
 
-        return keyColors[`${group}.${key}`] || brand[fallbacks[group]?.[key] || 'dominant'];
+        const target = fallbacks[group]?.[key] || 'primary_1';
+        return brand[target] || brand.dominant || '#ffffff';
     },
     fieldError(key) {
         return this.errors[key]?.[0] || '';
@@ -1103,30 +1190,43 @@ Alpine.data('uhThemeEditor', (initialTheme = {}) => ({
         this.clearMessages();
     },
     previewVariables() {
-        const brand = this.theme.brand;
-        const groups = this.theme.advanced;
-        const surfaces = groups.surfaces_text;
-        const hero = groups.hero_slider;
-        const mobile = groups.mobile_nav;
+        const brand = this.theme.brand || {};
+        const groups = this.theme.advanced || {};
+        const surfaces = groups.surfaces_text || {};
+        const hero = groups.hero_slider || {};
+        const mobile = groups.mobile_nav || {};
+
+        const p1 = brand.primary_1 || brand.dominant || '#f3f0ea';
+        const p2 = brand.primary_2 || '#ffffff';
+        const s1 = brand.secondary_1 || brand.secondary || '#0d1110';
+        const s2 = brand.secondary_2 || '#6e675f';
+        const a1 = brand.accent_1 || brand.accent || '#1a3328';
+        const a2 = brand.accent_2 || '#c3a06a';
 
         return {
-            '--color-dominant': brand.dominant,
-            '--color-secondary': brand.secondary,
-            '--color-accent': brand.accent,
-            '--color-page-background': surfaces.page_background || brand.dominant,
-            '--color-card-surface': surfaces.card_surface || brand.dominant,
-            '--color-body-text': surfaces.primary_text || brand.secondary,
-            '--color-muted-text': surfaces.muted_text || 'color-mix(in srgb, var(--color-body-text) 58%, white)',
-            '--color-divider': surfaces.border || 'color-mix(in srgb, var(--color-secondary) 12%, var(--color-dominant))',
-            '--color-hero-overlay': hero.overlay_color || brand.secondary,
-            '--color-hero-overlay-opacity': hero.overlay_opacity === '' ? '0.3' : hero.overlay_opacity,
+            '--color-primary-1': p1,
+            '--color-primary-2': p2,
+            '--color-secondary-1': s1,
+            '--color-secondary-2': s2,
+            '--color-accent-1': a1,
+            '--color-accent-2': a2,
+            '--color-dominant': p1,
+            '--color-secondary': s1,
+            '--color-accent': a1,
+            '--color-page-background': surfaces.page_background || p1,
+            '--color-card-surface': surfaces.card_surface || p2,
+            '--color-body-text': surfaces.primary_text || s1,
+            '--color-muted-text': surfaces.muted_text || s2,
+            '--color-divider': surfaces.border || `color-mix(in srgb, ${s2} 30%, ${p1})`,
+            '--color-hero-overlay': hero.overlay_color || s1,
+            '--color-hero-overlay-opacity': hero.overlay_opacity === '' || hero.overlay_opacity === undefined ? '0.3' : hero.overlay_opacity,
             '--color-slider-title': hero.slider_title || 'var(--color-body-text)',
             '--color-slider-subtitle': hero.slider_subtitle || 'var(--color-muted-text)',
-            '--color-carousel-arrow': hero.carousel_arrow || brand.accent,
-            '--color-carousel-dot': hero.carousel_dot || brand.accent,
-            '--color-mobile-nav-background': mobile.drawer_background || brand.dominant,
-            '--color-mobile-active-highlight': mobile.active_tab_highlight || brand.accent,
-            '--color-notification-badge': mobile.badge_fill || brand.accent,
+            '--color-carousel-arrow': hero.carousel_arrow || a1,
+            '--color-carousel-dot': hero.carousel_dot || a1,
+            '--color-mobile-nav-background': mobile.drawer_background || p2,
+            '--color-mobile-active-highlight': mobile.active_tab_highlight || a1,
+            '--color-notification-badge': mobile.badge_fill || a2,
         };
     },
     async save() {
@@ -1595,22 +1695,43 @@ Alpine.data('uhPostCreateForm', () => ({
     photoLimitExceeded: false,
 
     selectPhotos(event) {
-        this.setPhotos([...event.target.files]);
+        const newFiles = [...(event.target.files ?? [])];
+        this.addPhotos(newFiles);
     },
 
     dropPhotos(event) {
         this.dragging = false;
-        const currentFiles = [...(this.$refs.photoInput?.files ?? [])];
         const droppedFiles = [...(event.dataTransfer?.files ?? [])]
             .filter((file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
 
-        this.setPhotos([...currentFiles, ...droppedFiles]);
+        this.addPhotos(droppedFiles);
+    },
+
+    addPhotos(newFiles) {
+        if (! newFiles || newFiles.length === 0) return;
+        const existingKeys = new Set(this.photos.map((p) => `${p.name}_${p.size}`));
+        const uniqueFiles = newFiles.filter((f) => ! existingKeys.has(`${f.name}_${f.size}`));
+
+        this.photoLimitExceeded = (this.photos.length + uniqueFiles.length) > 100;
+        const allowed = uniqueFiles.slice(0, Math.max(0, 100 - this.photos.length));
+
+        const newPhotoObjects = allowed.map((file, index) => ({
+            id: `article-photo-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+            file,
+            name: file.name,
+            size: file.size,
+            previewUrl: URL.createObjectURL(file),
+            altText: '',
+        }));
+
+        this.photos = [...this.photos, ...newPhotoObjects];
+        this.syncFileInput();
     },
 
     setPhotos(files) {
         this.revokePreviews();
-        this.photoLimitExceeded = files.length > 20;
-        this.photos = files.slice(0, 20).map((file, index) => ({
+        this.photoLimitExceeded = files.length > 100;
+        this.photos = files.slice(0, 100).map((file, index) => ({
             id: `article-photo-${index}-${Math.random().toString(36).slice(2, 8)}`,
             file,
             name: file.name,
@@ -1733,49 +1854,110 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         this.$refs.file?.click();
     },
 
-    dropped(event, autoSubmit = false) {
-        this.dragging = false;
-        const input = this.$refs.file;
-        const accepted = (input?.accept ?? '').split(',').map((type) => type.trim()).filter(Boolean);
-        const files = [...(event.dataTransfer?.files ?? [])]
-            .filter((file) => accepted.length === 0 || accepted.includes(file.type))
-            .slice(0, input?.multiple ? 20 : 1);
-        if (! input || files.length === 0) {
+    addFiles(newFiles, autoSubmit = false) {
+        if (! newFiles || newFiles.length === 0) {
             return;
         }
-        const transfer = new DataTransfer();
-        files.forEach((file) => transfer.items.add(file));
-        input.files = transfer.files;
-        this.chosen(autoSubmit);
-    },
 
-    chosen(autoSubmit = false) {
-        const files = [...(this.$refs.file?.files ?? [])];
-        this.pendingFiles.forEach((pf) => pf.previewUrl && URL.revokeObjectURL(pf.previewUrl));
-        this.previews.forEach((url) => URL.revokeObjectURL(url));
+        const input = this.$refs.file;
+        const accepted = (input?.accept ?? '')
+            .split(',')
+            .map((t) => t.trim().toLowerCase())
+            .filter(Boolean);
 
-        this.pendingFiles = files.map((file, idx) => ({
-            id: 'pf_' + idx + '_' + Math.random().toString(36).substring(2, 7),
+        const validNewFiles = newFiles.filter((file) => {
+            if (accepted.length === 0) return true;
+            return accepted.some((type) => {
+                if (type.startsWith('.')) {
+                    return file.name.toLowerCase().endsWith(type);
+                }
+                if (type.endsWith('/*')) {
+                    const prefix = type.replace('/*', '');
+                    return file.type.startsWith(prefix);
+                }
+                return file.type === type;
+            });
+        });
+
+        if (validNewFiles.length === 0) {
+            return;
+        }
+
+        const isMultiple = Boolean(input?.multiple);
+
+        if (! isMultiple) {
+            this.pendingFiles.forEach((pf) => pf.previewUrl && URL.revokeObjectURL(pf.previewUrl));
+            this.pendingFiles = [];
+        }
+
+        const existingKeys = new Set(this.pendingFiles.map((pf) => `${pf.name}_${pf.size}`));
+        const filteredNewFiles = isMultiple
+            ? validNewFiles.filter((f) => ! existingKeys.has(`${f.name}_${f.size}`))
+            : validNewFiles;
+
+        const newPending = filteredNewFiles.map((file, idx) => ({
+            id: 'pf_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 7),
+            file: file,
             name: file.name,
             size: file.size,
             sizeFormatted: this.formatSize(file.size),
             previewUrl: file.type?.startsWith('image/') ? URL.createObjectURL(file) : null,
             isImage: file.type?.startsWith('image/') ?? false,
             alt_text: '',
-            is_public: false,
+            is_public: true,
             make_cover: false,
             uploaded: false,
         }));
 
-        const totalBytes = files.reduce((total, item) => total + item.size, 0);
-        this.filename = files.length > 1 ? `${files.length} files` : (files[0]?.name ?? '');
-        this.filesize = files.length > 0 ? this.formatSize(totalBytes) : '';
-        this.previews = this.pendingFiles.filter((pf) => pf.previewUrl).slice(0, 12).map((pf) => pf.previewUrl);
-        this.preview = this.previews[0] ?? '';
+        if (isMultiple) {
+            this.pendingFiles = [...this.pendingFiles, ...newPending];
+        } else {
+            this.pendingFiles = newPending;
+        }
 
-        if (autoSubmit && files.length > 0 && this.$refs.file?.form) {
+        this.syncInputFiles();
+
+        if (autoSubmit && this.pendingFiles.length > 0 && input?.form) {
             this.uploadPending();
         }
+    },
+
+    syncInputFiles() {
+        const input = this.$refs.file;
+        const unUploaded = this.pendingFiles.filter((pf) => ! pf.uploaded);
+
+        if (input) {
+            try {
+                const transfer = new DataTransfer();
+                unUploaded.forEach((pf) => {
+                    if (pf.file instanceof File) {
+                        transfer.items.add(pf.file);
+                    }
+                });
+                input.files = transfer.files;
+            } catch (e) {
+                // Ignore if DataTransfer is not available in environment
+            }
+        }
+
+        const totalBytes = unUploaded.reduce((total, item) => total + item.size, 0);
+        this.filename = unUploaded.length > 1 ? `${unUploaded.length} files` : (unUploaded[0]?.name ?? '');
+        this.filesize = unUploaded.length > 0 ? this.formatSize(totalBytes) : '';
+        this.previews = unUploaded.filter((pf) => pf.previewUrl).slice(0, 12).map((pf) => pf.previewUrl);
+        this.preview = this.previews[0] ?? '';
+    },
+
+    dropped(event, autoSubmit = false) {
+        this.dragging = false;
+        const files = [...(event.dataTransfer?.files ?? [])];
+        if (files.length === 0) return;
+        this.addFiles(files, autoSubmit);
+    },
+
+    chosen(autoSubmit = false) {
+        const files = [...(this.$refs.file?.files ?? [])];
+        if (files.length === 0) return;
+        this.addFiles(files, autoSubmit);
     },
 
     removePending(index) {
@@ -1787,21 +1969,10 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             URL.revokeObjectURL(pf.previewUrl);
         }
         this.pendingFiles.splice(index, 1);
-
-        const currentFiles = [...(this.$refs.file.files ?? [])];
-        currentFiles.splice(index, 1);
-        const transfer = new DataTransfer();
-        currentFiles.forEach((f) => transfer.items.add(f));
-        this.$refs.file.files = transfer.files;
+        this.syncInputFiles();
 
         if (this.pendingFiles.length === 0) {
             this.clear();
-        } else {
-            const totalBytes = currentFiles.reduce((total, item) => total + item.size, 0);
-            this.filename = currentFiles.length > 1 ? `${currentFiles.length} files` : (currentFiles[0]?.name ?? '');
-            this.filesize = this.formatSize(totalBytes);
-            this.previews = this.pendingFiles.filter((p) => p.previewUrl).slice(0, 12).map((p) => p.previewUrl);
-            this.preview = this.previews[0] ?? '';
         }
     },
 
@@ -1809,8 +1980,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         if (! this.$refs.file?.form || ! this.pendingFiles.some((file) => ! file.uploaded)) {
             return;
         }
-        this.submitting = true;
-        this.$refs.file.form.requestSubmit();
+        this.uploadPendingFiles({ reloadOnSuccess: true });
     },
 
     setPendingCover(index) {
@@ -1820,31 +1990,125 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
     },
 
     appendPendingMetadata(formData) {
-        this.pendingFiles.forEach((file, index) => {
-            if (! file.isImage || file.uploaded) {
+        const unUploaded = this.pendingFiles.filter((file) => ! file.uploaded);
+        unUploaded.forEach((file, index) => {
+            if (! file.isImage) {
                 return;
             }
 
             formData.append(`files_meta[${index}][alt_text]`, file.alt_text ?? '');
-            formData.append(`files_meta[${index}][is_public]`, file.is_public ? '1' : '0');
+            formData.append(`files_meta[${index}][is_public]`, '1');
             formData.append(`files_meta[${index}][make_cover]`, file.make_cover ? '1' : '0');
         });
     },
 
-    validatePendingSettings() {
-        for (const file of this.pendingFiles) {
-            if (false) {
-                this.flashNotice('Add alt text before making an image public.', 'danger');
-                return false;
-            }
+    buildUploadFormData(form) {
+        const formData = new FormData(form);
+        const unUploaded = this.pendingFiles.filter((file) => ! file.uploaded);
+
+        if (unUploaded.length === 0) {
+            return formData;
         }
 
+        const input = this.$refs.file;
+        const fileField = input?.multiple ? (input.name || 'files[]') : (input?.name || 'file');
+        ['file', 'files', 'files[]'].forEach((field) => formData.delete(field));
+        unUploaded.forEach((pendingFile) => {
+            formData.append(fileField, pendingFile.file, pendingFile.name);
+        });
+        this.appendPendingMetadata(formData);
+
+        return formData;
+    },
+
+    validatePendingSettings() {
         return true;
+    },
+
+    insertUploadedCards(records) {
+        if (! records || records.length === 0) return;
+        const grid = document.getElementById('media-grid-' + this.collection);
+        if (! grid) return;
+
+        const section = grid.closest('.uh-admin-media');
+        const emptyNotice = section?.querySelector('.uh-admin-media-empty');
+        if (emptyNotice) {
+            emptyNotice.remove();
+        }
+
+        const isDoc = this.collection === 'brochure';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            || document.querySelector('input[name="_token"]')?.value
+            || '';
+
+        records.forEach((record) => {
+            if (! record || ! record.id) return;
+
+            if (! this.itemIds.includes(record.id)) {
+                this.itemIds.push(record.id);
+            }
+            this.itemsData[record.id] = {
+                alt_text: '',
+                is_public: Boolean(record.is_public),
+                make_cover: this.coverId === record.id,
+            };
+
+            if (document.getElementById('media-item-' + record.id)) {
+                return;
+            }
+
+            const li = document.createElement('li');
+            li.className = 'uh-admin-media-card';
+            li.id = 'media-item-' + record.id;
+
+            const filename = record.original_filename || 'Uploaded file';
+            const sizeFormatted = record.size_bytes ? this.formatSize(record.size_bytes) : '';
+            const previewHtml = isDoc
+                ? `<span class="uh-admin-media-slot"><svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>`
+                : `<img src="${record.thumb_url || record.url}" alt="" loading="lazy" decoding="async">`;
+
+            li.innerHTML = `
+                <div class="uh-admin-media-card-bar">
+                    <div class="uh-admin-media-card-copy">
+                        <p class="uh-admin-media-name" title="${filename}">${filename}</p>
+                        <p class="uh-admin-media-size">${sizeFormatted}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5"></div>
+                    <div class="flex items-center gap-0.5 border-l border-white/20 pl-1">
+                        <button type="button" class="uh-icon-btn size-6 text-white/80 hover:text-white disabled:opacity-25"
+                                aria-label="Move earlier" title="Move earlier" onclick="window.Alpine?.$data(this.closest('.uh-admin-media'))?.moveItem(${record.id}, -1)">
+                            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <button type="button" class="uh-icon-btn size-6 text-white/80 hover:text-white disabled:opacity-25"
+                                aria-label="Move later" title="Move later" onclick="window.Alpine?.$data(this.closest('.uh-admin-media'))?.moveItem(${record.id}, 1)">
+                            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                        <form method="POST" action="/admin/media/${record.id}" onsubmit="return confirm('Remove this ${isDoc ? 'file' : 'photograph'}?');">
+                            <input type="hidden" name="_token" value="${csrfToken}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="uh-admin-media-remove ml-1" aria-label="Remove ${filename}">
+                                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="uh-admin-media-preview">
+                    ${previewHtml}
+                </div>
+            `;
+            grid.appendChild(li);
+        });
+
+        const headingEl = section?.querySelector('.uh-admin-media-heading h2');
+        if (headingEl) {
+            headingEl.textContent = headingEl.textContent.replace(/\(\d+\)/, `(${this.itemIds.length})`);
+        }
     },
 
     async uploadPendingFiles({ reloadOnSuccess = false } = {}) {
         const form = this.$refs.file?.form;
-        if (! form || ! this.pendingFiles.some((file) => ! file.uploaded)) {
+        const unUploaded = this.pendingFiles.filter((file) => ! file.uploaded);
+        if (! form || unUploaded.length === 0) {
             return false;
         }
 
@@ -1853,8 +2117,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
         }
 
         this.submitting = true;
-        const formData = new FormData(form);
-        this.appendPendingMetadata(formData);
+        const formData = this.buildUploadFormData(form);
 
         try {
             const response = await fetch(form.action, {
@@ -1869,22 +2132,13 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
                 throw new Error(validationMessage || payload.message || 'The selected file could not be uploaded.');
             }
 
-            const uploadedRecords = payload.records ?? [];
-            this.pendingFiles.forEach((file, index) => {
-                if (! file.uploaded) {
-                    file.uploaded = true;
-                    file.mediaId = uploadedRecords[index]?.id ?? null;
-                }
-            });
-            if (this.$refs.file) {
-                this.$refs.file.value = '';
-            }
-            this.submitting = false;
-            if (reloadOnSuccess) {
-                this.flashNotice('Files uploaded with their settings. Continue editing or use Save changes.', 'success');
-            } else {
-                this.flashNotice('Files uploaded with their settings.', 'success');
-            }
+            const uploadedRecords = payload.records ?? (payload.id ? [payload] : []);
+            this.insertUploadedCards(uploadedRecords);
+            this.clear();
+
+            const count = uploadedRecords.length || 1;
+            const noun = this.collection === 'brochure' ? (count === 1 ? 'file' : 'files') : (count === 1 ? 'photograph' : 'photographs');
+            this.flashNotice(`${count} ${noun} uploaded successfully.`, 'success');
 
             return true;
         } catch (error) {
@@ -1892,6 +2146,8 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             this.flashNotice(error instanceof Error ? error.message : 'The selected file could not be uploaded.', 'danger');
 
             return false;
+        } finally {
+            this.submitting = false;
         }
     },
 
@@ -1989,19 +2245,6 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
     async saveAllDetails() {
         if (! this.batchUrl) {
             return false;
-        }
-
-        for (const id of this.itemIds) {
-            const item = this.itemsData[id];
-            if (item && item.is_public && (! item.alt_text || ! item.alt_text.trim())) {
-                this.flashNotice('Please add descriptive alt text to all public images before saving.', 'danger');
-                const inputEl = document.getElementById('alt-' + id);
-                if (inputEl) {
-                    inputEl.focus();
-                    inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return false;
-            }
         }
 
         if (! this.hasUnsavedChanges) {
@@ -2297,7 +2540,13 @@ const bootPendingMediaUploads = () => {
             }
 
             const uploadForms = [...document.querySelectorAll('form.uh-admin-media-upload')]
-                .filter((uploadForm) => uploadForm.querySelector('input[type="file"]')?.files.length > 0);
+                .filter((uploadForm) => {
+                    const section = uploadForm.closest('.uh-admin-media');
+                    const mediaState = section ? window.Alpine?.$data(section) : null;
+                    const hasPendingFiles = mediaState?.pendingFiles?.some((file) => ! file.uploaded);
+
+                    return hasPendingFiles || uploadForm.querySelector('input[type="file"]')?.files.length > 0;
+                });
             const mediaStates = [...document.querySelectorAll('.uh-admin-media[x-data]')]
                 .map((section) => window.Alpine?.$data(section))
                 .filter(Boolean);
@@ -2330,8 +2579,9 @@ const bootPendingMediaUploads = () => {
                         mediaState.submitting = true;
                     }
 
-                    const uploadData = new FormData(uploadForm);
-                    mediaState?.appendPendingMetadata(uploadData);
+                    const uploadData = mediaState
+                        ? mediaState.buildUploadFormData(uploadForm)
+                        : new FormData(uploadForm);
 
                     const response = await fetch(uploadForm.action, {
                         method: 'POST',

@@ -8,13 +8,13 @@ use App\Http\Controllers\Admin\Auth\MfaController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
-use App\Http\Controllers\Admin\PageSectionController;
 use App\Http\Controllers\Admin\LeadController as AdminLeadController;
 use App\Http\Controllers\Admin\LeadExportController;
 use App\Http\Controllers\Admin\LocationAreaController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\PageSectionController;
 use App\Http\Controllers\Admin\PageSeoController;
 use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
@@ -48,7 +48,6 @@ use App\Http\Controllers\Public\ShortlistController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\ToolsController;
 use App\Http\Controllers\Public\TrackingController;
-use App\Support\HomeSections;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -249,4 +248,3 @@ Route::prefix('admin')->name('admin.')->group(function () {
 Route::get('/{slug}', [CmsController::class, 'show'])
     ->where('slug', '^(?!admin|properties|map|search|projects|locations|articles|faq|shortlist|compare|saved|inquiries|visit-requests|thank-you|track|media|locale|sitemap|sitemaps|robots\.txt|map-data|tools|legal|up|build|storage)[a-z0-9-]+$')
     ->name('cms.show');
-require __DIR__.'/test.php';

@@ -15,9 +15,31 @@ class CmsPage extends Model
 
     public const TEMPLATES = ['default', 'about', 'contact', 'campaign'];
 
+    public const MENU_ICONS = [
+        'document' => 'Document',
+        'home' => 'Home',
+        'info' => 'Information',
+        'phone' => 'Phone',
+        'users' => 'People',
+        'building' => 'Building',
+        'globe' => 'Globe',
+        'image' => 'Image',
+        'link' => 'Link',
+        'list' => 'List',
+        'map' => 'Map',
+        'menu' => 'Menu',
+        'pin' => 'Location pin',
+        'settings' => 'Settings',
+        'shield' => 'Shield',
+        'tag' => 'Tag',
+        'sparkle' => 'Sparkle',
+        'calendar' => 'Calendar',
+    ];
+
     protected $fillable = [
         'slug',
         'template',
+        'menu_icon',
         'title',
         'body',
         'layout_content',

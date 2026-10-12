@@ -27,8 +27,6 @@
     $logoMobile = $brandUrl(\App\Models\Setting::get('brand_logo_mobile'));
     $logoFooter = $brandUrl(\App\Models\Setting::get('brand_logo_footer')) ?? $logoDark;
     $favicon = $brandUrl(\App\Models\Setting::get('brand_favicon'));
-    $headerCtaLabel = \App\Models\Setting::get('header_cta_label');
-    $headerCtaUrl = \App\Models\Setting::get('header_cta_url') ?: '/contact';
     $footerNote = \App\Models\Setting::get('footer_note') ?: __('Every listing on this site is published by our own team, not a marketplace of unknown sellers.');
     $footerCopyright = \App\Models\Setting::get('footer_copyright');
     $socialProfiles = \App\Support\SocialProfiles::active();
@@ -198,16 +196,16 @@
                     </div>
 
                     <a href="{{ route('compare') }}" x-data
-                       class="uh-bar-quiet"
+                       class="uh-bar-quiet uh-bar-compare"
                        :aria-label="'{{ __('Compare') }} (' + $store.saved.compare.length + ')'" aria-label="{{ __('Compare') }}">
-                        <x-icon name="compare" class="size-[1.125rem]" />
+                        <x-icon name="compare" class="uh-bar-action-icon size-5" />
                         <span x-cloak x-show="$store.saved.compare.length" x-text="$store.saved.compare.length" class="uh-bar-count"></span>
                     </a>
 
                     <a href="{{ route('shortlist') }}" x-data
                        class="uh-bar-quiet uh-bar-shortlist"
                        :aria-label="'{{ __('Shortlist') }} (' + $store.saved.shortlist.length + ')'" aria-label="{{ __('Shortlist') }}">
-                        <x-icon name="heart" class="size-[1.125rem]" />
+                        <x-icon name="heart" class="uh-bar-action-icon size-5" />
                         <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-bar-count"></span>
                     </a>
 
@@ -218,10 +216,6 @@
                             </a>
                         @endif
                     @endauth
-
-                    @if(filled($headerCtaLabel))
-                        <a href="{{ $headerCtaUrl }}" class="uh-bar-cta hidden sm:inline-flex" data-track="header_cta_click">{{ $headerCtaLabel }}</a>
-                    @endif
 
                     <button type="button" class="uh-bar-quiet min-[1100px]:hidden"
                             @click="open = true; $dispatch('uh-menu', true)" :aria-expanded="open.toString()" aria-controls="mobile-nav">
@@ -261,9 +255,6 @@
                         <a href="{{ $link['url'] }}" @if($link['external']) rel="noopener" target="_blank" @endif
                            @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
                     @endforeach
-                    @if(filled($headerCtaLabel))
-                        <a href="{{ $headerCtaUrl }}">{{ $headerCtaLabel }}</a>
-                    @endif
                     <a href="{{ route('compare') }}" x-data>
                         {{ __('Compare') }}
                         <span x-cloak x-show="$store.saved.compare.length" x-text="$store.saved.compare.length" class="uh-menu-count"></span>

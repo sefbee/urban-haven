@@ -243,7 +243,9 @@
                             <ul class="uh-pd-amenities">
                                 @foreach($amenities as $amenity)
                                     <li>
-                                        @if($amenity->iconUrl())
+                                        @if($amenity->icon_class)
+                                            <i class="{{ $amenity->icon_class }}" aria-hidden="true"></i>
+                                        @elseif($amenity->iconUrl())
                                             <img src="{{ $amenity->iconUrl() }}" alt="" loading="lazy" decoding="async">
                                         @else
                                             <x-icon name="sparkle" class="size-6" />

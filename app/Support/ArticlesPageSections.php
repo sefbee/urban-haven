@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 final class ArticlesPageSections
 {
     public const ICONS = HomeSections::ICONS;
-    
+
     public static function definitions(): array
     {
         return [
@@ -29,7 +29,7 @@ final class ArticlesPageSections
                 'source' => ['label' => 'Manage articles', 'route' => 'admin.posts.index'],
                 'fields' => [
                     'limit' => ['label' => 'Number of featured articles to show', 'type' => 'number', 'min' => 1, 'max' => 5, 'default' => 5],
-                ]
+                ],
             ],
             'categories' => [
                 'block' => 'articles_categories',
@@ -38,7 +38,7 @@ final class ArticlesPageSections
                 'source' => ['label' => 'Manage article categories', 'route' => 'admin.post-categories.index'],
                 'fields' => [
                     'limit' => ['label' => 'Number of categories to showcase', 'type' => 'number', 'min' => 1, 'max' => 6, 'default' => 6],
-                ]
+                ],
             ],
             'grid' => [
                 'block' => 'articles_grid',
@@ -47,11 +47,23 @@ final class ArticlesPageSections
                 'source' => ['label' => 'Manage articles', 'route' => 'admin.posts.index'],
                 'fields' => [
                     'limit' => ['label' => 'Articles per page', 'type' => 'number', 'min' => 4, 'max' => 24, 'default' => 12],
-                ]
-            ]
+                ],
+            ],
+            'promo' => [
+                'block' => 'articles_promo',
+                'label' => 'Mid-page Promo Banner',
+                'summary' => 'Banner between featured articles and categories.',
+                'images' => true,
+                'fields' => [
+                    'eyebrow' => ['label' => 'Small label above headline', 'type' => 'text', 'max' => 80, 'default' => 'Find your next address'],
+                    'title' => ['label' => 'Banner headline', 'type' => 'text', 'max' => 140, 'default' => 'A better way to find your place.'],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Explore properties'],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
+                ],
+            ],
         ];
     }
-    
+
     private const HIDDEN_BY_DEFAULT = [];
 
     public static function definition(string $section): array
@@ -116,6 +128,8 @@ final class ArticlesPageSections
                 $block->forceFill(['sort_order' => ($position + 1) * 10, 'updated_at' => now()])->save();
             }
         }
+
+        TaggedCache::flush(['cms', 'articlespage']);
     }
 
     public static function defaults(string $section): array

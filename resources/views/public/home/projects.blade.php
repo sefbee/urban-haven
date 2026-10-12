@@ -10,7 +10,7 @@
             <x-ui.pill-link variant="light" :href="route('projects.index')">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
         </header>
 
-        <div class="uh-project-grid">
+        <div class="uh-project-grid uh-home-project-grid">
             @foreach($projects as $project)
                 @include('public.projects.card', ['project' => $project])
             @endforeach

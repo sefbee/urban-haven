@@ -3,7 +3,6 @@
 
 @php
     $hasPhotos = ($definition['images'] ?? false) && $canPublish;
-    $initialTab = $hasPhotos && request('tab') === 'photos' ? 'photos' : 'content';
 @endphp
 
 @section('content')
@@ -22,22 +21,10 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <div class="dd-editor" x-data="{ tab: @js($initialTab) }">
-        <div class="dd-editor-main">
-            @if($hasPhotos)
-                <div class="dd-tabs" role="tablist" aria-label="Section settings">
-                    <button type="button" role="tab" class="dd-tab" :class="{ 'is-active': tab === 'content' }" :aria-selected="(tab === 'content').toString()" @click="tab = 'content'">
-                        <x-icon name="document" class="size-4" /> Content
-                    </button>
-                    <button type="button" role="tab" class="dd-tab" :class="{ 'is-active': tab === 'photos' }" :aria-selected="(tab === 'photos').toString()" @click="tab = 'photos'">
-                        <x-icon name="image" class="size-4" /> Background photos
-                        <span class="dd-tab-count">{{ $block->images()->count() }}</span>
-                    </button>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('admin.page-sections.update', ['page' => $page, 'section' => $section]) }}" class="uh-panel" x-show="tab === 'content'"
-                  x-data="uhForm" @submit="submit" data-unsaved-guard>
+    <div class="dd-editor">
+        <div class="dd-editor-main" x-data="uhForm">
+            <form id="section-content-form" method="POST" action="{{ route('admin.page-sections.update', ['page' => $page, 'section' => $section]) }}" class="uh-panel"
+                  @submit="submit" data-unsaved-guard data-upload-pending-media>
                 @csrf
                 @method('PUT')
 
@@ -121,28 +108,27 @@
                     @endforeach
                 </div>
 
-                <div class="dd-form-footer">
-                    <button type="submit" class="uh-btn-primary" :disabled="submitting">
-                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                        {{ $canPublish ? 'Save and publish' : 'Save draft' }}
-                    </button>
-                    @if($block->updated_at)
-                        <p class="text-xs text-[var(--color-muted)]">Last changed {{ \App\Support\DisplayTimezone::format($block->updated_at) }}</p>
-                    @endif
-                </div>
             </form>
 
             @if($hasPhotos)
-                <div x-show="tab === 'photos'" x-cloak>
-                    @include('admin.partials.media-manager', [
-                        'owner' => $block,
-                        'ownerType' => 'cms_block',
-                        'collections' => ['gallery' => 'Background photos'],
-                        'hints' => ['gallery' => 'Use wide landscape photos, at least 1920 px across. Several public photos crossfade behind the homepage search; without any, a featured listing photo is used. Photos stay private until they have alt text.'],
-                        'canEdit' => true,
-                    ])
-                </div>
+                @include('admin.partials.media-manager', [
+                    'owner' => $block,
+                    'ownerType' => 'cms_block',
+                    'collections' => ['gallery' => 'Background photos'],
+                    'hints' => ['gallery' => 'Use wide landscape photos, at least 1920 px across. Several public photos crossfade behind the homepage search; without any, a featured listing photo is used. Add alt text to each photo before uploading.'],
+                    'canEdit' => true,
+                ])
             @endif
+
+            <div class="dd-form-footer">
+                <button type="submit" form="section-content-form" class="uh-btn-primary" :disabled="submitting">
+                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                    {{ $canPublish ? 'Save and publish' : 'Save draft' }}
+                </button>
+                @if($block->updated_at)
+                    <p class="text-xs text-[var(--color-muted)]">Last changed {{ \App\Support\DisplayTimezone::format($block->updated_at) }}</p>
+                @endif
+            </div>
         </div>
 
         <aside class="dd-editor-side">

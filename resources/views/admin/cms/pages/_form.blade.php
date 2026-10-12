@@ -83,6 +83,11 @@
                         <option value="{{ $template }}" @selected(old('template', $draft('template') ?? 'default') === $template)>{{ $templateLabels[$template] ?? ucfirst($template) }}</option>
                     @endforeach
                 </x-ui.select>
+                <x-ui.select name="menu_icon" label="Sidebar icon" hint="Choose the icon shown beside this page in the admin sidebar." show-hint>
+                    @foreach(\App\Models\CmsPage::MENU_ICONS as $icon => $label)
+                        <option value="{{ $icon }}" @selected(old('menu_icon', $draft('menu_icon') ?? 'document') === $icon)>{{ $label }}</option>
+                    @endforeach
+                </x-ui.select>
             </div>
         </section>
 

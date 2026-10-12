@@ -97,6 +97,8 @@ class StorePropertyRequest extends FormRequest
             'slug' => SeoFields::slugRules('properties', $property instanceof Property ? $property : null),
             ...SeoFields::rules(),
             'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
+            'photographs' => ['nullable', 'array', 'max:100'],
+            'photographs.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
             'photograph_alt' => ['nullable', 'string', 'max:200'],
         ];
     }

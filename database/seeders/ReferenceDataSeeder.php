@@ -38,15 +38,34 @@ class ReferenceDataSeeder extends Seeder
             PropertyType::query()->firstOrCreate(['key' => $type['key']], [...$type, 'is_active' => true]);
         }
 
-        foreach ([
-            'pool' => 'Swimming pool',
-            'gym' => 'Gym',
-            'parking' => 'Parking',
-            'security' => '24/7 security',
-            'lift' => 'Lift',
-            'generator' => 'Backup generator',
-        ] as $key => $label) {
-            Amenity::query()->firstOrCreate(['key' => $key], ['label' => $label, 'is_active' => true]);
+        $amenities = [
+            'pool' => ['label' => 'Swimming pool', 'icon_class' => 'fa-duotone fa-person-swimming'],
+            'gym' => ['label' => 'Fitness centre / Gym', 'icon_class' => 'fa-duotone fa-dumbbell'],
+            'parking' => ['label' => 'Dedicated parking', 'icon_class' => 'fa-duotone fa-square-parking'],
+            'security' => ['label' => '24/7 Security & CCTV', 'icon_class' => 'fa-duotone fa-shield-check'],
+            'lift' => ['label' => 'High-speed passenger lift', 'icon_class' => 'fa-duotone fa-elevator'],
+            'generator' => ['label' => 'Full backup generator', 'icon_class' => 'fa-duotone fa-bolt'],
+            'garden' => ['label' => 'Landscaped garden & lawn', 'icon_class' => 'fa-duotone fa-tree'],
+            'rooftop' => ['label' => 'Rooftop terrace lounge', 'icon_class' => 'fa-duotone fa-building'],
+            'intercom' => ['label' => 'Video intercom facility', 'icon_class' => 'fa-duotone fa-phone-office'],
+            'fire_exit' => ['label' => 'Fire safety & emergency exit', 'icon_class' => 'fa-duotone fa-fire-extinguisher'],
+            'gas' => ['label' => 'Central gas connection', 'icon_class' => 'fa-duotone fa-fire-flame-curved'],
+            'play_area' => ['label' => "Children's play area", 'icon_class' => 'fa-duotone fa-gamepad'],
+            'community_hall' => ['label' => 'Multi-purpose community hall', 'icon_class' => 'fa-duotone fa-users'],
+            'servant_room' => ['label' => 'Servant room & washroom', 'icon_class' => 'fa-duotone fa-door-closed'],
+            'solar' => ['label' => 'Rooftop solar energy system', 'icon_class' => 'fa-duotone fa-sun'],
+            'smart_home' => ['label' => 'Smart home automation', 'icon_class' => 'fa-duotone fa-house-laptop'],
+        ];
+
+        foreach ($amenities as $key => $data) {
+            Amenity::query()->updateOrCreate(
+                ['key' => $key],
+                [
+                    'label' => $data['label'],
+                    'icon_class' => $data['icon_class'],
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

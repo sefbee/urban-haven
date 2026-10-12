@@ -28,7 +28,7 @@
         @endif
 
         <span class="uh-listing-tools">
-            <x-save-button :property="$property" />
+            <x-save-button :property="$property" class="uh-card-shortlist-action" />
             <button type="button" class="uh-icon-action" @click="$dispatch('open-preview', payload)"
                     aria-label="{{ __('Quick view') }}" title="{{ __('Quick view') }}">
                 <x-icon name="expand" class="size-4" />

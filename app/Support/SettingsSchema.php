@@ -19,7 +19,7 @@ final class SettingsSchema
      */
     public const SCREENS = [
         'general' => ['title' => 'General setting', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
-        'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using a 60/30/10 balance: dominant surfaces, secondary structure and one accent.', 'groups' => ['theme']],
+        'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using the 6-colour rule across a 60/30/10 balance: 2 primary, 2 secondary, and 2 accent colours.', 'groups' => ['theme']],
         'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles, floating chat button, and enquiries.', 'groups' => ['contact', 'leads', 'chrome', 'floating']],
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],
         'analytics' => ['title' => 'Analytics & tracking', 'description' => 'Google Tag Manager, Google Analytics, Google Ads and Meta Pixel, and the cookie banner that asks visitors first.', 'groups' => ['analytics', 'consent']],

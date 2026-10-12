@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Support\ArticlesPageSections;
 use App\Support\SeoMeta;
 use App\Support\StructuredData;
 use Illuminate\Http\Request;
@@ -14,6 +15,11 @@ class ArticleController extends Controller
 {
     public function index(Request $request): View
     {
+        $articlesSections = ArticlesPageSections::visible();
+        $gridLimit = (int) ($articlesSections['grid']['limit'] ?? 12);
+        $categoriesLimit = (int) ($articlesSections['categories']['limit'] ?? 6);
+        $featuredLimit = (int) ($articlesSections['featured']['limit'] ?? 5);
+
         $category = $request->filled('category')
             ? PostCategory::query()->with('seoOverride')->where('slug', $request->string('category'))->first()
             : null;
@@ -23,7 +29,7 @@ class ArticleController extends Controller
             ->with(['category', 'media', 'publicationState'])
             ->when($category, fn ($query) => $query->where('post_category_id', $category->id))
             ->latest('id')
-            ->paginate(12)
+            ->paginate($gridLimit > 0 ? $gridLimit : 12)
             ->withQueryString();
 
         $categories = PostCategory::query()
@@ -31,10 +37,20 @@ class ArticleController extends Controller
             ->orderBy('name')
             ->get();
 
+        $featuredPosts = collect();
+        if (isset($articlesSections['featured']) && ! $category) {
+            $featuredPosts = Post::query()
+                ->published()
+                ->with(['category', 'media', 'publicationState'])
+                ->latest('id')
+                ->limit($featuredLimit)
+                ->get();
+        }
+
         $showcasePosts = collect();
 
-        if (! $category && $posts->onFirstPage() && $posts->count() >= 5) {
-            $showcasePosts = $categories->take(6)
+        if (isset($articlesSections['categories']) && ! $category && $posts->onFirstPage()) {
+            $showcasePosts = $categories->take($categoriesLimit)
                 ->mapWithKeys(fn (PostCategory $showcaseCategory) => [
                     $showcaseCategory->id => $showcaseCategory->posts()
                         ->published()
@@ -47,9 +63,11 @@ class ArticleController extends Controller
 
         return view('public.articles.index', [
             'posts' => $posts,
+            'featuredPosts' => $featuredPosts,
             'categories' => $categories,
             'showcasePosts' => $showcasePosts,
             'activeCategory' => $category,
+            'articlesSections' => $articlesSections,
             'seo' => SeoMeta::for($category, $category ? $category->name.' articles' : 'Guides and articles', 'Practical guides on buying, renting and investing in property in Dhaka from the Urban Haven team.', [
                 'canonical' => SeoMeta::canonical(['category', 'page']),
             ]),

@@ -55,7 +55,7 @@
                 @if($isDocument)
                     The maximum brochure size is {{ $maxBrochureMb }} MB. Format: PDF.
                 @else
-                    The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP.
+                    The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP. Add alt text before uploading so public photos can appear on the site.
                     @if($collection === 'gallery' && $supportsCover)
                         Use the cover button to designate the primary showcase image.
                     @endif
@@ -93,17 +93,29 @@
                         <x-icon name="upload" class="size-4" />
                         <span>{{ $uploadLabel }}</span>
                     </button>
-                    <span class="uh-admin-media-drop-hint">or drag {{ $isDocument ? 'the PDF' : 'photos' }} here (up to 20 at once)</span>
+                    <span class="uh-admin-media-drop-hint">or drag {{ $isDocument ? 'the PDF' : 'photos' }} here</span>
                 </div>
             </form>
 
             {{-- Multi-file selection review before committing --}}
-            <div class="mt-3 rounded-lg border-2 border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3.5"
+            <div class="mt-3 rounded-lg border border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3"
                  x-show="pendingFiles.length > 0" x-cloak x-transition>
 
-                <ul class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));">
+                <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-black/10">
+                    <p class="text-xs text-slate-700">
+                        <strong x-text="pendingFiles.length"></strong>
+                        <span x-text="pendingFiles.length === 1 ? 'photo' : 'photos'"></span> selected (saved automatically when clicking Save changes)
+                        <span class="text-slate-400" x-text="'(' + filesize + ')'"></span>
+                    </p>
+                    <button type="button" class="text-xs text-slate-500 hover:text-red-600 transition-colors"
+                            @click="clear()">
+                        Clear all
+                    </button>
+                </div>
+
+                <ul class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));">
                     <template x-for="(pf, idx) in pendingFiles" :key="pf.id">
-                        <li class="relative rounded-md border border-[var(--color-line)] bg-white p-1.5 text-center shadow-sm">
+                        <li class="relative rounded-md border border-[var(--color-line)] bg-white p-1 text-center shadow-xs">
                             <template x-if="pf.previewUrl">
                                 <img :src="pf.previewUrl" class="aspect-4/3 w-full rounded object-cover" alt="">
                             </template>
@@ -112,11 +124,10 @@
                                     <x-icon :name="$isDocument ? 'document' : 'image'" class="size-6 text-slate-400" />
                                 </div>
                             </template>
-                            <p class="mt-1.5 truncate text-xs font-medium text-slate-700" x-text="pf.name" :title="pf.name"></p>
-                            <p class="text-[11px] text-slate-500" x-text="pf.sizeFormatted"></p>
-                            <p class="text-[11px] font-semibold text-green-600" x-show="pf.uploaded">Uploaded</p>
-                            <button type="button" @click="removePending(idx)" x-show="!pf.uploaded"
-                                    class="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600"
+                            <p class="mt-1 truncate text-[11px] font-medium text-slate-700" x-text="pf.name" :title="pf.name"></p>
+                            <p class="text-[10px] text-slate-400" x-text="pf.sizeFormatted"></p>
+                            <button type="button" @click="removePending(idx)"
+                                    class="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600"
                                     aria-label="Remove this file" title="Remove">
                                 <x-icon name="close" class="size-3" />
                             </button>
@@ -159,12 +170,11 @@
                                         <x-icon name="chevron-right" class="size-3.5" />
                                     </button>
 
-                                    <form method="POST" action="{{ route('admin.media.destroy', $item) }}"
-                                          x-data="uhConfirm('Remove this {{ $isDocument ? 'file' : 'photograph' }}?')">
+                                    <form method="POST" action="{{ route('admin.media.destroy', $item) }}">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="uh-admin-media-remove ml-1"
-                                                aria-label="Remove {{ $item->original_filename }}" @click="confirm($event)">
+                                                aria-label="Remove {{ $item->original_filename }}" title="Remove">
                                             <x-icon name="close" class="size-3.5" />
                                         </button>
                                     </form>

@@ -26,8 +26,16 @@ class ShortlistController extends Controller
 
     public function compare(): View
     {
+        $suggestedProperties = Property::query()
+            ->published()
+            ->with(['propertyType', 'locationArea', 'media'])
+            ->latest('last_updated_at')
+            ->take(8)
+            ->get();
+
         return view('public.compare', [
             'compareLimit' => (int) config('urbanhaven.search.compare_limit', 4),
+            'suggestedProperties' => $suggestedProperties,
             'seo' => SeoMeta::for(null, 'Compare properties', null, ['noindex' => true]),
         ]);
     }
@@ -58,11 +66,22 @@ class ShortlistController extends Controller
             ->sortBy(fn (Property $property): int|false => $ids->search($property->id))
             ->values();
 
+        $suggestedProperties = Property::query()
+            ->published()
+            ->whereNotIn('id', $properties->pluck('id')->all())
+            ->with(['propertyType', 'locationArea', 'media'])
+            ->latest('last_updated_at')
+            ->take(8)
+            ->get();
+
         $view = $validated['view'] ?? 'card';
 
         return response()->json([
             'ids' => $properties->pluck('id')->all(),
-            'html' => view('public.partials.saved-'.$view, ['properties' => $properties])->render(),
+            'html' => view('public.partials.saved-'.$view, [
+                'properties' => $properties,
+                'suggestedProperties' => $suggestedProperties,
+            ])->render(),
         ])->header('Cache-Control', 'private, max-age=60');
     }
 }

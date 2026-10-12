@@ -20,7 +20,7 @@ use Stevebauman\Purify\Facades\Purify;
  */
 class CmsService
 {
-    private const PAGE_FIELDS = ['title', 'template', 'body', 'layout_content'];
+    private const PAGE_FIELDS = ['title', 'template', 'menu_icon', 'body', 'layout_content'];
 
     private const POST_FIELDS = ['title', 'post_category_id', 'excerpt', 'body', 'author_label', 'related_post_ids'];
 
@@ -300,6 +300,6 @@ class CmsService
 
     private function flush(): void
     {
-        TaggedCache::flush(['homepage', 'sitemap', 'cms', 'menus']);
+        TaggedCache::flush(['homepage', 'sitemap', 'cms', 'menus', 'aboutpage', 'contactpage', 'articlespage']);
     }
 }

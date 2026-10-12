@@ -6,7 +6,6 @@
     $companyName = \App\Models\Setting::get('company_name') ?: 'Urban Haven';
     $brandLogo = \App\Models\Setting::get('brand_logo');
     $sidebarLogo = \App\Models\Setting::get('brand_logo_dark');
-    $companyTagline = \App\Models\Setting::get('company_tagline');
     $brandFavicon = \App\Models\Setting::get('brand_favicon');
 
     $systemWarnings = [];
@@ -78,9 +77,6 @@
                                     <span class="dd-brand-name">{{ $companyName }}</span>
                                     <span class="dd-brand-badge">Admin</span>
                                 </span>
-                                @if($companyTagline)
-                                    <span class="dd-brand-tagline">{{ $companyTagline }}</span>
-                                @endif
                             </span>
                         @endif
                     </a>
@@ -97,7 +93,11 @@
                             <span class="dd-nav-group-label">{{ $group }}</span>
                             <ul class="dd-nav-list">
                                 @foreach($items as $item)
-                                    @php $current = request()->routeIs(...(array) $item['pattern']); @endphp
+                                    @php
+                                        $current = isset($item['matcher'])
+                                            ? $item['matcher']()
+                                            : request()->routeIs(...(array) $item['pattern']);
+                                    @endphp
                                     <li>
                                         <a href="{{ $item['url'] }}"
                                            title="{{ $item['label'] }}"
