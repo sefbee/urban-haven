@@ -51,16 +51,17 @@ final class AdminNavigation
                 $can('lead.view') ? self::item('admin.visits.*', 'Site visits', route('admin.visits.index'), 'calendar') : null,
             ],
             'Website settings' => [
-                $owner ? self::item('admin.settings.index', 'Branding', route('admin.settings.index'), 'settings') : null,
-                $owner ? self::item('admin.settings.contact', 'Contact & social', route('admin.settings.contact'), 'phone') : null,
+                $owner ? self::item('admin.settings.index', 'General setting', route('admin.settings.index'), 'settings') : null,
                 $owner ? self::item('admin.settings.theme', 'Theme & colours', route('admin.settings.theme'), 'sparkle') : null,
+                $owner ? self::item('admin.settings.contact', 'Contact & social', route('admin.settings.contact'), 'phone') : null,
                 $owner ? self::item('admin.listing-display', 'Listing display', route('admin.listing-display'), 'map') : null,
                 $owner ? self::item('admin.settings.analytics', 'Analytics & tracking', route('admin.settings.analytics'), 'compass') : null,
                 $owner ? self::item('admin.settings.seo', 'SEO defaults', route('admin.settings.seo'), 'globe') : null,
-                $user->can('redirect.manage') ? self::item('admin.redirects.*', 'Redirects', route('admin.redirects.index'), 'arrow-right') : null,
-                $user->can('audit.view') ? self::item('admin.audit.*', 'Activity log', route('admin.audit.index'), 'shield') : null,
+                $owner ? self::item('admin.settings.copy', 'Website copy', route('admin.settings.copy'), 'document') : null,
             ],
             'Administration' => [
+                $user->can('redirect.manage') ? self::item('admin.redirects.*', 'Redirects', route('admin.redirects.index'), 'arrow-right') : null,
+                $user->can('audit.view') ? self::item('admin.audit.*', 'Activity log', route('admin.audit.index'), 'shield') : null,
                 $user->can('viewAny', User::class) ? self::item('admin.staff.*', 'Users & roles', route('admin.staff.index'), 'users') : null,
             ],
         ];
