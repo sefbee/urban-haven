@@ -218,7 +218,7 @@ class HomeController extends Controller
                 $this->liveListings(Property::query(), $purposes)
                     ->with('media')
                     ->whereIn($foreignKey, $missing->all())
-                    ->whereHas('media', fn (Builder $query) => $query->where('collection', 'gallery'))
+                    ->whereHas('media')
                     ->orderByDesc('id')
                     ->get()
                     ->unique($foreignKey)

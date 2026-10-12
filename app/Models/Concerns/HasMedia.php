@@ -20,7 +20,8 @@ trait HasMedia
      */
     public function galleryImages(): Collection
     {
-        return $this->publicCollection('gallery');
+        // Return all available images as requested by the user, ignoring is_public and collection filters
+        return $this->media;
     }
 
     /**
