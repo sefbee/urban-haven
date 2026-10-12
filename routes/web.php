@@ -129,8 +129,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('settings/test-email', [SettingsController::class, 'testEmail'])->middleware('throttle:5,1')->name('settings.test-email');
         Route::get('listing-display', [SettingsController::class, 'listings'])->name('listing-display');
 
-        Route::get('page-sections/{page}', [PageSectionController::class, 'index'])->whereIn('page', ['home', 'about', 'contact', 'articles'])->name('page-sections.index');
-        Route::prefix('page-sections/{page}/{section}')->whereIn('page', ['home', 'about', 'contact', 'articles'])->name('page-sections.')->group(function () {
+        Route::get('page-sections/{page}', [PageSectionController::class, 'index'])->name('page-sections.index');
+        Route::prefix('page-sections/{page}/{section}')->name('page-sections.')->group(function () {
             Route::get('/', [PageSectionController::class, 'edit'])->name('edit');
             Route::put('/', [PageSectionController::class, 'update'])->name('update');
             Route::post('visibility', [PageSectionController::class, 'visibility'])->name('visibility');
