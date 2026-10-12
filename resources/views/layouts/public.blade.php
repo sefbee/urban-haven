@@ -76,6 +76,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $locale) }}">
     <head>
+        
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -191,6 +192,13 @@
                         </div>
                     </div>
 
+                    <a href="{{ route('compare') }}" x-data
+                       class="uh-bar-quiet"
+                       :aria-label="'{{ __('Compare') }} (' + $store.saved.compare.length + ')'" aria-label="{{ __('Compare') }}">
+                        <x-icon name="compare" class="size-[1.125rem]" />
+                        <span x-cloak x-show="$store.saved.compare.length" x-text="$store.saved.compare.length" class="uh-bar-count"></span>
+                    </a>
+
                     <a href="{{ route('shortlist') }}" x-data
                        class="uh-bar-quiet uh-bar-shortlist"
                        :aria-label="'{{ __('Shortlist') }} (' + $store.saved.shortlist.length + ')'" aria-label="{{ __('Shortlist') }}">
@@ -251,6 +259,10 @@
                     @if(filled($headerCtaLabel))
                         <a href="{{ $headerCtaUrl }}">{{ $headerCtaLabel }}</a>
                     @endif
+                    <a href="{{ route('compare') }}" x-data>
+                        {{ __('Compare') }}
+                        <span x-cloak x-show="$store.saved.compare.length" x-text="$store.saved.compare.length" class="uh-menu-count"></span>
+                    </a>
                     <a href="{{ route('shortlist') }}" x-data>
                         {{ __('Shortlist') }}
                         <span x-cloak x-show="$store.saved.shortlist.length" x-text="$store.saved.shortlist.length" class="uh-menu-count"></span>
@@ -391,10 +403,15 @@
                 <span x-text="$store.saved.notice"></span>
             </div>
             @unless(request()->routeIs('compare'))
-                <a href="{{ route('compare') }}" class="uh-compare-tray" x-show="$store.saved.compare.length > 1" x-cloak x-transition.opacity.duration.250ms>
-                    <span x-text="$store.saved.compare.length === 1 ? @js(__('Pick one more to compare')) : @js(__('Compare :count properties')).replace(':count', $store.saved.compare.length)">{{ __('Compare') }}</span>
-                    <x-icon name="arrow-right" class="size-3.5 shrink-0" />
-                </a>
+                <div class="uh-compare-tray !pr-2" style="padding-right: 0.5rem;" x-show="$store.saved.compare.length > 1" x-cloak x-transition.opacity.duration.250ms>
+                    <a href="{{ route('compare') }}" class="flex items-center gap-[0.625rem] py-2 outline-none">
+                        <span x-text="$store.saved.compare.length === 1 ? @js(__('Pick one more to compare')) : @js(__('Compare :count properties')).replace(':count', $store.saved.compare.length)">{{ __('Compare') }}</span>
+                        <x-icon name="arrow-right" class="size-3.5 shrink-0" />
+                    </a>
+                    <button type="button" @click.prevent="$store.saved.clear('compare')" class="flex items-center justify-center p-1.5 rounded-full hover:bg-white/20 transition-colors ml-1 outline-none" aria-label="{{ __('Clear compare') }}">
+                        <x-icon name="close" class="size-4 shrink-0" />
+                    </button>
+                </div>
             @endunless
         </div>
 

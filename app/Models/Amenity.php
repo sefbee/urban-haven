@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Amenity extends Model
 {
-    protected $fillable = ['key', 'label', 'icon_svg', 'icon_path', 'is_active'];
+    protected $fillable = ['key', 'label', 'icon_class', 'icon_svg', 'icon_path', 'is_active'];
 
     protected function casts(): array
     {

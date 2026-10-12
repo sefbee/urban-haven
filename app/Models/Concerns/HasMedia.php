@@ -56,7 +56,7 @@ trait HasMedia
     private function publicCollection(string $collection): Collection
     {
         return $this->media
-            ->filter(fn (Media $media): bool => $media->collection === $collection && $media->is_public)
+            ->filter(fn (Media $media): bool => $media->collection === $collection)
             ->values();
     }
 }

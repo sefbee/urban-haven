@@ -90,7 +90,6 @@ class CatalogSeeder extends Seeder
             'handover_info' => 'Handover scheduled after finishing works and utility connections.',
             'amenity_ids' => [$pool->id, $gym->id, $parking->id, $security->id],
             'highlights' => ['Landscaped courtyard', 'Two basement parking levels', 'Backup power'],
-            'trust_label' => 'RAJUK-approved development',
             'is_featured' => true,
         ]);
         $project->publicationState()->updateOrCreate([], [
@@ -117,7 +116,6 @@ class CatalogSeeder extends Seeder
                 'lat' => 23.7928,
                 'lng' => 90.4081,
                 'is_featured' => true,
-                'trust_label' => 'Verified listing',
             ],
             [
                 'slug' => 'dhanmondi-lake-two-bed',
@@ -174,7 +172,6 @@ class CatalogSeeder extends Seeder
                 'area_unit' => 'sqft',
                 'is_furnished' => false,
                 'amenity_ids' => [$parking->id, $security->id],
-                'trust_label' => $data['trust_label'] ?? 'Company listing',
                 'is_featured' => $data['is_featured'] ?? false,
                 'project_id' => $data['project_id'] ?? null,
                 'property_type_id' => $data['property_type_id'],

@@ -206,12 +206,9 @@
             @endif
 
             <section class="uh-panel" @if($exists || ! $canEdit) id="step-media" @endif>
-                <h2 class="uh-h4">Video, tour and trust</h2>
+                <h2 class="uh-h4">Video</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
                     <x-ui.input name="video_url" label="Video URL" type="url" dir="ltr" :value="$property->video_url" optional hint="YouTube or Vimeo link." />
-                    <x-ui.input name="virtual_tour_url" label="Virtual tour URL" type="url" dir="ltr" :value="$property->virtual_tour_url" optional />
-                    <x-ui.input name="trust_label" label="Trust label" :value="$property->trust_label" optional maxlength="120"
-                                class="sm:col-span-2" hint="A verifiable fact only, e.g. “Registered deed available”." />
                 </div>
                 @if($exists)
                 @endif
@@ -233,12 +230,7 @@
                             @endforeach
                         </x-ui.select>
                     @endif
-                    <x-ui.select name="assigned_contact_id" label="Listing contact" optional hint="Enquiries for this listing go to this person.">
-                        <option value="">Main sales line</option>
-                        @foreach($contacts as $contact)
-                            <option value="{{ $contact->id }}" @selected(old('assigned_contact_id', $property->assigned_contact_id) == $contact->id)>{{ $contact->name }}</option>
-                        @endforeach
-                    </x-ui.select>
+
                     <div class="uh-field justify-end">
                         <input type="hidden" name="is_featured" value="0">
                         <label class="uh-check">

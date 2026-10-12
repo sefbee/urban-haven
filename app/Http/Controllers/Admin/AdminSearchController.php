@@ -351,13 +351,6 @@ class AdminSearchController extends Controller
 
         if ($user->isOwnerAdmin()) {
             $items[] = [
-                'title' => 'Review queue',
-                'keywords' => ['review', 'approvals', 'pending', 'publish queue', 'moderation'],
-                'meta' => 'Properties pending review or approval before publishing',
-                'url' => route('admin.review.index'),
-                'icon' => 'check',
-            ];
-            $items[] = [
                 'title' => 'Website settings',
                 'keywords' => ['settings', 'configuration', 'brand', 'company', 'contact info', 'social', 'phone', 'email', 'inbox'],
                 'meta' => 'General business and contact settings',

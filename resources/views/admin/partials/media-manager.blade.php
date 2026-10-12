@@ -56,9 +56,8 @@
                     The maximum brochure size is {{ $maxBrochureMb }} MB. Format: PDF.
                 @else
                     The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP.
-                    @if($collection === 'gallery')
-                        Images stay private until they have alt text.
-                        @if($supportsCover) Use the cover button to designate the primary showcase image. @endif
+                    @if($collection === 'gallery' && $supportsCover)
+                        Use the cover button to designate the primary showcase image.
                     @endif
                 @endif
                 {{ $hints[$collection] ?? '' }}
@@ -101,28 +100,8 @@
             {{-- Multi-file selection review before committing --}}
             <div class="mt-3 rounded-lg border-2 border-dashed border-gold/40 bg-gold/5 p-3.5"
                  x-show="pendingFiles.length > 0" x-cloak x-transition>
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-2.5">
-                    <div>
-                        <p class="text-xs font-semibold text-ink">
-                            <span x-text="pendingFiles.filter(file => !file.uploaded).length"></span>
-                            <span x-text="pendingFiles.filter(file => !file.uploaded).length === 1 ? 'file' : 'photos'"></span> ready to upload
-                            <span class="text-xs font-normal text-muted" x-text="'(' + filesize + ' total)'"></span>
-                        </p>
-                        <p class="text-[11px] text-muted">Set image details before uploading. Uploaded images are saved with these settings.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="uh-btn-primary uh-btn-sm" x-show="pendingFiles.some(file => !file.uploaded)" :disabled="submitting" @click="uploadPending()">
-                            <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                            <x-icon name="upload" class="size-3.5" x-show="!submitting" />
-                            <span x-text="submitting ? 'Uploading…' : ('Upload ' + pendingFiles.filter(file => !file.uploaded).length + (pendingFiles.filter(file => !file.uploaded).length === 1 ? ' file' : ' photos'))">Upload</span>
-                        </button>
-                        <button type="button" class="uh-btn-ghost uh-btn-sm" x-show="pendingFiles.some(file => !file.uploaded)" :disabled="submitting" @click="clear()">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
 
-                <ul class="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                <ul class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
                     <template x-for="(pf, idx) in pendingFiles" :key="pf.id">
                         <li class="relative rounded-md border border-line bg-white p-1 text-center shadow-xs">
                             <template x-if="pf.previewUrl">
@@ -135,29 +114,7 @@
                             </template>
                             <p class="mt-1 truncate text-[11px] font-medium text-ink" x-text="pf.name" :title="pf.name"></p>
                             <p class="text-[10px] text-muted" x-text="pf.sizeFormatted"></p>
-                            <p class="text-[10px] font-semibold text-forest" x-show="pf.uploaded">Uploaded with settings</p>
-                            @if(! $isDocument)
-                                <div class="mt-2 space-y-2 px-1 text-left" x-show="pf.isImage">
-                                    <label class="uh-label text-[11px]">
-                                        Alt text <span class="text-danger" x-show="pf.is_public">*</span>
-                                        <input type="text" class="uh-input mt-1 text-xs" maxlength="200"
-                                               placeholder="Describe the photograph" x-model="pf.alt_text" :disabled="pf.uploaded">
-                                    </label>
-                                    <div class="flex flex-wrap items-center justify-between gap-1">
-                                        <label class="uh-check text-[11px]">
-                                            <input type="checkbox" x-model="pf.is_public" :disabled="pf.uploaded">
-                                            <span>Public</span>
-                                        </label>
-                                        @if($collection === 'gallery' && $supportsCover)
-                                            <button type="button" class="text-[11px] font-medium text-gold hover:underline"
-                                                    @click="setPendingCover(idx)" :disabled="pf.uploaded"
-                                                    x-text="pf.make_cover ? '★ Cover photo' : 'Set as cover'">
-                                                Set as cover
-                                            </button>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif
+                            <p class="text-[10px] font-semibold text-forest" x-show="pf.uploaded">Uploaded</p>
                             <button type="button" @click="removePending(idx)" x-show="!pf.uploaded"
                                     class="absolute -top-1.5 -right-1.5 flex size-4.5 items-center justify-center rounded-full bg-danger text-white shadow-xs hover:bg-danger/80"
                                     aria-label="Remove this file" title="Remove">
@@ -185,15 +142,6 @@
                             </div>
 
                             <div class="flex items-center gap-1.5">
-                                @if($collection === 'gallery' && $supportsCover)
-                                    <template x-if="coverId === {{ $item->id }}">
-                                        <span class="rounded bg-gold px-1.5 py-0.5 text-[10px] font-bold text-night">Cover</span>
-                                    </template>
-                                @endif
-                                <span class="uh-admin-media-status-text"
-                                      x-text="coverId === {{ $item->id }} ? '' : (itemsData[{{ $item->id }}]?.is_public ? 'Public' : 'Private')">
-                                    {{ $isCover ? 'Cover' : ($item->is_public ? 'Public' : 'Private') }}
-                                </span>
                             </div>
 
                             @if($canEdit)
@@ -232,43 +180,8 @@
                             @endif
                         </div>
 
-                        @if($canEdit)
+                        @if($canEdit && $collection === 'gallery' && $supportsCover)
                             <div class="uh-admin-media-details">
-                                <div class="uh-field">
-                                    <label for="alt-{{ $item->id }}" class="uh-label text-xs">
-                                        {{ $item->isDocument() ? 'Title' : 'Alt text' }}
-                                        <span class="text-danger" x-show="itemsData[{{ $item->id }}]?.is_public">*</span>
-                                    </label>
-                                    <input id="alt-{{ $item->id }}" type="text" name="alt_text"
-                                           class="uh-input text-xs" maxlength="200"
-                                           value="{{ $item->alt_texts['en'] ?? '' }}"
-                                           :value="itemsData[{{ $item->id }}]?.alt_text ?? '{{ addslashes($item->alt_texts['en'] ?? '') }}'"
-                                           @input="updateItemAlt({{ $item->id }}, $event.target.value)"
-                                           placeholder="{{ $item->isDocument() ? 'Document title' : 'Describe the photograph' }}">
-                                </div>
-
-                                <div class="flex items-center justify-between gap-2 pt-1">
-                                    <input type="hidden" name="is_public" value="0">
-                                    <label class="uh-check text-xs">
-                                        <input type="checkbox" name="is_public" value="1" @checked($item->is_public)
-                                               :checked="itemsData[{{ $item->id }}]?.is_public"
-                                               @change="updateItemPublic({{ $item->id }}, $event.target.checked)">
-                                        <span>Public</span>
-                                    </label>
-
-                                    @if($collection === 'gallery' && $supportsCover)
-                                        <button type="button" @click="setCover({{ $item->id }})"
-                                                class="text-xs font-medium text-gold hover:underline"
-                                                x-show="coverId !== {{ $item->id }}">
-                                            Set as cover
-                                        </button>
-                                        <span class="text-xs font-semibold text-gold" x-show="coverId === {{ $item->id }}">
-                                            ★ Cover photo
-                                        </span>
-                                        <input type="hidden" name="make_cover" :value="coverId === {{ $item->id }} ? 1 : 0">
-                                    @endif
-
-                                </div>
                             </div>
                         @endif
                     </li>

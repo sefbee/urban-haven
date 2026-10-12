@@ -18,7 +18,6 @@ final class AdminNavigation
     {
         $can = fn (string $permission): bool => $user->hasPermission($permission);
         $owner = $user->isOwnerAdmin();
-        $canReview = $can('property.publish') || $can('project.publish');
         $canCms = $can('cms.update') || $can('cms.create');
 
         $canReference = $user->can('reference.manage');
@@ -27,23 +26,24 @@ final class AdminNavigation
             'Dashboard' => [
                 self::item('admin.dashboard', 'Overview', route('admin.dashboard'), 'dashboard'),
             ],
-            'Website pages' => [
-                $canCms ? self::item('admin.home-sections.*', 'Home', route('admin.home-sections.index'), 'home') : null,
-                $canCms ? self::item('admin.cms.*', 'Custom pages', route('admin.cms.index'), 'document') : null,
-                $canCms ? self::item('admin.faqs.*', 'FAQ page', route('admin.faqs.index'), 'info') : null,
-                $can('cms.publish') ? self::item('admin.page-seo.*', 'Page SEO', route('admin.page-seo.index'), 'globe') : null,
-            ],
-            'Content library' => [
+            'Properties' => [
                 $can('property.view') || $can('property.update') ? self::item(['admin.properties.*', 'admin.units.*'], 'Properties', route('admin.properties.index'), 'grid') : null,
                 $can('project.view') || $can('project.update') ? self::item('admin.projects.*', 'Projects', route('admin.projects.index'), 'building') : null,
-                $canReview ? self::item('admin.review.*', 'Review queue', route('admin.review.index'), 'check-circle') : null,
                 $canReference ? self::item('admin.areas.*', 'Areas', route('admin.areas.index'), 'pin') : null,
                 $canReference ? self::item('admin.property-types.*', 'Property types', route('admin.property-types.index'), 'tag') : null,
                 $canReference ? self::item('admin.amenities.*', 'Amenities', route('admin.amenities.index'), 'sparkle') : null,
-                $user->can('viewAny', Post::class) ? self::item('admin.posts.*', 'Articles', route('admin.posts.index'), 'list') : null,
-                $user->can('create', Post::class) ? self::item('admin.post-categories.*', 'Article categories', route('admin.post-categories.index'), 'tag') : null,
+            ],
+            'Pages' => [
+                $canCms ? self::item('admin.home-sections.*', 'Home', route('admin.home-sections.index'), 'home') : null,
+                $canCms ? self::item('admin.cms.*', 'Custom pages', route('admin.cms.index'), 'document') : null,
+                $canCms ? self::item('admin.faqs.*', 'FAQ page', route('admin.faqs.index'), 'info') : null,
                 $can('cms.publish') ? self::item('admin.menus.*', 'Menu management', route('admin.menus.index'), 'menu') : null,
                 $canCms ? self::item('admin.site-urls', 'Pages & slugs', route('admin.site-urls'), 'link') : null,
+                $can('cms.publish') ? self::item('admin.page-seo.*', 'Page SEO', route('admin.page-seo.index'), 'globe') : null,
+            ],
+            'Articles' => [
+                $user->can('viewAny', Post::class) ? self::item('admin.posts.*', 'Articles', route('admin.posts.index'), 'list') : null,
+                $user->can('create', Post::class) ? self::item('admin.post-categories.*', 'Article categories', route('admin.post-categories.index'), 'tag') : null,
             ],
             'Communication' => [
                 $can('lead.view') ? self::item('admin.leads.*', 'Leads & enquiries', route('admin.leads.index'), 'inbox') : null,
@@ -54,7 +54,6 @@ final class AdminNavigation
                 $owner ? self::item('admin.settings.index', 'Branding', route('admin.settings.index'), 'settings') : null,
                 $owner ? self::item('admin.settings.contact', 'Contact & social', route('admin.settings.contact'), 'phone') : null,
                 $owner ? self::item('admin.settings.theme', 'Theme & colours', route('admin.settings.theme'), 'sparkle') : null,
-                $owner ? self::item('admin.settings.enquiries', 'Enquiries & email', route('admin.settings.enquiries'), 'mail') : null,
                 $owner ? self::item('admin.listing-display', 'Listing display', route('admin.listing-display'), 'map') : null,
                 $owner ? self::item('admin.settings.analytics', 'Analytics & tracking', route('admin.settings.analytics'), 'compass') : null,
                 $owner ? self::item('admin.settings.seo', 'SEO defaults', route('admin.settings.seo'), 'globe') : null,

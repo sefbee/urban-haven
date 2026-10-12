@@ -16,7 +16,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class MediaController extends Controller
 {
@@ -48,14 +47,7 @@ class MediaController extends Controller
         $files = collect($request->hasFile('file') ? [$request->file('file')] : $request->file('files'))->values();
         $metadata = $validated['files_meta'] ?? [];
 
-        foreach ($files as $index => $file) {
-            $itemMetadata = $metadata[$index] ?? null;
-            if ($itemMetadata && ($itemMetadata['is_public'] ?? false) && blank($itemMetadata['alt_text'] ?? null)) {
-                throw ValidationException::withMessages([
-                    "files_meta.{$index}.alt_text" => 'Add alt text before making this image public.',
-                ]);
-            }
-        }
+        // Validation removed as all images are public by default
 
         $records = $files->map(function (UploadedFile $file, int $index) use ($media, $owner, $validated, $metadata, $request): Media {
             $itemMetadata = $metadata[$index] ?? null;
@@ -86,7 +78,7 @@ class MediaController extends Controller
         if (! $request->expectsJson()) {
             $uploaded = $records->count() > 1 ? $records->count().' files uploaded.' : 'Uploaded.';
 
-            return back()->with('status', $records->every(fn (Media $item): bool => $item->is_public) ? $uploaded : $uploaded.' Add alt text to make them public.');
+            return back()->with('status', $uploaded);
         }
 
         return response()->json([
@@ -109,11 +101,11 @@ class MediaController extends Controller
 
         $validated = $request->validate([
             'alt_text' => ['nullable', 'string', 'max:200'],
-            'is_public' => ['required', 'boolean'],
+            'is_public' => ['sometimes', 'boolean'],
             'make_cover' => ['sometimes', 'boolean'],
         ]);
 
-        $media->updateDetails($medium, $validated['alt_text'] ?? null, (bool) $validated['is_public'], $request->user());
+        $media->updateDetails($medium, $validated['alt_text'] ?? null, true, $request->user());
 
         if (! empty($validated['make_cover']) && $medium->collection === 'gallery' && in_array('featured_media_id', $medium->mediable->getFillable(), true)) {
             $medium->mediable->forceFill(['featured_media_id' => $medium->id])->save();
@@ -130,7 +122,7 @@ class MediaController extends Controller
             'items' => ['required', 'array', 'max:100'],
             'items.*.id' => ['required', 'integer', 'exists:media,id'],
             'items.*.alt_text' => ['nullable', 'string', 'max:200'],
-            'items.*.is_public' => ['required', 'boolean'],
+            'items.*.is_public' => ['sometimes', 'boolean'],
             'items.*.make_cover' => ['sometimes', 'boolean'],
         ]);
 
@@ -143,7 +135,7 @@ class MediaController extends Controller
             }
 
             $this->authorize('update', $medium->mediable);
-            $media->updateDetails($medium, $itemData['alt_text'] ?? null, (bool) $itemData['is_public'], $request->user());
+            $media->updateDetails($medium, $itemData['alt_text'] ?? null, true, $request->user());
 
             if (! empty($itemData['make_cover']) && $medium->collection === 'gallery' && in_array('featured_media_id', $medium->mediable->getFillable(), true)) {
                 $medium->mediable->forceFill(['featured_media_id' => $medium->id])->save();

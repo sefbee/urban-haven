@@ -563,34 +563,21 @@ class PropertyDiscoveryTest extends TestCase
             ->assertSee('10+ Years');
     }
 
-    public function test_search_filters_by_verification_and_nearby_radius(): void
+    public function test_search_filters_by_nearby_radius(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
-        $this->publishProperty('Verified Gulshan', [
-            'trust_label' => 'Verified',
+        $this->publishProperty('Nearby Gulshan', [
             'lat' => 23.81,
             'lng' => 90.41,
         ]);
-        $this->publishProperty('Plain Badda', [
-            'trust_label' => null,
+        $this->publishProperty('Nearby Badda', [
             'lat' => 23.78,
             'lng' => 90.43,
         ]);
         $this->publishProperty('Faraway home', [
-            'trust_label' => 'Verified',
             'lat' => 22.35,
             'lng' => 91.83,
         ]);
-
-        $this->get(route('properties.index', ['verification' => ['verified']]))
-            ->assertOk()
-            ->assertSee('Verified Gulshan')
-            ->assertDontSee('Plain Badda');
-
-        $this->get(route('properties.index', ['verification' => ['unverified']]))
-            ->assertOk()
-            ->assertSee('Plain Badda')
-            ->assertDontSee('Verified Gulshan');
 
         $this->get(route('properties.index', [
             'lat' => 23.81,
@@ -598,7 +585,7 @@ class PropertyDiscoveryTest extends TestCase
             'radius_km' => 3,
         ]))
             ->assertOk()
-            ->assertSee('Verified Gulshan')
+            ->assertSee('Nearby Gulshan')
             ->assertDontSee('Faraway home');
     }
 

@@ -20,7 +20,6 @@ class MediaDownloadController extends Controller
 
         abort_unless(
             $media->isDocument()
-            && $media->is_public
             && $owner !== null
             && in_array(Publishable::class, class_uses_recursive($owner), true)
             && $owner->isPublished(),

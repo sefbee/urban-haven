@@ -121,7 +121,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::get('settings/theme', [SettingsController::class, 'theme'])->name('settings.theme');
         Route::get('settings/contact', [SettingsController::class, 'contact'])->name('settings.contact');
-        Route::get('settings/enquiries', [SettingsController::class, 'enquiries'])->name('settings.enquiries');
         Route::get('settings/analytics', [SettingsController::class, 'analytics'])->name('settings.analytics');
         Route::get('settings/seo', [SettingsController::class, 'seo'])->name('settings.seo');
         Route::get('settings/copy', [SettingsController::class, 'copy'])->name('settings.copy');
@@ -164,8 +163,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('settings/types/{type}/deactivate', [PropertyTypeController::class, 'deactivate'])->name('settings.types.deactivate');
         Route::post('settings/amenities', [AmenityController::class, 'store'])->name('settings.amenities.store');
         Route::post('settings/amenities/{amenity}/deactivate', [AmenityController::class, 'deactivate'])->name('settings.amenities.deactivate');
-
-        Route::get('review', [PublicationController::class, 'reviewQueue'])->name('review.index');
 
         Route::resource('properties', AdminPropertyController::class)->except(['show']);
         Route::put('properties/{property}/availability', [AdminPropertyController::class, 'updateAvailability'])->name('properties.availability');

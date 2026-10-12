@@ -21,9 +21,12 @@
 @endphp
 
 <article @if($quickView) x-data="{ payload: {{ \Illuminate\Support\Js::from(\App\Support\PropertyPreview::for($property)) }} }" @endif
-         class="uh-listing" data-spotlight="{{ $property->id }}" @isset($revealIndex) data-reveal style="--uh-i: {{ $revealIndex }}" @endisset>
-    <div class="uh-listing-frame" @if($morph) style="view-transition-name: uh-property-{{ $property->id }}" @endif>
-        @include('public.partials.property-carousel', ['sizes' => $sizes ?? '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw'])
+         class="uh-listing" data-spotlight="{{ $property->id }}" style="position: relative;" @isset($revealIndex) data-reveal style="--uh-i: {{ $revealIndex }}" @endisset>
+    <a href="{{ $url }}" class="uh-listing-full-link" style="position: absolute; inset: 0; z-index: 1;" data-track="property_card_click" data-track-property-id="{{ $property->id }}"></a>
+    <div class="uh-listing-frame" style="position: relative; z-index: 2; pointer-events: none;" @if($morph) style="view-transition-name: uh-property-{{ $property->id }}" @endif>
+        <div style="position: relative; z-index: 50; pointer-events: auto;">
+            @include('public.partials.property-carousel', ['sizes' => $sizes ?? '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw'])
+        </div>
 
         @unless($priceInBody)
             <div class="uh-listing-image-price-scrim bg-gradient-to-t from-black/60 to-transparent absolute inset-x-0 bottom-0 h-24 z-[2] pointer-events-none"></div>
@@ -48,7 +51,7 @@
         @endif
 
         @if($showShortlist)
-            <span class="uh-listing-tools">
+            <span class="uh-listing-tools" style="position: absolute; z-index: 50; pointer-events: auto;">
                 <x-save-button :property="$property" />
                 <x-save-button :property="$property" list="compare" />
             </span>
@@ -73,8 +76,8 @@
         <div class="uh-listing-content">
             <div class="uh-listing-description">
                 <h3 class="uh-listing-title">
-                    <a class="line-clamp-2" href="{{ $url }}" lang="{{ app()->getLocale() }}"
-                       data-track="property_card_click" data-track-property-id="{{ $property->id }}">{{ $property->title }}</a>
+                    <span class="line-clamp-2 uh-listing-title-link" lang="{{ app()->getLocale() }}">
+                       {{ $property->title }}</span>
                 </h3>
                 @if($priceInBody)
                     <p class="uh-listing-price uh-numeric">{{ $headline }}</p>
@@ -97,7 +100,7 @@
             @endif
         </div>
 
-        <div class="uh-listing-foot">
+        <div class="uh-listing-foot" style="position: relative; z-index: 10; pointer-events: auto;">
             @include('public.partials.card-actions', [
                 'url' => $url,
                 'title' => $property->title,

@@ -15,9 +15,6 @@
 
     <x-ui.admin-related label="Connected to">
         <a href="{{ route('admin.properties.index') }}">Properties</a>
-        @if(auth()->user()?->hasPermission('project.publish'))
-            <a href="{{ route('admin.review.index') }}">Review queue</a>
-        @endif
         @can('reference.manage')
             <a href="{{ route('admin.amenities.index') }}">Amenities</a>
         @endcan

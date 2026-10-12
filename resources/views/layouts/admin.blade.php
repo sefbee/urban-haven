@@ -24,6 +24,9 @@
         ? App\Models\LocationArea::query()->active()->orderBy('name')->get(['id', 'name', 'city', 'country'])
         : collect();
 
+    $quickCountries = $quickAddAreas->pluck('country')->push(\App\Models\LocationArea::DEFAULT_COUNTRY)->filter()->unique()->sort()->values();
+    $quickPlaceTree = \App\Models\LocationArea::placeTree($quickAddAreas);
+
     $initials = collect(preg_split('/\s+/', trim((string) $user?->name)))
         ->filter()
         ->map(fn (string $part): string => mb_strtoupper(mb_substr($part, 0, 1)))
@@ -33,6 +36,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">

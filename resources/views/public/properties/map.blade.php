@@ -20,6 +20,7 @@
 
         <section id="uh-mapview-map" class="uh-mapview-map" aria-label="{{ __('Map of matching homes') }}"
                  :aria-hidden="(mapMode === 'hidden').toString()" :inert="mapMode === 'hidden'">
+            
             <div class="uh-mapview-frame">
                 <div data-uh-map class="uh-mapview-canvas"
                      data-lat="{{ config('urbanhaven.maps.default_lat') }}"
@@ -36,19 +37,17 @@
                 </p>
                 @endif
             </div>
-            <button type="button" class="uh-mapview-toggle" @click="toggleMapMode()"
-                    aria-controls="uh-mapview-map"
-                    :aria-pressed="(mapMode === 'full').toString()"
-                    :aria-label="mapMode === 'full' ? @js(__('Hide map')) : @js(__('Expand map to full view'))"
-                    :title="mapMode === 'full' ? @js(__('Hide map')) : @js(__('Expand map to full view'))"
-                    x-show="mapMode !== 'hidden'">
-                <x-icon name="expand" class="size-4" x-show="mapMode === 'split'" />
-                <x-icon name="minimize" class="size-4" x-show="mapMode === 'full'" x-cloak />
+
+            <button type="button" 
+                    class="absolute top-1/2 -right-5 z-[600] flex h-12 w-5 items-center justify-center rounded-r-md bg-white text-slate-600 shadow-md border border-l-0 border-gray-200 hover:text-slate-900 transition-colors -translate-y-1/2"
+                    :class="mapMode === 'full' ? '-right-5' : '-right-5 lg:-right-10'"
+                    @click="mapMode = (mapMode === 'full' ? 'split' : 'full'); $nextTick(() => { window.dispatchEvent(new Event('uh:refresh-maps')); setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300); })"
+                    :aria-label="mapMode === 'full' ? 'Show side panel' : 'Collapse side panel'"
+                    :title="mapMode === 'full' ? 'Show side panel' : 'Collapse side panel'">
+                <x-icon name="chevron-right" class="size-3" x-show="mapMode === 'split'" />
+                <x-icon name="chevron-left" class="size-3" x-show="mapMode === 'full'" x-cloak />
             </button>
-            <a class="uh-mapview-back" href="{{ $listViewUrl }}">
-                <x-icon name="list" class="size-4" />
-                {{ __('List view') }}
-            </a>
+
         </section>
 
         <section class="uh-mapview-list" aria-labelledby="map-title">

@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Stevebauman\Purify\Facades\Purify;
 
@@ -26,24 +27,58 @@ class LocationAreaController extends Controller
             'areas' => $areas,
             'countries' => $areas->pluck('country')->push(LocationArea::DEFAULT_COUNTRY)->filter()->unique()->sort()->values(),
             'cities' => $areas->pluck('city')->filter()->unique()->sort()->values(),
+            'placeTree' => LocationArea::placeTree($areas),
         ]);
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
         $this->authorize('reference.manage');
+        $bounds = config('urbanhaven.maps.bounds');
+
+        if ($request->has('slug')) {
+            $request->merge(['slug' => SeoFields::normaliseSlug($request->input('slug'))]);
+        }
+
         $validated = $request->validate([
             'country' => ['nullable', 'string', 'max:80'],
             'city' => ['required', 'string', 'max:120'],
             'name' => ['required', 'string', 'max:120'],
+            'slug' => SeoFields::slugRules('location_areas'),
+            'intro' => ['nullable', 'string', 'max:10000'],
+            'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:'.$bounds['south'].','.$bounds['north']],
+            'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:'.$bounds['west'].','.$bounds['east']],
+            'is_active' => ['sometimes', 'boolean'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            ...SeoFields::rules(),
         ]);
-        $area = LocationArea::query()->create([
-            ...$validated,
-            'country' => trim((string) ($validated['country'] ?? '')) ?: LocationArea::DEFAULT_COUNTRY,
-            'city' => trim($validated['city']),
-            'name' => trim($validated['name']),
-            'is_active' => true,
-        ]);
+
+        $validated['intro'] = Purify::clean((string) ($validated['intro'] ?? ''));
+
+        $area = DB::transaction(function () use ($validated, $request) {
+            $attributes = collect($validated)->except([...SeoFields::inputNames(), 'slug', 'image'])->all();
+
+            $area = LocationArea::query()->create([
+                ...$attributes,
+                'country' => trim((string) ($validated['country'] ?? '')) ?: LocationArea::DEFAULT_COUNTRY,
+                'city' => trim($validated['city']),
+                'name' => trim($validated['name']),
+                'is_active' => $request->boolean('is_active', true),
+            ]);
+
+            if ($request->hasFile('image')) {
+                $area->update(['image_path' => $request->file('image')->store('locations', 'public')]);
+            }
+
+            if (filled($validated['slug'] ?? null)) {
+                $area->update(['slug' => $validated['slug']]);
+            }
+
+            SeoFields::sync($area, $validated);
+
+            return $area;
+        });
+
         TaggedCache::flush(['search', 'homepage']);
 
         if ($request->wantsJson()) {
@@ -77,6 +112,8 @@ class LocationAreaController extends Controller
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:'.$bounds['south'].','.$bounds['north']],
             'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:'.$bounds['west'].','.$bounds['east']],
             'is_active' => ['sometimes', 'boolean'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
             ...SeoFields::rules(),
         ]);
 
@@ -85,13 +122,27 @@ class LocationAreaController extends Controller
         DB::transaction(function () use ($area, $validated, $request, $redirects): void {
             $oldSlug = $area->slug;
             $hadPage = $area->hasLandingPage();
-            $attributes = collect($validated)->except([...SeoFields::inputNames(), 'slug'])->all();
+            $attributes = collect($validated)->except([...SeoFields::inputNames(), 'slug', 'image', 'remove_image'])->all();
 
             $area->fill([
                 ...$attributes,
                 'country' => trim((string) ($validated['country'] ?? '')) ?: LocationArea::DEFAULT_COUNTRY,
                 'is_active' => $request->boolean('is_active', $area->is_active),
             ]);
+
+            if ($request->boolean('remove_image')) {
+                if ($area->image_path) {
+                    Storage::disk('public')->delete($area->image_path);
+                }
+                $area->image_path = null;
+            }
+
+            if ($request->hasFile('image')) {
+                if ($area->image_path) {
+                    Storage::disk('public')->delete($area->image_path);
+                }
+                $area->image_path = $request->file('image')->store('locations', 'public');
+            }
 
             if (filled($validated['slug'] ?? null)) {
                 $area->slug = $validated['slug'];

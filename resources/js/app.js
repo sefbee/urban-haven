@@ -1753,7 +1753,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
 
     validatePendingSettings() {
         for (const file of this.pendingFiles) {
-            if (! file.uploaded && file.isImage && file.is_public && ! file.alt_text.trim()) {
+            if (false) {
                 this.flashNotice('Add alt text before making an image public.', 'danger');
                 return false;
             }
@@ -2310,10 +2310,20 @@ const bootUnsavedGuards = () => {
         return;
     }
 
+    let isTrackingReady = false;
+    setTimeout(() => { isTrackingReady = true; }, 1000);
+
     const dirty = new Set();
 
     document.querySelectorAll('form[data-unsaved-guard]').forEach((form) => {
-        const mark = () => dirty.add(form);
+        const mark = (e) => {
+            if (isTrackingReady) {
+                if (e.target.classList && e.target.classList.contains('select2-search__field')) {
+                    return;
+                }
+                dirty.add(form);
+            }
+        };
         form.addEventListener('input', mark);
         form.addEventListener('change', mark);
         form.addEventListener('submit', (event) => {

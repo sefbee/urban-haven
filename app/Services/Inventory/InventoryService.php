@@ -172,7 +172,7 @@ class InventoryService implements InventoryServiceContract
     {
         $missing = [];
         $model->loadMissing('media');
-        $cover = $model->media->first(fn (Media $media): bool => $media->collection === 'gallery' && $media->is_public);
+        $cover = $model->media->first(fn (Media $media): bool => $media->collection === 'gallery');
 
         if ($model instanceof Property) {
             if (blank($model->reference)) {

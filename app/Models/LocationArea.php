@@ -16,7 +16,7 @@ class LocationArea extends Model
 
     public const DEFAULT_COUNTRY = 'Bangladesh';
 
-    protected $fillable = ['name', 'slug', 'country', 'city', 'intro', 'lat', 'lng', 'is_active'];
+    protected $fillable = ['name', 'slug', 'country', 'city', 'intro', 'lat', 'lng', 'is_active', 'image_path'];
 
     protected function casts(): array
     {

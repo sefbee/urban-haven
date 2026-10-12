@@ -38,9 +38,6 @@
                     <template x-for="src in previews" :key="src"><img :src="src" alt=""></template>
                     <span class="uh-admin-media-slot" x-show="!preview"><x-icon name="image" class="size-8" /></span>
                 </div>
-                <div class="uh-admin-media-details">
-                    <x-ui.input name="photograph_alt" label="Alt text" maxlength="200" optional id="photograph-alt" hint="Describe what the image shows." />
-                </div>
             </li>
         </ul>
     </div>

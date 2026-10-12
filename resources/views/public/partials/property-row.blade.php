@@ -71,12 +71,7 @@
                     <x-icon name="calendar" class="size-4" />
                     {{ $property->created_at?->diffForHumans() }}
                 </span>
-                @if(filled($property->trust_label))
-                    <span>
-                        <x-icon name="building" class="size-4" />
-                        {{ $property->trust_label }}
-                    </span>
-                @endif
+
             </div>
 
             <div class="uh-listing-row-actions">

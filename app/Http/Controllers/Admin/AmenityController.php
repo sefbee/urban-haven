@@ -41,6 +41,7 @@ class AmenityController extends Controller
         $validated = $request->validate([
             'key' => ['required', 'string', 'max:50', 'regex:/^[a-z0-9_-]+$/', 'unique:amenities,key'],
             'label' => ['required', 'string', 'max:80'],
+            'icon_class' => ['nullable', 'string', 'max:80'],
             'icon' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'dimensions:max_width=512,max_height=512', 'max:2048'],
         ]);
         $iconPath = isset($validated['icon']) ? $this->storeIcon($validated['icon']) : null;
@@ -64,6 +65,7 @@ class AmenityController extends Controller
         $this->authorize('reference.manage');
         $validated = $request->validate([
             'label' => ['required', 'string', 'max:80'],
+            'icon_class' => ['nullable', 'string', 'max:80'],
             'is_active' => ['sometimes', 'boolean'],
             'icon' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'dimensions:max_width=512,max_height=512', 'max:2048'],
             'remove_icon' => ['sometimes', 'boolean'],

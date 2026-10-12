@@ -8,6 +8,7 @@
 @endphp
 
 <button type="button" x-data
+        style="position: relative; z-index: 50; pointer-events: auto;"
         @click.prevent.stop="$store.saved.toggle('{{ $list }}', {{ $id }})"
         :aria-pressed="$store.saved.has('{{ $list }}', {{ $id }}).toString()"
         :aria-label="$store.saved.has('{{ $list }}', {{ $id }}) ? @js($removeLabel) : @js($addLabel)"

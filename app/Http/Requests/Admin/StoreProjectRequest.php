@@ -67,7 +67,6 @@ class StoreProjectRequest extends FormRequest
             'handover_info' => ['nullable', 'string', 'max:10000'],
             'amenity_ids' => ['nullable', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
-            'trust_label' => ['nullable', 'string', 'max:255'],
             'is_featured' => ['sometimes', 'boolean'],
             ...SeoFields::rules(),
             'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],

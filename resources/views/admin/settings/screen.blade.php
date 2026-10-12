@@ -6,7 +6,6 @@
         'general' => ['General', 'admin.settings.index'],
         'theme' => ['Theme', 'admin.settings.theme'],
         'contact' => ['Contact & social', 'admin.settings.contact'],
-        'enquiries' => ['Enquiries', 'admin.settings.enquiries'],
         'listings' => ['Listings', 'admin.listing-display'],
         'analytics' => ['Analytics', 'admin.settings.analytics'],
         'seo' => ['SEO', 'admin.settings.seo'],
@@ -40,7 +39,7 @@
         </section>
     @endif
 
-    @if($screen === 'enquiries')
+    @if($screen === 'contact')
         <section class="uh-panel mb-5" aria-labelledby="email-heading">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-start gap-3">

@@ -85,6 +85,7 @@
         </div>
 
         <div class="uh-showcase-copy">
+            <div class="uh-showcase-tools">
             <button type="button" x-data
                     @click.prevent.stop="$store.saved.toggle('shortlist', {{ $property->id }})"
                     :aria-pressed="$store.saved.has('shortlist', {{ $property->id }}).toString()"
@@ -95,11 +96,22 @@
                 <x-icon name="heart" class="size-4" x-show="!$store.saved.has('shortlist', {{ $property->id }})" />
                 <x-icon name="heart-solid" class="size-4 text-brass" x-show="$store.saved.has('shortlist', {{ $property->id }})" x-cloak />
             </button>
+                <button type="button" x-data
+                        @click.prevent.stop="$store.saved.toggle('compare', {{ $property->id }})"
+                        :aria-pressed="$store.saved.has('compare', {{ $property->id }}).toString()"
+                        :aria-label="$store.saved.has('compare', {{ $property->id }}) ? @js(__('Remove :title from compare', ['title' => $property->title])) : @js(__('Add :title to compare', ['title' => $property->title]))"
+                        aria-label="{{ __('Add :title to compare', ['title' => $property->title]) }}"
+                        class="uh-icon-action uh-showcase-compare"
+                        @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
+                    <i class="fa-solid fa-code-compare" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
+                    <i class="fa-solid fa-code-compare text-brass" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                </button>
+            </div>
 
             <div class="uh-showcase-main">
                 <div class="uh-showcase-heading">
                     <h3 class="uh-showcase-title">
-                        <a href="{{ $url }}" lang="{{ app()->getLocale() }}" @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif
+                        <a href="{{ $url }}" lang="{{ app()->getLocale() }}" @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif class="uh-showcase-title-link"
                            data-track="property_card_click" data-track-property-id="{{ $property->id }}">{{ $property->title }}</a>
                     </h3>
                     <p class="uh-showcase-price uh-numeric">

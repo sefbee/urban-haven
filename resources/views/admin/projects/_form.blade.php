@@ -69,8 +69,6 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-ui.input name="completion_date" label="Completion date" type="date" optional
                                 :value="$model?->completion_date?->format('Y-m-d')" />
-                    <x-ui.input name="trust_label" label="Trust label" :value="$model->trust_label ?? ''" optional maxlength="255"
-                                hint="A verifiable fact only, e.g. “RAJUK approved plan”." />
                 </div>
                 <x-ui.rich-text name="handover_info" label="Handover information" optional
                                 :value="$model->handover_info ?? ''" min-height="8rem"

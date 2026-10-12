@@ -25,7 +25,7 @@ class PropertyController extends Controller
     {
         $property = Property::query()
             ->published()
-            ->with(['propertyType', 'locationArea', 'project.media', 'project.locationArea', 'media', 'units', 'seoOverride', 'publicationState', 'assignedContact'])
+            ->with(['propertyType', 'locationArea', 'project.media', 'project.locationArea', 'media', 'units', 'seoOverride', 'publicationState'])
             ->where('slug', $slug)
             ->first();
 
@@ -35,7 +35,7 @@ class PropertyController extends Controller
 
         ViewCounter::recordPropertyView($request, $property->id);
 
-        $callNumber = $property->assignedContact?->phone ?: Setting::get('sales_phone') ?: Setting::get('phone');
+        $callNumber = Setting::get('sales_phone') ?: Setting::get('phone');
         $breadcrumbs = [
             [__('Home'), route('home')],
             [$property->listing_type === 'rent' ? __('Rent') : __('Buy'), route('properties.index', ['listing_type' => $property->listing_type])],

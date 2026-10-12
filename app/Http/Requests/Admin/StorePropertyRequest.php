@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Property;
 use App\Models\PropertyType;
-use App\Models\User;
 use App\Support\SeoFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -93,9 +92,6 @@ class StorePropertyRequest extends FormRequest
                     $fail('Use a YouTube or Vimeo link.');
                 }
             }],
-            'virtual_tour_url' => ['nullable', 'url:https', 'max:255'],
-            'trust_label' => ['nullable', 'string', 'max:120'],
-            'assigned_contact_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
             'display_priority' => ['nullable', 'integer', 'min:1', 'max:999'],
             'is_featured' => ['sometimes', 'boolean'],
             'slug' => SeoFields::slugRules('properties', $property instanceof Property ? $property : null),
@@ -126,14 +122,6 @@ class StorePropertyRequest extends FormRequest
 
                 if ($this->filled('listing_type') && $this->input('price_basis') !== $expectedBasis) {
                     $validator->errors()->add('price_basis', 'Sale listings use a total price and rentals use a monthly rent.');
-                }
-
-                if ($this->filled('assigned_contact_id')) {
-                    $contact = User::query()->find($this->input('assigned_contact_id'));
-
-                    if ($contact && ! $contact->hasPermission('lead.view')) {
-                        $validator->errors()->add('assigned_contact_id', 'The listing contact must be a sales or owner account.');
-                    }
                 }
             },
         ];

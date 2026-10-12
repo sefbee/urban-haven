@@ -37,7 +37,11 @@
                                 @foreach($amenities as $amenity)
                                     <tr>
                                         <td class="w-16">
-                                            @if($amenity->iconUrl())
+                                            @if($amenity->icon_class)
+                                                <div class="flex h-10 w-10 items-center justify-center rounded bg-gray-50 border border-gray-100">
+                                                    <i class="{{ $amenity->icon_class }} text-xl text-[var(--color-ink)]"></i>
+                                                </div>
+                                            @elseif($amenity->iconUrl())
                                                 <img class="size-10 rounded object-contain" src="{{ $amenity->iconUrl() }}" alt="" loading="lazy">
                                             @else
                                                 <x-icon name="sparkle" class="size-6 text-[var(--color-muted)]" />
@@ -81,6 +85,15 @@
                 <x-ui.input name="label" id="amenity-label" label="Amenity name" required maxlength="80" @input="fill($event.target.value)" />
                 <x-ui.input name="key" id="amenity-key" label="Slug" optional dir="ltr" maxlength="50" x-model="slug" @change="edited()"
                             hint="Generated from the name. Lowercase letters, numbers and dashes." />
+                
+                <div x-data="{ iconClass: '' }">
+                    <x-ui.input name="icon_class" id="amenity-icon-class" label="FontAwesome Icon Class" optional maxlength="80" x-model="iconClass"
+                                hint="e.g. 'fa-solid fa-car'. You can use any FontAwesome free icon." />
+                    <div class="mt-2 text-sm text-[var(--color-muted)] flex items-center gap-2" x-show="iconClass">
+                        Preview: <i :class="iconClass + ' text-lg text-[var(--color-ink)]'"></i>
+                    </div>
+                </div>
+
                 <div class="uh-field">
                     <label class="uh-label" for="amenity-icon">Icon image <span class="uh-label-optional">optional</span></label>
                     <input class="uh-input" type="file" id="amenity-icon" name="icon" accept="image/png,image/jpeg,image/webp">
@@ -101,6 +114,15 @@
                     <input type="hidden" name="_drawer" value="edit-{{ $amenity->id }}">
                     <x-ui.input name="label" label="Amenity name" :value="$amenity->label" required maxlength="80" :id="'aml-'.$amenity->id" />
                     <p class="text-xs text-[var(--color-muted)]">Slug: <span dir="ltr">{{ $amenity->key }}</span>. It stays the same so saved searches keep working.</p>
+                    
+                    <div x-data="{ iconClass: '{{ $amenity->icon_class }}' }">
+                        <x-ui.input name="icon_class" :id="'am-icon-class-'.$amenity->id" label="FontAwesome Icon Class" :value="$amenity->icon_class" optional maxlength="80" x-model="iconClass"
+                                    hint="e.g. 'fa-solid fa-car'. You can use any FontAwesome free icon." />
+                        <div class="mt-2 text-sm text-[var(--color-muted)] flex items-center gap-2" x-show="iconClass">
+                            Preview: <i :class="iconClass + ' text-lg text-[var(--color-ink)]'"></i>
+                        </div>
+                    </div>
+
                     <div class="uh-field">
                         <label class="uh-label" for="amenity-icon-{{ $amenity->id }}">Icon image <span class="uh-label-optional">optional</span></label>
                         @if($amenity->iconUrl())

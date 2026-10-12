@@ -159,17 +159,7 @@ class SearchService implements SearchServiceContract
         } elseif ($furnishing === [] && array_key_exists('is_furnished', $filters) && $filters['is_furnished'] !== null && $filters['is_furnished'] !== '') {
             $query->where('is_furnished', (bool) $filters['is_furnished']);
         }
-        $verification = array_values(array_unique(array_filter((array) ($filters['verification'] ?? []))));
-        if ($verification === [] && array_key_exists('is_verified', $filters) && $filters['is_verified'] !== null && $filters['is_verified'] !== '' && (bool) $filters['is_verified']) {
-            $verification = ['verified'];
-        }
-        if ($verification === ['verified']) {
-            $query->whereNotNull('trust_label')->where('trust_label', '!=', '');
-        } elseif ($verification === ['unverified']) {
-            $query->where(function (Builder $builder): void {
-                $builder->whereNull('trust_label')->orWhere('trust_label', '');
-            });
-        }
+
         if (isset($filters['lat'], $filters['lng']) && $filters['lat'] !== '' && $filters['lng'] !== '') {
             $latitude = (float) $filters['lat'];
             $longitude = (float) $filters['lng'];

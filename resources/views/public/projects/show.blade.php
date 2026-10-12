@@ -44,7 +44,7 @@
         'about' => $hasDescription ? __('About') : null,
         'highlights' => $project->highlights ? __('Highlights') : null,
         'facilities' => $amenities->isNotEmpty() ? __('Facilities') : null,
-        'details' => ($project->handover_info || $project->trust_label) ? __('Details') : null,
+        'details' => $project->handover_info ? __('Details') : null,
         'homes' => $publicProperties->isNotEmpty() ? __('Homes') : null,
         'brochures' => $brochures->isNotEmpty() ? __('Brochures') : null,
         'contact' => __('Enquire'),
@@ -95,7 +95,6 @@
                     </div>
                     <div class="uh-pd-head-highlights">
                         <span class="uh-listing-row-badge is-type">{{ __('Project') }}</span>
-                        @if($project->trust_label)<span class="uh-listing-row-badge is-featured">{{ $project->trust_label }}</span>@endif
                     </div>
                 </div>
             </header>
@@ -208,10 +207,9 @@
                         </section>
                     @endif
 
-                    @if($project->handover_info || $project->trust_label)
+                    @if($project->handover_info)
                         <section id="details" class="uh-pd-card" aria-labelledby="details-heading">
                             <h2 id="details-heading" class="uh-pd-card-title">{{ __('Project details') }}</h2>
-                            @if($project->trust_label)<p class="uh-pd-card-lede">{{ $project->trust_label }}</p>@endif
                             @if($project->handover_info)
                                 @php($handoverInfo = (string) $project->handover_info)
                                 <div class="uh-prose uh-pd-prose">{!! strip_tags($handoverInfo) === $handoverInfo ? nl2br(e($handoverInfo)) : \Stevebauman\Purify\Facades\Purify::clean($handoverInfo) !!}</div>

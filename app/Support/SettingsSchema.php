@@ -20,8 +20,7 @@ final class SettingsSchema
     public const SCREENS = [
         'general' => ['title' => 'Branding', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
         'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using a 60/30/10 balance: dominant surfaces, secondary structure and one accent.', 'groups' => ['theme']],
-        'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles and the floating chat button.', 'groups' => ['contact', 'chrome', 'floating']],
-        'enquiries' => ['title' => 'Enquiries & email', 'description' => 'Where enquiries are sent, consent wording, reminders and how long closed leads are kept.', 'groups' => ['leads']],
+        'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles, floating chat button, and enquiries.', 'groups' => ['contact', 'leads', 'chrome', 'floating']],
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],
         'analytics' => ['title' => 'Analytics & tracking', 'description' => 'Google Tag Manager, Google Analytics, Google Ads and Meta Pixel, and the cookie banner that asks visitors first.', 'groups' => ['analytics', 'consent']],
         'seo' => ['title' => 'SEO defaults', 'description' => 'Default title and description, Search Console verification and whether search engines may index the site.', 'groups' => ['seo']],

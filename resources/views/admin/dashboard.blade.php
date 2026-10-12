@@ -28,16 +28,12 @@
     } elseif ($seesInventory) {
         $stats[] = ['label' => 'Live listings', 'value' => $liveListings, 'icon' => 'home', 'url' => route('admin.properties.index'), 'sub' => 'published on the website', 'accent' => true];
         $stats[] = ['label' => 'Draft listings', 'value' => $drafts, 'icon' => 'document', 'url' => route('admin.properties.index', ['status' => 'draft']), 'sub' => 'not yet published'];
-        if ($canReview) {
-            $stats[] = ['label' => 'Awaiting review', 'value' => $pendingReview, 'icon' => 'check-circle', 'url' => route('admin.review.index'), 'sub' => 'properties and projects'];
-        }
         $stats[] = ['label' => 'Expiring reservations', 'value' => $expiringReservations->count(), 'icon' => 'clock', 'url' => route('admin.properties.index', ['availability' => 'reserved']), 'sub' => 'within 3 days'];
     }
 
     $decisions = array_values(array_filter([
         $seesLeads && $leadStats['overdue'] > 0 ? ['tone' => 'danger', 'icon' => 'clock', 'count' => $leadStats['overdue'], 'label' => \Illuminate\Support\Str::plural('follow-up', $leadStats['overdue']).' overdue', 'url' => route('admin.follow-ups.index')] : null,
         $seesLeads && $leadStats['unread'] > 0 ? ['tone' => 'info', 'icon' => 'inbox', 'count' => $leadStats['unread'], 'label' => 'unread '.\Illuminate\Support\Str::plural('lead', $leadStats['unread']), 'url' => route('admin.leads.index', ['view' => 'unread'])] : null,
-        $canReview && $pendingReview > 0 ? ['tone' => 'warn', 'icon' => 'check-circle', 'count' => $pendingReview, 'label' => \Illuminate\Support\Str::plural('listing', $pendingReview).' waiting for review', 'url' => route('admin.review.index')] : null,
         $seesInventory && $expiringReservations->isNotEmpty() ? ['tone' => 'warn', 'icon' => 'key', 'count' => $expiringReservations->count(), 'label' => \Illuminate\Support\Str::plural('reservation', $expiringReservations->count()).' ending within 3 days', 'url' => route('admin.properties.index', ['availability' => 'reserved'])] : null,
         $cmsDrafts > 0 ? ['tone' => 'warn', 'icon' => 'document', 'count' => $cmsDrafts, 'label' => 'website '.\Illuminate\Support\Str::plural('edit', $cmsDrafts).' waiting to be published', 'url' => route('admin.home-sections.index')] : null,
         $seesLeads && $leadStats['visits'] > 0 ? ['tone' => 'neutral', 'icon' => 'calendar', 'count' => $leadStats['visits'], 'label' => 'upcoming site '.\Illuminate\Support\Str::plural('visit', $leadStats['visits']), 'url' => route('admin.visits.index', ['view' => 'upcoming'])] : null,

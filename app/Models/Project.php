@@ -32,7 +32,6 @@ class Project extends Model
         'handover_info',
         'amenity_ids',
         'highlights',
-        'trust_label',
         'is_featured',
         'featured_media_id',
         'last_updated_at',

@@ -171,7 +171,7 @@ class MediaService implements MediaServiceContract
                 'width' => $width,
                 'height' => $height,
                 'sort_order' => (int) $owner->media()->where('collection', $collection)->max('sort_order') + 1,
-                'is_public' => $altText !== null,
+                'is_public' => true,
                 'alt_texts' => $altText !== null ? ['en' => $altText] : [],
             ]));
         } catch (\Throwable $exception) {

@@ -2,17 +2,14 @@
     'title',
     'photoCount' => 0,
     'video' => null,
-    'tour' => null,
     'coordinates' => null,
 ])
 
 @php
-    $tourUrl = is_string($tour) && str_starts_with($tour, 'https://') ? $tour : null;
     $views = array_filter([
         'photos' => ['icon' => 'image', 'label' => __('Photo')],
         'video' => $video ? ['icon' => 'play', 'label' => __('Video')] : null,
         'map' => $coordinates ? ['icon' => 'map', 'label' => __('Map')] : null,
-        'tour' => $tourUrl ? ['icon' => 'globe', 'label' => __('360° tour')] : null,
     ]);
 @endphp
 
@@ -65,21 +62,6 @@
                     {{ __('Approximate neighbourhood') }}
                 </p>
             @endif
-        </div>
-    @endif
-
-    @if($tourUrl)
-        <div class="uh-stage-view uh-stage-panel is-dark" x-show="view === 'tour'" x-cloak>
-            <template x-if="view === 'tour'">
-                <iframe src="{{ $tourUrl }}" title="{{ __('Virtual tour of :title', ['title' => $title]) }}"
-                        allow="accelerometer; fullscreen; gyroscope; xr-spatial-tracking"
-                        allowfullscreen
-                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
-            </template>
-            <a class="uh-stage-note is-link" href="{{ $tourUrl }}" target="_blank" rel="noopener">
-                <x-icon name="external" class="size-3.5" />
-                {{ __('Open full screen') }}
-            </a>
         </div>
     @endif
 

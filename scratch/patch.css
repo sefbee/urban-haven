@@ -1,0 +1,7 @@
+    .uh-listing-title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+    }

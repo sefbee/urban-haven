@@ -147,10 +147,17 @@
             </div>
 
             @if($mapAvailable ?? true)
-                <a class="uh-btn-secondary uh-filter-map" href="{{ route('map', request()->except('page')) }}" data-track="map_view_click" data-track-location="filter_bar"
-                   aria-label="{{ __('Map view') }}" title="{{ __('Map view') }}">
-                    <x-icon name="map" class="size-4" />
-                </a>
+                @if(request()->routeIs('map'))
+                    <a class="uh-btn-secondary uh-filter-map" href="{{ route('properties.index', request()->except('page')) }}" data-track="list_view_click" data-track-location="filter_bar"
+                       aria-label="{{ __('List view') }}" title="{{ __('List view') }}">
+                        <x-icon name="list" class="size-4" />
+                    </a>
+                @else
+                    <a class="uh-btn-secondary uh-filter-map" href="{{ route('map', request()->except('page')) }}" data-track="map_view_click" data-track-location="filter_bar"
+                       aria-label="{{ __('Map view') }}" title="{{ __('Map view') }}">
+                        <x-icon name="map" class="size-4" />
+                    </a>
+                @endif
             @endif
 
             <button type="button" class="uh-btn-secondary" @click="toggleFilters()"

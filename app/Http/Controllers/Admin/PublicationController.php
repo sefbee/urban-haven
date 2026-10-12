@@ -7,27 +7,12 @@ use App\Contracts\InventoryService;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Property;
-use App\Models\PublicationState;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class PublicationController extends Controller
 {
-    public function reviewQueue(Request $request): View
-    {
-        abort_unless($request->user()->hasPermission('property.publish') || $request->user()->hasPermission('project.publish'), 403);
-
-        $pending = [PublicationState::PENDING_REVIEW, PublicationState::APPROVED];
-        $scope = fn ($query) => $query->whereIn('status', $pending);
-
-        return view('admin.review.index', [
-            'properties' => Property::query()->whereHas('publicationState', $scope)->with(['publicationState.submitter', 'propertyType', 'locationArea'])->latest('updated_at')->get(),
-            'projects' => Project::query()->whereHas('publicationState', $scope)->with(['publicationState.submitter'])->latest('updated_at')->get(),
-        ]);
-    }
-
     public function submitProperty(Property $property, InventoryService $inventory): RedirectResponse
     {
         $this->authorize('submit', $property);

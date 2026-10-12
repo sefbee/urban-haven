@@ -39,12 +39,11 @@ class SettingsController extends Controller
 
     public function contact(): View
     {
-        return $this->screen('contact', ['socialProfiles' => SocialProfiles::all(), 'socialPlatforms' => SocialProfiles::PLATFORMS]);
-    }
-
-    public function enquiries(): View
-    {
-        return $this->screen('enquiries', ['mailConfigured' => HealthStatus::mailConfigured()]);
+        return $this->screen('contact', [
+            'socialProfiles' => SocialProfiles::all(),
+            'socialPlatforms' => SocialProfiles::PLATFORMS,
+            'mailConfigured' => HealthStatus::mailConfigured(),
+        ]);
     }
 
     public function listings(): View

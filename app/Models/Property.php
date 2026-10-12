@@ -67,9 +67,6 @@ class Property extends Model
         'lng',
         'map_approximation',
         'video_url',
-        'virtual_tour_url',
-        'trust_label',
-        'assigned_contact_id',
         'is_featured',
         'display_priority',
         'version',
@@ -156,11 +153,6 @@ class Property extends Model
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
-    }
-
-    public function assignedContact(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_contact_id');
     }
 
     public function statusHistory(): HasMany

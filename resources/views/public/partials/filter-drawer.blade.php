@@ -4,7 +4,7 @@
     $furnished = $filters['is_furnished'] ?? null;
 @endphp
 
-<div class="uh-scrim-modal z-[70]" x-cloak
+<div class="uh-scrim-modal z-[1200]" x-cloak
      x-bind:class="filtersOpen ? 'block' : 'hidden'"
      x-bind:aria-hidden="(!filtersOpen).toString()"
      @click="closeFilters()"></div>

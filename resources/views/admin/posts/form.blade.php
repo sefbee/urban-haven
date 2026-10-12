@@ -172,9 +172,7 @@
                                 <form method="POST" action="{{ route('admin.media.update', $cover) }}" class="uh-admin-media-details">
                                     @csrf
                                     @method('PATCH')
-                                    <x-ui.input name="alt_text" label="Alt text" :value="$cover->alt_texts['en'] ?? ''" maxlength="200" id="cover-alt" />
-                                    <input type="hidden" name="is_public" value="1">
-                                    <button type="submit" class="uh-btn-outline uh-btn-sm">Save</button>
+                                    <button type="submit" class="uh-btn-outline uh-btn-sm" style="display: none;">Save</button>
                                 </form>
                             </li>
                         @endif

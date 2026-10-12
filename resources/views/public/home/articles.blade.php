@@ -1,78 +1,73 @@
 <section class="uh-section uh-band-paper uh-home-editorial" aria-labelledby="articles-title">
     <div class="uh-container">
-        <div @class(['uh-home-editorial-grid', 'has-videos' => $propertyVideos->isNotEmpty()])>
-            <div class="uh-home-news">
-                <header class="uh-home-editorial-head" data-reveal>
-                    <h2 id="articles-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-                    <x-ui.pill-link variant="dark" :href="route('articles.index')">
-                        {{ $sectionContent['link_label'] }}
-                    </x-ui.pill-link>
-                </header>
-                @if(filled($sectionContent['subtitle']))
-                    <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
-                @endif
+        
+        <!-- Section Header (Full Width) -->
+        <header class="flex items-center justify-between mb-8" data-reveal>
+            <h2 id="articles-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['title'] }}</h2>
+            <a href="{{ route('articles.index') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm" aria-label="{{ __('View all articles') }}">
+                <x-icon name="arrow-up-right" class="size-4" />
+            </a>
+        </header>
 
-                <div class="uh-article-grid">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            <!-- Left Side: Articles -->
+            <div class="lg:col-span-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" data-reveal>
                     @foreach($articles as $post)
                         @php($cover = $post->featuredImage())
-                        <article class="uh-article uh-article-compact" data-reveal style="--uh-i: {{ $loop->index }}">
-                            <a class="uh-article-frame" href="{{ route('articles.show', $post->slug) }}" tabindex="-1" aria-hidden="true">
+                        <a href="{{ route('articles.show', $post->slug) }}" class="flex items-center gap-4 group">
+                            <div class="h-[5.5rem] w-[8.5rem] flex-shrink-0 overflow-hidden rounded-md shadow-sm bg-gray-100">
                                 @if($cover)
-                                    <img src="{{ $cover->url(480) }}" srcset="{{ $cover->srcset() }}"
-                                         sizes="(min-width: 1024px) 6rem, 5rem"
-                                         alt="" loading="lazy" decoding="async">
+                                    <img src="{{ $cover->url(480) }}" srcset="{{ $cover->srcset() }}" alt="" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
                                 @else
-                                    <span class="uh-media-placeholder">{{ $post->category?->name ?? __('Urban Haven') }}</span>
+                                    <span class="uh-media-placeholder h-full w-full flex items-center justify-center text-xs text-center p-1 leading-tight">{{ $post->category?->name ?? __('Urban Haven') }}</span>
                                 @endif
-                            </a>
-                            <div class="uh-article-body">
-                                <p class="uh-article-meta">
-                                    @if($post->category)
-                                        <span>{{ $post->category->name }}</span>
-                                    @endif
-                                    @if($post->publicationState?->published_at)
-                                        <time datetime="{{ $post->publicationState->published_at->toAtomString() }}">{{ $post->publicationState->published_at->timezone(config('urbanhaven.display_timezone'))->format('j M Y') }}</time>
-                                    @endif
-                                </p>
-                                <h3 class="uh-article-title">
-                                    <a href="{{ route('articles.show', $post->slug) }}"><span>{{ $post->title }}</span></a>
-                                </h3>
                             </div>
-                        </article>
+                            <div class="flex flex-col justify-center flex-1 py-1">
+                                <h3 class="text-[15px] font-bold text-slate-900 leading-snug group-hover:text-primary-600 transition line-clamp-2">{{ $post->title }}</h3>
+                                <p class="mt-1 text-[13px] text-slate-500 line-clamp-2">{{ $post->excerpt ?? Str::limit(strip_tags($post->body), 100) }}</p>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
             </div>
 
+            <!-- Right Side: Property TV -->
             @if($propertyVideos->isNotEmpty())
-                <aside class="uh-home-property-tv" aria-labelledby="property-tv-title">
-                    <header class="uh-home-editorial-head" data-reveal>
-                        <h2 id="property-tv-title" class="uh-h2">{{ $sectionContent['videos_title'] }}</h2>
-                        <a class="uh-icon-action uh-home-tv-more" href="{{ route('properties.index') }}" aria-label="{{ __('View properties') }}">
-                            <x-icon name="chevron-right" class="size-4" />
+                <div class="lg:col-span-4">
+                    <header class="flex items-center justify-between mb-8" data-reveal>
+                        <h2 id="property-tv-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['videos_title'] }}</h2>
+                        <a href="{{ route('properties.index') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm" aria-label="{{ __('View properties') }}">
+                            <x-icon name="arrow-up-right" class="size-4" />
                         </a>
                     </header>
 
-                    <div class="uh-home-tv-list">
+                    <div class="flex flex-col gap-6">
                         @foreach($propertyVideos as $property)
-                            <a class="uh-home-tv-item" href="{{ route('properties.show', $property->slug) }}" data-reveal style="--uh-i: {{ $loop->index }}">
-                                <span class="uh-home-tv-thumb">
+                            <a class="flex items-center gap-4 group" href="{{ route('properties.show', $property->slug) }}" data-reveal style="--uh-i: {{ $loop->index }}">
+                                <span class="block w-28 aspect-video flex-shrink-0 relative overflow-hidden rounded shadow-sm bg-gray-100">
                                     @if($image = $property->featuredImage())
-                                        <img src="{{ $image->url(480) }}" alt="" loading="lazy" decoding="async">
+                                        <img src="{{ $image->url(480) }}" alt="" loading="lazy" decoding="async" class="object-cover w-full h-full transition duration-300 group-hover:scale-105">
                                     @else
-                                        <span class="uh-media-placeholder">{{ __('Property video') }}</span>
+                                        <span class="uh-media-placeholder w-full h-full flex items-center justify-center text-[0.6rem]">{{ __('Video') }}</span>
                                     @endif
-                                    <span class="uh-home-tv-play"><x-icon name="play" class="size-4" /></span>
+                                    <span class="absolute inset-0 flex items-center justify-center">
+                                        <span class="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-white">
+                                            <x-icon name="play" class="size-3 ml-0.5" />
+                                        </span>
+                                    </span>
                                 </span>
-                                <span class="uh-home-tv-copy">
-                                    <span class="uh-home-tv-label">{{ __('Property video') }}</span>
-                                    <span class="uh-home-tv-title">{{ $property->title }}</span>
+                                <span class="flex flex-col flex-1 py-1">
+                                    <span class="text-[0.65rem] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Property video') }}</span>
+                                    <span class="text-sm font-bold text-slate-900 leading-snug group-hover:text-primary-600 transition line-clamp-2">{{ $property->title }}</span>
                                 </span>
                             </a>
                         @endforeach
                     </div>
-                </aside>
+                </div>
             @endif
-        </div>
 
+        </div>
     </div>
 </section>

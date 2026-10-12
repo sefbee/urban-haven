@@ -69,7 +69,7 @@ class CmsBlock extends Model
      */
     public function images(): Collection
     {
-        return $this->media->filter(fn (Media $media): bool => $media->collection === 'gallery' && $media->is_public)->values();
+        return $this->media->filter(fn (Media $media): bool => $media->collection === 'gallery')->values();
     }
 
     /**

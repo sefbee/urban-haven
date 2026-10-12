@@ -58,7 +58,7 @@
         ['icon' => 'check-circle', 'label' => __('Availability'), 'value' => $availabilityLabel],
     ], fn ($fact) => $fact !== null && filled($fact['value'])));
     $hasDescription = filled($property->description) || $anchors;
-    $thumbs = $media->slice(1, 2)->values();
+    $thumbs = $media->slice(1, 3)->values();
     $hiddenPhotos = max(0, $media->count() - 1 - $thumbs->count());
     $tabs = array_filter([
         'overview' => __('Overview'),
@@ -130,18 +130,16 @@
                         @if($property->availability !== 'available')
                             <span class="uh-listing-row-badge is-purpose">{{ $availabilityLabel }}</span>
                         @endif
-                        @if(filled($property->trust_label))
-                            <span class="uh-listing-row-badge is-type">{{ $property->trust_label }}</span>
-                        @endif
+
                     </div>
                 </div>
             </header>
 
             <div class="uh-pd-layout">
                 <x-media-stage class="uh-pd-stage" :title="$property->title" :photo-count="$media->count()"
-                               :video="$videoEmbed" :tour="$property->virtual_tour_url" :coordinates="$coordinates">
+                               :video="$videoEmbed" :coordinates="$coordinates">
                     <div class="uh-pd-gallery-wrap">
-                        <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Photographs') }}">
+                        <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2, 'has-three' => $thumbs->count() === 3]) aria-label="{{ __('Photographs') }}">
                             @if($media->isNotEmpty())
                                 <button type="button" class="uh-pd-shot is-main"
                                         style="view-transition-name: uh-property-{{ $property->id }}"
@@ -159,7 +157,7 @@
                                             aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
                                         <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
                                         @if($loop->last && $hiddenPhotos > 0)
-                                            <span class="uh-pd-shot-more">+{{ $hiddenPhotos }}</span>
+                                            <span class="uh-pd-shot-more">+ {{ $hiddenPhotos }} {{ __('Photos') }}</span>
                                         @endif
                                     </button>
                                 @endforeach
@@ -170,12 +168,7 @@
                                 </div>
                             @endif
                         </section>
-                        @if($media->count() > 1)
-                            <button type="button" class="uh-pd-gallery-all" @click="open(0)">
-                                <x-icon name="grid" class="size-4" />
-                                {{ __('View all :count photos', ['count' => $media->count()]) }}
-                            </button>
-                        @endif
+
                     </div>
                 </x-media-stage>
 
