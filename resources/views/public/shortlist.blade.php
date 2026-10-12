@@ -29,7 +29,7 @@
         <template x-if="!loading && !failed && count === 0">
             <x-ui.empty icon="heart" :title="__('Your collection starts here')"
                         :description="__('Tap the heart on any property and it waits for you here. Sold or removed properties drop off automatically.')">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
+                <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
             </x-ui.empty>
         </template>
 
@@ -37,9 +37,9 @@
             <div class="uh-collection-bar">
                 <p class="uh-numeric" x-text="count === 1 ? @js(__('1 saved property')) : @js(__(':count saved properties')).replace(':count', count)"></p>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-                    <a class="uh-btn-text" href="{{ route('compare') }}">
+                    <x-ui.pill-link variant="light" :href="route('compare')">
                         <span x-text="($store.saved.compare.length >= 2 ? @js(__('See the differences')) : @js(__('Compare'))) + ' (' + $store.saved.compare.length + ')'">{{ __('Compare') }}</span>
-                    </a>
+                    </x-ui.pill-link>
                     <button type="button" class="uh-btn-text is-muted"
                             @click="if (window.confirm(window.uhCopyText('shortlist_clear_confirm'))) $store.saved.clear('shortlist')">{{ __('Clear all') }}</button>
                 </div>

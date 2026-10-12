@@ -521,7 +521,7 @@
                 </a>
             @endif
             @if($isUnavailable)
-                <a class="uh-btn-primary flex-1" href="#contact">{{ __('Similar homes') }}</a>
+                <x-ui.pill-link variant="light" class="flex-1" href="#contact">{{ __('Similar homes') }}</x-ui.pill-link>
             @else
                 <button type="button" class="uh-btn-primary flex-1" x-data @click="$dispatch('uh:open-visit')">
                     {{ __('Book a visit') }}

@@ -101,7 +101,7 @@ class HomeController extends Controller
             'typeGroups' => $typeGroups,
             'areas' => $listedAreas,
             'faqs' => Faq::cachedVisible()->take((int) ($sections['faq']['limit'] ?? 5))->values(),
-            'articles' => Post::query()->published()->with(['category', 'media', 'publicationState'])->latest('id')->limit((int) ($sections['articles']['limit'] ?? 3))->get(),
+            'articles' => Post::query()->published()->with(['category', 'media', 'publicationState'])->latest('id')->limit(12)->get(),
             'propertyVideos' => $this->liveListings(Property::query(), $purposes)
                 ->whereNotNull('video_url')
                 ->where('video_url', '!=', '')

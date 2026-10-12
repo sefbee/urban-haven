@@ -1,25 +1,25 @@
 @php
-    $aboutContent = \App\Support\AboutPageContent::resolve($page->layout_content);
+    
     $aboutImages = $page->galleryImages();
     $heroImage = $aboutImages->get(0);
     $storyImage = $aboutImages->get(1) ?? $heroImage;
 @endphp
 
-<div class="font-sans antialiased bg-white pb-16">
+<div class="font-sans antialiased bg-[var(--color-page-background)] pb-16">
     {{-- Hero Section --}}
-    <section class="grid lg:grid-cols-2 min-h-[500px] bg-[#fbfbf9]" aria-labelledby="about-title">
+    <section class="grid lg:grid-cols-2 min-h-[500px] bg-[var(--color-dominant)]" aria-labelledby="about-title">
         <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24">
-            <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562]">{{ $aboutContent['hero_eyebrow'] }}</p>
-            <h1 id="about-title" class="text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] leading-[1.05] font-display text-gray-900 mb-6 max-w-xl">
+            <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">{{ \App\Support\AboutPageSections::visible()['hero_eyebrow_block'] ?? '' }}</p>
+            <h1 id="about-title" class="uh-h1 mb-6 max-w-xl">
                 {!! nl2br(e($aboutContent['hero_title'])) !!}
             </h1>
-            <p class="text-base sm:text-lg text-gray-600 leading-relaxed max-w-lg">
-                {{ $aboutContent['hero_intro'] }}
+            <p class="text-base sm:text-lg text-[var(--color-muted-text)] leading-relaxed max-w-lg">
+                {{ \App\Support\AboutPageSections::visible()['hero_intro_block'] ?? '' }}
             </p>
-            <div class="mt-8 flex items-center gap-3 text-sm font-semibold text-gray-500">
-                <a href="{{ route('home') }}" class="hover:text-gray-900 transition-colors">Home</a>
+            <div class="mt-8 flex items-center gap-3 text-sm font-semibold text-[var(--color-muted-text)]">
+                <a href="{{ route('home') }}" class="hover:text-[var(--color-body-text)] transition-colors">Home</a>
                 <span>/</span>
-                <span class="text-[#d6b562]">About Us</span>
+                <span class="text-[var(--color-accent)]">About Us</span>
             </div>
         </div>
         <div class="relative h-64 sm:h-96 lg:h-auto overflow-hidden">
@@ -36,82 +36,82 @@
                  alt="{{ $storyImage?->alt(app()->getLocale()) ?: __('Sunlit modern apartment interior') }}" 
                  class="absolute inset-0 w-full h-full object-cover" loading="lazy">
         </div>
-        <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24 bg-white">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">{{ $aboutContent['story_eyebrow'] }}</p>
-            <h2 id="about-story-title" class="text-3xl sm:text-[2.5rem] leading-[1.1] font-display text-gray-900 mb-6">
-                {{ $aboutContent['story_title'] }}
+        <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24 bg-[var(--color-card-surface)]">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['story_eyebrow_block'] ?? '' }}</p>
+            <h2 id="about-story-title" class="uh-h2 mb-6">
+                {{ \App\Support\AboutPageSections::visible()['story_title_block'] ?? '' }}
             </h2>
-            <div class="uh-prose text-[15px] leading-relaxed text-gray-600 mb-8 max-w-xl">
+            <div class="uh-prose text-[15px] leading-relaxed text-[var(--color-muted-text)] mb-8 max-w-xl">
                 {!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}
             </div>
             
-            <blockquote class="pl-6 border-l-2 border-[#d6b562] max-w-xl mb-10">
-                <p class="text-lg italic font-display text-gray-800">
-                    "{{ $aboutContent['hero_quote'] }}"
+            <blockquote class="pl-6 border-l-2 border-[var(--color-accent)] max-w-xl mb-10">
+                <p class="text-lg italic font-display text-[var(--color-body-text)]">
+                    "{{ \App\Support\AboutPageSections::visible()['hero_quote_block'] ?? '' }}"
                 </p>
             </blockquote>
 
-            <a href="{{ route('properties.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-[#d6b562] hover:text-gray-900 transition-colors">
+            <a href="{{ route('properties.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-[var(--color-accent)] hover:text-[var(--color-body-text)] transition-colors">
                 Discover Our Properties <x-icon name="arrow-right" class="size-3.5" />
             </a>
         </div>
     </section>
 
     {{-- Stats Bar --}}
-    <section class="bg-[#1b1c1c] text-white py-12 lg:py-16">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <section class="bg-[var(--color-secondary)] text-[var(--color-secondary-text)] py-12 lg:py-16">
+        <div class="uh-container">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-white/10 text-center">
                                 <div class="pt-4 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[#d6b562] mb-2">{{ $aboutContent['stat_one_value'] }}</p>
-                    <p class="text-[13px] text-gray-400 font-medium">{!! nl2br(e($aboutContent['stat_one_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_one_value_block'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_one_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[#d6b562] mb-2">{{ $aboutContent['stat_two_value'] }}</p>
-                    <p class="text-[13px] text-gray-400 font-medium">{!! nl2br(e($aboutContent['stat_two_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_two_value_block'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_two_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[#d6b562] mb-2">{{ $aboutContent['stat_three_value'] }}</p>
-                    <p class="text-[13px] text-gray-400 font-medium">{!! nl2br(e($aboutContent['stat_three_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_three_value_block'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_three_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[#d6b562] mb-2">{{ $aboutContent['stat_four_value'] }}</p>
-                    <p class="text-[13px] text-gray-400 font-medium">{!! nl2br(e($aboutContent['stat_four_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_four_value_block'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_four_label'])) !!}</p>
                 </div>
             </div>
         </div>
     </section>
 
     {{-- Purpose / Mission Vision --}}
-    <section class="py-20 lg:py-28 bg-[#fdfdfc]">
-                        <div class="max-w-5xl mx-auto px-6 lg:px-8 text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">{{ $aboutContent['team_eyebrow'] }}</p>
-            <h2 class="text-3xl sm:text-4xl font-display text-gray-900">{{ $aboutContent['team_title'] }}</h2>
+    <section class="py-20 lg:py-28 bg-[var(--color-card-surface)]">
+                        <div class="uh-container-narrow text-center mb-16">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['team_eyebrow_block'] ?? '' }}</p>
+            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['team_title_block'] ?? '' }}</h2>
         </div>
         
-        <div class="max-w-6xl mx-auto px-6 lg:px-8">
+        <div class="uh-container">
             <div class="grid md:grid-cols-2 gap-6 lg:gap-10">
                 {{-- Mission --}}
-                <div class="bg-white border border-gray-100 p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[#d6b562]/30 transition-colors">
-                    <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[#d6b562] flex items-center justify-center text-[#d6b562]">
+                <div class="bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
+                    <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent)]">
                         <x-icon name="compass" class="size-7" />
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide">{{ $aboutContent['mission_title'] }}</h3>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            {{ $aboutContent['mission_text'] }}
+                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ \App\Support\AboutPageSections::visible()['mission_title_block'] ?? '' }}</h3>
+                        <p class="text-sm text-[var(--color-muted-text)] leading-relaxed">
+                            {{ \App\Support\AboutPageSections::visible()['mission_text_block'] ?? '' }}
                         </p>
                     </div>
                 </div>
                 
                 {{-- Vision --}}
-                <div class="bg-white border border-gray-100 p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[#d6b562]/30 transition-colors">
-                    <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[#d6b562] flex items-center justify-center text-[#d6b562]">
+                <div class="bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
+                    <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent)]">
                         <x-icon name="building" class="size-7" />
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide">{{ $aboutContent['vision_title'] }}</h3>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            {{ $aboutContent['vision_text'] }}
+                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ \App\Support\AboutPageSections::visible()['vision_title_block'] ?? '' }}</h3>
+                        <p class="text-sm text-[var(--color-muted-text)] leading-relaxed">
+                            {{ \App\Support\AboutPageSections::visible()['vision_text_block'] ?? '' }}
                         </p>
                     </div>
                 </div>
@@ -120,13 +120,13 @@
     </section>
 
     {{-- Values --}}
-    <section class="py-20 bg-white">
-        <div class="max-w-5xl mx-auto px-6 lg:px-8 text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">What Guides Us</p>
-            <h2 class="text-3xl sm:text-4xl font-display text-gray-900">{{ $aboutContent['values_title'] }}</h2>
+    <section class="py-20 bg-[var(--color-card-surface)]">
+        <div class="uh-container-narrow text-center mb-16">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">What Guides Us</p>
+            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['values_title_block'] ?? '' }}</h2>
         </div>
         
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="uh-container">
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 @php
                     $values = [
@@ -137,12 +137,12 @@
                     ];
                 @endphp
                 @foreach($values as [$icon, $title, $description])
-                    <div class="border border-gray-100 p-8 text-center hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.1)] transition-all bg-white">
-                        <div class="mx-auto w-14 h-14 bg-[#fbf9f5] rounded-full flex items-center justify-center text-[#d6b562] mb-6 border border-[#d6b562]/20">
+                    <div class="border border-[var(--color-divider)] p-8 text-center hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.1)] transition-all bg-[var(--color-card-surface)]">
+                        <div class="mx-auto w-14 h-14 bg-[var(--color-dominant)] rounded-full flex items-center justify-center text-[var(--color-accent)] mb-6 border border-[color-mix(in_srgb,var(--color-accent)_20%,transparent)]">
                             <x-icon :name="$icon" class="size-5" />
                         </div>
-                        <h3 class="text-base font-bold text-gray-900 mb-3">{{ $title }}</h3>
-                        <p class="text-[13px] text-gray-500 leading-relaxed">{{ $description }}</p>
+                        <h3 class="text-base font-bold text-[var(--color-body-text)] mb-3">{{ $title }}</h3>
+                        <p class="text-[13px] text-[var(--color-muted-text)] leading-relaxed">{{ $description }}</p>
                     </div>
                 @endforeach
             </div>
@@ -150,7 +150,7 @@
     </section>
 
     {{-- Why Choose Us / CTA Split --}}
-    <section class="grid lg:grid-cols-2 bg-[#1b1c1c] text-white overflow-hidden mt-10">
+    <section class="grid lg:grid-cols-2 bg-[var(--color-secondary)] text-[var(--color-secondary-text)] overflow-hidden mt-10">
         <div class="px-8 py-16 sm:px-16 lg:px-24 xl:pl-32 flex flex-col justify-center relative">
             <div class="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
                 <svg width="300" height="300" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -162,19 +162,19 @@
             </div>
             
                         <div class="relative z-10">
-                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">{{ $aboutContent['choose_eyebrow'] }}</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['choose_eyebrow_block'] ?? '' }}</p>
                 <h2 class="text-3xl sm:text-[2.5rem] leading-[1.1] font-display mb-10 max-w-md">
-                    {{ $aboutContent['choose_title'] }}
+                    {{ \App\Support\AboutPageSections::visible()['choose_title_block'] ?? '' }}
                 </h2>
                 <ul class="space-y-4 mb-10">
                     @foreach(array_filter(array_map('trim', explode("\n", $aboutContent['choose_list']))) as $item)
-                        <li class="flex items-center gap-3 text-sm text-gray-300">
-                            <x-icon name="check-circle" class="size-4 text-[#d6b562]" /> {{ $item }}
+                        <li class="flex items-center gap-3 text-sm text-[color-mix(in_srgb,var(--color-secondary-text)_78%,transparent)]">
+                            <x-icon name="check-circle" class="size-4 text-[var(--color-accent)]" /> {{ $item }}
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ $aboutContent['choose_cta_url'] }}" class="inline-flex items-center justify-center bg-[#d6b562] hover:bg-[#c4a452] text-white px-8 py-3.5 rounded text-sm font-semibold transition-colors">
-                    {{ $aboutContent['choose_cta_label'] }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
+                <a href="{{ \App\Support\AboutPageSections::visible()['choose_cta_url_block'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-sm font-semibold transition-colors">
+                    {{ \App\Support\AboutPageSections::visible()['choose_cta_label_block'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
                 </a>
             </div>
         </div>
@@ -185,15 +185,15 @@
     </section>
 
     {{-- Process Steps --}}
-    <section class="py-20 lg:py-28 bg-[#fbfbf9]">
-                <div class="max-w-4xl mx-auto px-6 lg:px-8 text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">{{ $aboutContent['approach_eyebrow'] }}</p>
-            <h2 class="text-3xl sm:text-4xl font-display text-gray-900">{{ $aboutContent['approach_title'] }}</h2>
+    <section class="py-20 lg:py-28 bg-[var(--color-dominant)]">
+                <div class="uh-container-narrow text-center mb-16">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['approach_eyebrow_block'] ?? '' }}</p>
+            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['approach_title_block'] ?? '' }}</h2>
         </div>
         
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="uh-container">
             <div class="relative">
-                <div class="hidden md:block absolute top-6 left-[12%] right-[12%] h-[1px] bg-[#d6b562]/30"></div>
+                <div class="hidden md:block absolute top-6 left-[12%] right-[12%] h-[1px] bg-[color-mix(in_srgb,var(--color-accent)_30%,transparent)]"></div>
                 
                 <div class="grid md:grid-cols-4 gap-10 md:gap-6 relative">
                     @php
@@ -206,11 +206,11 @@
                     @endphp
                     @foreach($steps as [$num, $title, $desc])
                         <div class="text-center relative">
-                            <div class="w-12 h-12 rounded-full bg-white border border-[#d6b562] text-[#d6b562] flex items-center justify-center font-display text-lg mx-auto mb-6 relative z-10 shadow-[0_0_0_8px_#fbfbf9]">
+                            <div class="w-12 h-12 rounded-full bg-[var(--color-card-surface)] border border-[var(--color-accent)] text-[var(--color-accent)] flex items-center justify-center font-display text-lg mx-auto mb-6 relative z-10 shadow-[0_0_0_8px_var(--color-dominant)]">
                                 {{ $num }}
                             </div>
-                            <h3 class="text-base font-bold text-gray-900 mb-2">{{ $title }}</h3>
-                            <p class="text-[13px] text-gray-500 leading-relaxed max-w-[200px] mx-auto">{{ $desc }}</p>
+                            <h3 class="text-base font-bold text-[var(--color-body-text)] mb-2">{{ $title }}</h3>
+                            <p class="text-[13px] text-[var(--color-muted-text)] leading-relaxed max-w-[200px] mx-auto">{{ $desc }}</p>
                         </div>
                     @endforeach
                 </div>
@@ -219,13 +219,13 @@
     </section>
 
     {{-- Team --}}
-    <section class="py-20 bg-white">
-        <div class="max-w-5xl mx-auto px-6 lg:px-8 text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d6b562] mb-4">{{ $aboutContent['team_eyebrow'] ?? 'Our People' }}</p>
-            <h2 class="text-3xl sm:text-4xl font-display text-gray-900">{{ $aboutContent['team_title'] ?? 'Meet the Team Behind Urban Haven' }}</h2>
+    <section class="py-20 bg-[var(--color-card-surface)]">
+        <div class="uh-container-narrow text-center mb-16">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutContent['team_eyebrow'] ?? 'Our People' }}</p>
+            <h2 class="uh-h2">{{ $aboutContent['team_title'] ?? 'Meet the Team Behind Urban Haven' }}</h2>
         </div>
         
-        <div class="max-w-6xl mx-auto px-6 lg:px-8">
+        <div class="uh-container">
             <div class="grid md:grid-cols-3 gap-8">
                 @foreach([
                     ['MD. CLIENT NAME', 'Managing Director', 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80'],
@@ -238,10 +238,10 @@
                         </div>
                         <div class="flex items-start justify-between">
                             <div>
-                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide">{{ $name }}</h3>
-                                <p class="text-xs text-gray-500 mt-1">{{ $role }}</p>
+                                <h3 class="text-sm font-bold text-[var(--color-body-text)] uppercase tracking-wide">{{ $name }}</h3>
+                                <p class="text-xs text-[var(--color-muted-text)] mt-1">{{ $role }}</p>
                             </div>
-                            <a href="#" class="text-[#d6b562] hover:text-gray-900 transition-colors">
+                            <a href="#" class="text-[var(--color-accent)] hover:text-[var(--color-body-text)] transition-colors">
                                 <x-icon name="linkedin" class="size-4" />
                             </a>
                         </div>
@@ -252,7 +252,7 @@
     </section>
 
     {{-- Final CTA --}}
-    <section class="bg-[#141515] py-20 text-center relative overflow-hidden border-t border-white/5">
+    <section class="bg-[var(--color-secondary)] py-20 text-center relative overflow-hidden border-t border-white/5">
         <div class="absolute inset-0 pointer-events-none opacity-5">
             <svg width="100%" height="100%" viewBox="0 0 1000 200" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                 <rect x="100" y="50" width="2" height="150" fill="white"/>
@@ -263,14 +263,14 @@
                 <rect x="850" y="110" width="2" height="90" fill="white"/>
             </svg>
         </div>
-        <div class="max-w-3xl mx-auto px-6 relative z-10">
-            <h2 class="text-3xl sm:text-4xl lg:text-[2.5rem] font-display text-white mb-4">{{ $aboutContent['cta_title'] }}</h2>
-            <p class="text-[15px] text-gray-400 mb-8">{{ $aboutContent['cta_body'] }}</p>
+        <div class="uh-container-narrow relative z-10">
+            <h2 class="uh-h2 mb-4">{{ \App\Support\AboutPageSections::visible()['cta_title_block'] ?? '' }}</h2>
+            <p class="text-[15px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] mb-8">{{ \App\Support\AboutPageSections::visible()['cta_body_block'] ?? '' }}</p>
             <div class="flex flex-wrap justify-center gap-4">
-                <a href="{{ $aboutContent['cta_url'] }}" class="inline-flex items-center justify-center bg-[#d6b562] hover:bg-[#c4a452] text-white px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
-                    {{ $aboutContent['cta_label'] }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
+                <a href="{{ \App\Support\AboutPageSections::visible()['cta_url_block'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
+                    {{ \App\Support\AboutPageSections::visible()['cta_label_block'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
                 </a>
-                <a href="/contact" class="inline-flex items-center justify-center border border-white/20 hover:bg-white/5 text-white px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
+                <a href="/contact" class="inline-flex items-center justify-center border border-white/20 hover:bg-[var(--color-card-surface)]/5 text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
                     Contact Us
                 </a>
             </div>

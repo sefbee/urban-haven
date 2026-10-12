@@ -26,9 +26,29 @@ class ArticleController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $categories = PostCategory::query()
+            ->whereHas('posts', fn ($query) => $query->published())
+            ->orderBy('name')
+            ->get();
+
+        $showcasePosts = collect();
+
+        if (! $category && $posts->onFirstPage() && $posts->count() >= 5) {
+            $showcasePosts = $categories->take(6)
+                ->mapWithKeys(fn (PostCategory $showcaseCategory) => [
+                    $showcaseCategory->id => $showcaseCategory->posts()
+                        ->published()
+                        ->with(['category', 'media', 'publicationState'])
+                        ->latest('id')
+                        ->limit(4)
+                        ->get(),
+                ]);
+        }
+
         return view('public.articles.index', [
             'posts' => $posts,
-            'categories' => PostCategory::query()->whereHas('posts', fn ($query) => $query->published())->orderBy('name')->get(),
+            'categories' => $categories,
+            'showcasePosts' => $showcasePosts,
             'activeCategory' => $category,
             'seo' => SeoMeta::for($category, $category ? $category->name.' articles' : 'Guides and articles', 'Practical guides on buying, renting and investing in property in Dhaka from the Urban Haven team.', [
                 'canonical' => SeoMeta::canonical(['category', 'page']),

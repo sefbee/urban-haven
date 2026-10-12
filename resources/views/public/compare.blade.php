@@ -18,8 +18,8 @@
         </template>
         <template x-if="!loading && !failed && count < 2">
             <x-ui.empty icon="compare" :title="__('Pick two to compare')" :description="__('Tap Compare on any property card or page. Once you have two, the differences appear here.')">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
-                <a class="uh-btn-secondary uh-btn-sm" href="{{ route('shortlist') }}">{{ __('Open your shortlist') }}</a>
+                <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
+                <x-ui.pill-link variant="light" :href="route('shortlist')">{{ __('Open your shortlist') }}</x-ui.pill-link>
             </x-ui.empty>
         </template>
 

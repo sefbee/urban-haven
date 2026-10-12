@@ -12,9 +12,16 @@ class StorePostRequest extends FormRequest
     {
         $post = $this->route('post');
 
-        return $post instanceof Post
+        $canManagePost = $post instanceof Post
             ? $this->user()?->can('update', $post) ?? false
             : $this->user()?->can('create', Post::class) ?? false;
+
+        if (! $canManagePost) {
+            return false;
+        }
+
+        return $this->input('submit_action') !== 'publish'
+            || ($this->user()?->can('publish', new Post) ?? false);
     }
 
     protected function prepareForValidation(): void
@@ -40,6 +47,19 @@ class StorePostRequest extends FormRequest
             'author_label' => ['nullable', 'string', 'max:120'],
             'related_post_ids' => ['nullable', 'array', 'max:6'],
             'related_post_ids.*' => ['integer', 'exists:posts,id'],
+            'cover_images' => $this->isMethod('POST')
+                ? ['nullable', 'array', 'max:20']
+                : ['prohibited'],
+            'cover_images.*' => $this->isMethod('POST')
+                ? ['image', 'mimes:jpg,jpeg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')]
+                : ['prohibited'],
+            'cover_images_meta' => $this->isMethod('POST')
+                ? ['sometimes', 'array', 'max:20']
+                : ['prohibited'],
+            'cover_images_meta.*.alt_text' => $this->isMethod('POST')
+                ? ['nullable', 'string', 'max:200']
+                : ['prohibited'],
+            'submit_action' => ['nullable', 'in:draft,publish'],
             ...SeoFields::rules(),
         ];
     }
@@ -51,7 +71,12 @@ class StorePostRequest extends FormRequest
      */
     public function content(): array
     {
-        $content = $this->safe()->except(SeoFields::inputNames());
+        $content = $this->safe()->except([
+            ...SeoFields::inputNames(),
+            'cover_images',
+            'cover_images_meta',
+            'submit_action',
+        ]);
 
         if (blank($content['slug'] ?? null)) {
             unset($content['slug']);

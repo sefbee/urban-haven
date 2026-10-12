@@ -20,7 +20,7 @@
             <section class="uh-pd-card">
                 <h2 class="uh-h3">{{ __('No property activity yet') }}</h2>
                 <p class="mt-2 text-sm text-[var(--uh-muted)]">{{ __('When you enquire about a property or request a visit while signed in, it will appear here.') }}</p>
-                <a class="uh-btn-primary mt-5 inline-flex" href="{{ route('properties.index') }}">{{ __('Browse properties') }}</a>
+                <x-ui.pill-link variant="light" class="mt-5" :href="route('properties.index')">{{ __('Browse properties') }}</x-ui.pill-link>
             </section>
         @else
             <div class="uh-account-activity-list">

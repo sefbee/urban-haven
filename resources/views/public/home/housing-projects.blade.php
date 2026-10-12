@@ -7,7 +7,7 @@
     <div class="uh-container">
         <header class="uh-trending-head" data-reveal>
             <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-            <x-ui.pill-link variant="dark" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
+            <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
                 {{ $sectionContent['link_label'] }}
             </x-ui.pill-link>
         </header>

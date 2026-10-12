@@ -150,7 +150,6 @@ final class HomeSections
                     'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Latest Articles & Blog', 'required' => true],
                     'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Practical notes on buying, renting and investing in property from the Urban Haven team.'],
                     'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'Read all articles'],
-                    'limit' => ['label' => 'Number of articles', 'type' => 'number', 'min' => 1, 'max' => 9, 'default' => 3],
                     'videos_title' => ['label' => 'Property video heading', 'type' => 'text', 'max' => 80, 'default' => 'Property TV'],
                     'video_limit' => ['label' => 'Number of property videos', 'type' => 'number', 'min' => 1, 'max' => 9, 'default' => 3],
                 ],

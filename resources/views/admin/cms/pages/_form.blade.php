@@ -68,7 +68,7 @@
 
 <div @class(['uh-admin-compose', 'is-split' => (bool) $model])>
     <form method="POST" action="{{ $model ? route('admin.cms.update', $model) : route('admin.cms.store') }}"
-          class="uh-admin-compose-main" x-data="uhForm" @submit="submit" data-unsaved-guard>
+          id="cms-main-form" class="uh-admin-compose-main" x-data="uhForm" @submit="submit" data-unsaved-guard data-upload-pending-media>
         @csrf
         @if($model) @method('PUT') @endif
 

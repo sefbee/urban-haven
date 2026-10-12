@@ -40,7 +40,7 @@
             <aside class="uh-next">
                 <p class="uh-h3">{{ __('Looking for a property?') }}</p>
                 <div class="uh-next-links">
-                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
+                    <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
                     <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Talk to our team') }}</x-ui.pill-link>
                 </div>
             </aside>

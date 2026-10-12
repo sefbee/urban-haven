@@ -1,0 +1,10 @@
+--- resources/css/public-experience.css
++++ resources/css/public-experience.css
+@@ -9987,6 +9987,7 @@
+     .select2-container--uh {
+         min-width: 0;
+         font-size: 0.9375rem;
++        width: 100% !important;
+     }
+ 
+     .select2-container--uh .select2-selection {

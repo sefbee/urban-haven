@@ -245,16 +245,7 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         }
     },
     toggleMapMode() {
-        if (this.mapMode === 'full') {
-            const listUrl = new URL(this.$el.dataset.listUrl, window.location.origin);
-            listUrl.search = window.location.search;
-            listUrl.searchParams.delete('page');
-            window.location.assign(listUrl);
-
-            return;
-        }
-
-        this.mapMode = 'full';
+        this.mapMode = this.mapMode === 'full' ? 'split' : 'full';
         this.$nextTick(() => {
             window.dispatchEvent(new Event('uh:refresh-maps'));
             window.setTimeout(() => window.dispatchEvent(new Event('uh:refresh-maps')), 300);
@@ -1597,6 +1588,95 @@ Alpine.data('uhAdminDrawers', (initial = null) => ({
 /**
  * Staff media manager: multi-file upload review, reordering, and batch saving.
  */
+Alpine.data('uhPostCreateForm', () => ({
+    submitting: false,
+    photos: [],
+    dragging: false,
+    photoLimitExceeded: false,
+
+    selectPhotos(event) {
+        this.setPhotos([...event.target.files]);
+    },
+
+    dropPhotos(event) {
+        this.dragging = false;
+        const currentFiles = [...(this.$refs.photoInput?.files ?? [])];
+        const droppedFiles = [...(event.dataTransfer?.files ?? [])]
+            .filter((file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
+
+        this.setPhotos([...currentFiles, ...droppedFiles]);
+    },
+
+    setPhotos(files) {
+        this.revokePreviews();
+        this.photoLimitExceeded = files.length > 20;
+        this.photos = files.slice(0, 20).map((file, index) => ({
+            id: `article-photo-${index}-${Math.random().toString(36).slice(2, 8)}`,
+            file,
+            name: file.name,
+            size: file.size,
+            previewUrl: URL.createObjectURL(file),
+            altText: '',
+        }));
+        this.syncFileInput();
+    },
+
+    movePhoto(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= this.photos.length) {
+            return;
+        }
+
+        [this.photos[index], this.photos[targetIndex]] = [this.photos[targetIndex], this.photos[index]];
+        this.syncFileInput();
+    },
+
+    removePhoto(index) {
+        const [photo] = this.photos.splice(index, 1);
+        if (photo?.previewUrl) {
+            URL.revokeObjectURL(photo.previewUrl);
+        }
+
+        this.photoLimitExceeded = false;
+        this.syncFileInput();
+    },
+
+    syncFileInput() {
+        if (! this.$refs.photoInput) {
+            return;
+        }
+
+        const transfer = new DataTransfer();
+        this.photos.forEach((photo) => transfer.items.add(photo.file));
+        this.$refs.photoInput.files = transfer.files;
+    },
+
+    formatPhotoSize(bytes) {
+        if (bytes >= 1048576) {
+            return `${(bytes / 1048576).toFixed(1)} MB`;
+        }
+
+        return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    },
+
+    revokePreviews() {
+        this.photos.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+    },
+
+    destroy() {
+        this.revokePreviews();
+    },
+
+    submit(event) {
+        if (this.photoLimitExceeded) {
+            event.preventDefault();
+            return;
+        }
+
+        this.submitting = true;
+    },
+}));
+
 Alpine.data('uhMediaUpload', (config = {}) => ({
     ownerType: config.ownerType || '',
     ownerId: config.ownerId || 0,

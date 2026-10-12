@@ -167,7 +167,7 @@
                                         @endforeach
                                     </ul>
                                 </div>
-                                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Start over with everything') }}</a>
+                                <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Start over with everything') }}</x-ui.pill-link>
                                 <button type="button" class="uh-btn-secondary uh-btn-sm" @click="toggleFilters()">
                                     {{ __('Adjust filters') }}
                                 </button>

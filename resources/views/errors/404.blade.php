@@ -13,8 +13,8 @@
         <ul class="uh-error-links">
             @foreach([
                 ['url' => url('/'), 'title' => __('Home page'), 'body' => __('Start again from the beginning.')],
-                ['url' => route('properties.index'), 'title' => __('Browse homes'), 'body' => __('Search everything we have available.')],
-                ['url' => route('cms.show', 'contact'), 'title' => __('Contact us'), 'body' => __('Tell our sales team what you are looking for.')],
+                ['url' => url('/properties'), 'title' => __('Browse homes'), 'body' => __('Search everything we have available.')],
+                ['url' => url('/contact'), 'title' => __('Contact us'), 'body' => __('Tell our sales team what you are looking for.')],
             ] as $link)
                 <li>
                     <a href="{{ $link['url'] }}">

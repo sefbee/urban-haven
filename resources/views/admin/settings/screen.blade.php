@@ -3,7 +3,7 @@
 
 @php
     $tabs = [
-        'general' => ['General', 'admin.settings.index'],
+        'general' => ['General setting', 'admin.settings.index'],
         'theme' => ['Theme', 'admin.settings.theme'],
         'contact' => ['Contact & social', 'admin.settings.contact'],
         'listings' => ['Listings', 'admin.listing-display'],

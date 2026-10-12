@@ -21,7 +21,7 @@
         @else
             <x-ui.empty icon="building" :title="__('No projects published yet')"
                         :description="__('New developments from our team will appear here.')">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Browse properties') }}</a>
+                <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Browse properties') }}</x-ui.pill-link>
             </x-ui.empty>
         @endif
     </div>

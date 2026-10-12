@@ -48,8 +48,8 @@
             <p class="mt-6 leading-relaxed text-[var(--uh-ink-soft)]" x-show="preview?.excerpt" x-text="preview?.excerpt"></p>
 
             <div class="uh-preview-actions">
-                <a class="uh-btn-primary" :href="preview?.url || '#'">{{ __('See the full story') }}</a>
-                <a class="uh-btn-secondary" :href="(preview?.url || '#') + '#contact'">{{ __('Ask about it') }}</a>
+                <x-ui.pill-link variant="light" :href="route('properties.index')" x-bind:href="preview?.url || '#'">{{ __('See the full story') }}</x-ui.pill-link>
+                <x-ui.pill-link variant="light" :href="route('properties.index')" x-bind:href="(preview?.url || '#') + '#contact'">{{ __('Ask about it') }}</x-ui.pill-link>
                 <div class="flex flex-wrap gap-x-5 gap-y-2 pt-2" x-show="preview?.id">
                     <button type="button" class="uh-btn-text"
                             @click="$store.saved.toggle('shortlist', preview.id)"

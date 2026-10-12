@@ -41,10 +41,7 @@
                             {{ __('Chat on WhatsApp') }}
                         </a>
                     @endif
-                    <a class="uh-btn-secondary" href="#page-form-heading">
-                        <x-icon name="mail" class="size-4" />
-                        {{ __('Send a message') }}
-                    </a>
+                    <x-ui.pill-link variant="light" href="#page-form-heading">{{ __('Send a message') }}</x-ui.pill-link>
                 </div>
             @endif
         </div>
@@ -132,7 +129,7 @@
                 <p class="uh-h3">{{ __('Ready for the next step?') }}</p>
                 <p>{{ __('Browse the homes we have available, or ask our team anything.') }}</p>
                 <div class="uh-next-links">
-                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
+                    <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
                     @if($page->slug !== 'contact')
                         <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
                     @endif

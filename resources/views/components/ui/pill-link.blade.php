@@ -1,4 +1,4 @@
-@props(['href', 'variant' => 'dark'])
+@props(['href', 'variant' => 'light'])
 
 <a href="{{ $href }}" {{ $attributes->class(['uh-pill-link', 'is-'.$variant]) }}>
     <span>{{ $slot }}</span>

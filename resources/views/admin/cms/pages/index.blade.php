@@ -5,7 +5,7 @@
     <x-ui.page-header compact title="Custom pages">
         <x-slot:eyebrow>Website pages</x-slot:eyebrow>
         <x-slot:actions>
-            <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.home-sections.index') }}">
+            <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'home']) }}">
                 <x-icon name="grid" class="size-4" />
                 Edit home page
             </a>
@@ -78,7 +78,7 @@
                     <h2 id="blocks-heading">Shared site blocks</h2>
                     <p>{{ $canPublish ? 'Text reused across the public site. Changes go live as soon as you save; hidden blocks fall back to the built-in text.' : 'Text reused across the public site. Your changes are saved as a draft until a publisher approves them.' }}</p>
                 </div>
-                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.home-sections.index') }}">
+                <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.page-sections.index', ['page' => 'home']) }}">
                     <x-icon name="home" class="size-4" />
                     Homepage sections
                 </a>

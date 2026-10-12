@@ -35,7 +35,7 @@
         $seesLeads && $leadStats['overdue'] > 0 ? ['tone' => 'danger', 'icon' => 'clock', 'count' => $leadStats['overdue'], 'label' => \Illuminate\Support\Str::plural('follow-up', $leadStats['overdue']).' overdue', 'url' => route('admin.follow-ups.index')] : null,
         $seesLeads && $leadStats['unread'] > 0 ? ['tone' => 'info', 'icon' => 'inbox', 'count' => $leadStats['unread'], 'label' => 'unread '.\Illuminate\Support\Str::plural('lead', $leadStats['unread']), 'url' => route('admin.leads.index', ['view' => 'unread'])] : null,
         $seesInventory && $expiringReservations->isNotEmpty() ? ['tone' => 'warn', 'icon' => 'key', 'count' => $expiringReservations->count(), 'label' => \Illuminate\Support\Str::plural('reservation', $expiringReservations->count()).' ending within 3 days', 'url' => route('admin.properties.index', ['availability' => 'reserved'])] : null,
-        $cmsDrafts > 0 ? ['tone' => 'warn', 'icon' => 'document', 'count' => $cmsDrafts, 'label' => 'website '.\Illuminate\Support\Str::plural('edit', $cmsDrafts).' waiting to be published', 'url' => route('admin.home-sections.index')] : null,
+        $cmsDrafts > 0 ? ['tone' => 'warn', 'icon' => 'document', 'count' => $cmsDrafts, 'label' => 'website '.\Illuminate\Support\Str::plural('edit', $cmsDrafts).' waiting to be published', 'url' => route('admin.page-sections.index', ['page' => 'home'])] : null,
         $seesLeads && $leadStats['visits'] > 0 ? ['tone' => 'neutral', 'icon' => 'calendar', 'count' => $leadStats['visits'], 'label' => 'upcoming site '.\Illuminate\Support\Str::plural('visit', $leadStats['visits']), 'url' => route('admin.visits.index', ['view' => 'upcoming'])] : null,
     ]));
 
@@ -43,7 +43,7 @@
         $user->can('create', \App\Models\Property::class) ? ['label' => 'Add property', 'icon' => 'home', 'url' => route('admin.properties.create')] : null,
         $user->can('create', \App\Models\Project::class) ? ['label' => 'Add project', 'icon' => 'building', 'url' => route('admin.projects.create')] : null,
         $user->can('create', \App\Models\Post::class) ? ['label' => 'Write article', 'icon' => 'document', 'url' => route('admin.posts.create')] : null,
-        $homeSectionsShown !== null ? ['label' => 'Edit home page', 'icon' => 'grid', 'url' => route('admin.home-sections.index')] : null,
+        $homeSectionsShown !== null ? ['label' => 'Edit home page', 'icon' => 'grid', 'url' => route('admin.page-sections.index', ['page' => 'home'])] : null,
         $user->isOwnerAdmin() ? ['label' => 'Website settings', 'icon' => 'settings', 'url' => route('admin.settings.index')] : null,
         $seesLeads ? ['label' => 'Export leads', 'icon' => 'download', 'url' => route('admin.leads.index')] : null,
     ]));

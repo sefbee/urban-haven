@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Contracts\MediaService as MediaServiceContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePostRequest;
 use App\Models\Post;
@@ -13,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PostController extends Controller
@@ -39,12 +41,33 @@ class PostController extends Controller
         return view('admin.posts.form', $this->formData(new Post));
     }
 
-    public function store(StorePostRequest $request, CmsService $cms): RedirectResponse
+    public function store(StorePostRequest $request, CmsService $cms, MediaServiceContract $media): RedirectResponse
     {
-        $post = $cms->createPost($request->content(), $request->user());
-        SeoFields::sync($post, $request->validated());
+        $post = DB::transaction(function () use ($request, $cms, $media): Post {
+            $post = $cms->createPost($request->content(), $request->user());
+            SeoFields::sync($post, $request->validated());
 
-        return redirect()->route('admin.posts.edit', $post)->with('status', 'Article created as a draft.');
+            $uploadedImages = $request->file('cover_images', []);
+            $imageMetadata = $request->validated()['cover_images_meta'] ?? [];
+
+            foreach ($uploadedImages as $index => $image) {
+                $altText = $imageMetadata[$index]['alt_text'] ?? null;
+                $media->store($post, $image, 'gallery', filled($altText) ? $altText : $post->title);
+            }
+
+            return $post;
+        });
+
+        $shouldPublish = $request->input('submit_action') === 'publish';
+
+        if ($shouldPublish) {
+            $this->authorize('publish', $post);
+            $cms->publishPost($post, $request->user());
+        }
+
+        return redirect()->route('admin.posts.index')->with('status', $shouldPublish
+            ? 'Article created and published.'
+            : 'Article created as a draft.');
     }
 
     public function edit(Post $post): View

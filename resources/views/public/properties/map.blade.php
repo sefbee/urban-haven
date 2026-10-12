@@ -47,11 +47,11 @@
             </div>
 
             <button type="button" 
-                    class="absolute top-1/2 -right-5 z-[600] flex h-12 w-5 items-center justify-center rounded-r-md bg-white text-slate-600 shadow-md border border-l-0 border-gray-200 hover:text-slate-900 transition-colors -translate-y-1/2"
+                    class="absolute top-1/2 -right-[1.125rem] z-[1200] flex h-14 w-[1.125rem] items-center justify-center rounded-r-lg bg-white text-slate-500 shadow-[2px_0_8px_rgb(0,0,0,0.1)] border border-l-0 border-slate-200 hover:text-slate-800 hover:bg-slate-50 transition-colors -translate-y-1/2"
                     x-show="mapMode === 'split'" x-cloak
                     @click="mapMode = 'hidden'"
                     aria-label="{{ __('Hide map') }}" title="{{ __('Hide map') }}">
-                <x-icon name="chevron-left" class="size-3" />
+                <x-icon name="chevron-left" class="size-4" />
             </button>
 
         </section>
@@ -64,7 +64,7 @@
                         aria-label="{{ __('Show map') }}">
                     <span class="font-medium text-[0.9375rem]">{{ __('Show map') }}</span>
                     <span class="bg-white text-black rounded-full size-8 flex items-center justify-center">
-                        <i class="fa-solid fa-map"></i>
+                        <i class="fa-duotone fa-map"></i>
                     </span>
                 </button>
             </div>
@@ -139,7 +139,7 @@
                     @else
                         <x-ui.empty icon="map" :title="__('Nothing matches this search yet')"
                                     :description="__('Nothing we have right now meets every filter at once. Loosening one of them usually opens things up.')">
-                            <a class="uh-btn-primary uh-btn-sm" href="{{ route('map') }}">{{ __('Start over with everything') }}</a>
+                            <x-ui.pill-link variant="light" :href="route('map')">{{ __('Start over with everything') }}</x-ui.pill-link>
                         </x-ui.empty>
                     @endif
                 </div>

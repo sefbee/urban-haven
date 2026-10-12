@@ -12,7 +12,7 @@
 
     <x-ui.admin-related label="Also on the site">
         <a href="{{ route('admin.cms.index') }}">Pages</a>
-        <a href="{{ route('admin.home-sections.index') }}">Home page</a>
+        <a href="{{ route('admin.page-sections.index', ['page' => 'home']) }}">Home page</a>
         @can('redirect.manage')
             <a href="{{ route('admin.redirects.index') }}">Redirects</a>
         @endcan

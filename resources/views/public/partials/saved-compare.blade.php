@@ -66,8 +66,11 @@
     <section class="uh-tradeoffs" aria-labelledby="tradeoffs-heading">
         <div class="uh-tradeoffs-head">
             <div>
-                <h2 id="tradeoffs-heading" class="uh-h3">{{ __('What changes if you choose another') }}</h2>
-                <p class="mt-2 text-sm text-[var(--uh-muted)]">{{ __('Pick one as your starting point. We spell out the differences so you do not have to work them out.') }}</p>
+                <h2 id="tradeoffs-heading" class="uh-h3 flex items-center gap-2">
+                    <x-icon name="sparkle" class="size-5 text-[var(--uh-accent)]" />
+                    {{ __('Smart Comparison') }}
+                </h2>
+                <p class="mt-2 text-sm text-[var(--uh-muted)]">{{ __('Our automated analysis highlights the key tradeoffs to help you decide.') }}</p>
             </div>
             <div class="uh-tradeoffs-pick" role="group" aria-label="{{ __('Starting point') }}">
                 @foreach($properties as $property)
@@ -84,20 +87,42 @@
             <div class="uh-tradeoffs-grid" x-show="baseline === {{ (int) $base->id }}" @unless($loop->first) x-cloak @endunless>
                 @foreach($properties->reject(fn ($other) => $other->id === $base->id) as $other)
                     @php($tradeoff = \App\Support\CompareTradeoffs::against($base, $other))
-                    <article class="uh-tradeoff">
-                        <p class="uh-tradeoff-against">{{ __('Compared with :title', ['title' => \Illuminate\Support\Str::limit($base->title, 40)]) }}</p>
-                        <h3 class="uh-tradeoff-title">
-                            <a href="{{ route('properties.show', $other->slug) }}">{{ $other->title }}</a>
+                    <article class="relative bg-[var(--uh-paper)] rounded-[var(--uh-radius)] border border-[var(--uh-line)] p-5 sm:p-6 shadow-sm overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--uh-accent)] to-purple-500"></div>
+                        <p class="text-sm font-medium text-[var(--uh-muted)] mb-1">{{ __('Compared with :title', ['title' => \Illuminate\Support\Str::limit($base->title, 40)]) }}</p>
+                        <h3 class="text-lg font-semibold text-[var(--uh-ink)] mb-4 leading-tight">
+                            <a href="{{ route('properties.show', $other->slug) }}" class="hover:text-[var(--uh-accent)] transition-colors">{{ $other->title }}</a>
                         </h3>
+                        
                         @if($tradeoff['summary'])
-                            <p class="uh-tradeoff-summary">{{ $tradeoff['summary'] }}</p>
+                            <div class="p-3 mb-4 rounded bg-[var(--uh-accent-ring)] border border-[var(--uh-accent)]/20 text-[var(--uh-accent)] font-medium text-sm sm:text-base leading-snug">
+                                {{ $tradeoff['summary'] }}
+                            </div>
                         @elseif($tradeoff['deltas'] === [])
-                            <p class="uh-tradeoff-summary is-quiet">{{ __('No measurable difference in price, size or rooms.') }}</p>
+                            <div class="p-3 mb-4 rounded bg-gray-50 dark:bg-white/5 border border-[var(--uh-line)] text-[var(--uh-muted)] text-sm sm:text-base">
+                                {{ __('No measurable difference in price, size or rooms.') }}
+                            </div>
                         @endif
+                        
                         @if($tradeoff['deltas'] !== [])
-                            <ul class="uh-tradeoff-deltas">
+                            <ul class="space-y-2.5">
                                 @foreach($tradeoff['deltas'] as $delta)
-                                    <li class="is-{{ $delta['tone'] }}">{{ $delta['label'] }}</li>
+                                    <li class="flex items-start gap-2.5 text-[0.9375rem] text-[var(--uh-ink-soft)]">
+                                        @if($delta['tone'] === \App\Support\CompareTradeoffs::TONE_PLUS)
+                                            <span class="mt-0.5 flex-shrink-0 size-5 rounded-full bg-[var(--uh-accent-ring)] text-[var(--uh-accent)] flex items-center justify-center">
+                                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                            </span>
+                                        @elseif($delta['tone'] === \App\Support\CompareTradeoffs::TONE_MINUS)
+                                            <span class="mt-0.5 flex-shrink-0 size-5 rounded-full bg-[var(--uh-accent-ring)] text-[var(--uh-accent)] flex items-center justify-center">
+                                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" /></svg>
+                                            </span>
+                                        @else
+                                            <span class="mt-0.5 flex-shrink-0 size-5 flex items-center justify-center text-[var(--uh-faint)] font-bold">
+                                                =
+                                            </span>
+                                        @endif
+                                        <span class="font-medium">{{ $delta['label'] }}</span>
+                                    </li>
                                 @endforeach
                             </ul>
                         @endif
@@ -190,7 +215,10 @@
                                                 <span class="uh-numeric">{{ $property->{$key} ?? '—' }}</span>
                                         @endswitch
                                         @if($leads)
-                                            <span class="uh-compare-lead">{{ $leaders[$key][1] }}</span>
+                                            <span class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--uh-accent-ring)] text-[var(--uh-accent)] text-xs font-medium">
+                                                <svg class="size-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                                                {{ $leaders[$key][1] }}
+                                            </span>
                                         @endif
                                     </td>
                                 @endforeach
@@ -204,14 +232,13 @@
                         @foreach($properties as $property)
                             <td>
                                 <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                                    <a class="uh-arrow-link" href="{{ route('properties.show', $property->slug) }}">
+                                    <x-ui.pill-link variant="light" :href="route('properties.show', $property->slug)">
                                         {{ \App\Support\PropertyStory::for($property)->exploreLabel() }}
-                                        <x-icon name="arrow-right" class="size-3.5" />
-                                    </a>
+                                    </x-ui.pill-link>
                                     @unless($property->isUnavailable())
-                                        <a class="uh-btn-text" href="{{ route('properties.show', $property->slug) }}#contact">
+                                        <x-ui.pill-link variant="light" :href="route('properties.show', $property->slug).'#contact'">
                                             {{ __('Book a visit') }}
-                                        </a>
+                                        </x-ui.pill-link>
                                     @endunless
                                 </div>
                             </td>

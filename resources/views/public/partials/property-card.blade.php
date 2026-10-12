@@ -24,7 +24,7 @@
          class="uh-listing" data-spotlight="{{ $property->id }}" style="position: relative;" @isset($revealIndex) data-reveal style="--uh-i: {{ $revealIndex }}" @endisset>
     <a href="{{ $url }}" class="uh-listing-full-link" style="position: absolute; inset: 0; z-index: 1;" data-track="property_card_click" data-track-property-id="{{ $property->id }}"></a>
     <div class="uh-listing-frame" style="position: relative; z-index: 2; pointer-events: none;" @if($morph) style="view-transition-name: uh-property-{{ $property->id }}" @endif>
-        <div style="position: relative; z-index: 50; pointer-events: auto;">
+        <div class="absolute inset-0 z-50" style="pointer-events: auto;">
             @include('public.partials.property-carousel', ['sizes' => $sizes ?? '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw'])
         </div>
 

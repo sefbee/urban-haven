@@ -15,10 +15,33 @@
         <x-slot:eyebrow>Communication</x-slot:eyebrow>
         @if($canExport)
             <x-slot:actions>
-                <a class="uh-btn-outline uh-btn-sm" href="#lead-export">
-                    <x-icon name="download" class="size-4" />
-                    Export CSV
-                </a>
+                <div class="relative" x-data="{ open: false }" @keydown.escape="open = false" @click.outside="open = false">
+                    <button type="button" class="uh-btn-outline uh-btn-sm" @click="open = ! open" :aria-expanded="open.toString()">
+                        <x-icon name="download" class="size-4" />
+                        Export CSV
+                    </button>
+                    <div x-show="open" x-cloak x-transition.opacity.duration.120ms
+                         class="uh-admin-popover p-4" style="width: 320px;">
+                        <h3 class="text-sm font-semibold text-[var(--color-ink)]">Export CSV</h3>
+                        <p class="mt-1 text-xs text-[var(--color-muted)]">Leads received between two dates. Every export is recorded in the audit log.</p>
+                        <form method="GET" action="{{ route('admin.leads.export') }}" class="mt-4 flex flex-col gap-3">
+                            <x-ui.input name="from" label="Export from" type="date" id="export-from" />
+                            <x-ui.input name="to" label="Export to" type="date" id="export-to" />
+                            <x-ui.select name="status" label="Stage" id="export-status">
+                                <option value="">Any stage</option>
+                                @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </x-ui.select>
+                            <div class="mt-2 flex justify-end">
+                                <button type="submit" class="uh-btn-outline uh-btn-sm w-full justify-center">
+                                    <x-icon name="download" class="size-4" />
+                                    Download
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
@@ -89,29 +112,6 @@
             </div>
         </details>
     </form>
-
-    @if($canExport)
-        <details id="lead-export" class="uh-admin-toolbar mb-4">
-            <summary class="cursor-pointer text-sm font-semibold">Export CSV</summary>
-            <p class="mt-1 text-xs text-[var(--color-muted)]">Leads received between two dates. Every export is recorded in the audit log.</p>
-            <form method="GET" action="{{ route('admin.leads.export') }}" class="mt-3 flex flex-wrap items-end gap-3">
-                <x-ui.input name="from" label="Export from" type="date" id="export-from" />
-                <x-ui.input name="to" label="Export to" type="date" id="export-to" />
-                <x-ui.select name="status" label="Stage" id="export-status">
-                    <option value="">Any stage</option>
-                    @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-ui.select>
-                <div class="uh-admin-toolbar-actions">
-                    <button type="submit" class="uh-btn-outline uh-btn-sm">
-                        <x-icon name="download" class="size-4" />
-                        Download
-                    </button>
-                </div>
-            </form>
-        </details>
-    @endif
 
     @if($leads->isNotEmpty())
         <p class="uh-admin-count">

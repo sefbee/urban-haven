@@ -9,33 +9,37 @@
             </a>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            
-            <!-- Left Side: Articles -->
-            <div class="lg:col-span-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" data-reveal>
-                    @foreach($articles as $post)
-                        @php($cover = $post->featuredImage())
-                        <a href="{{ route('articles.show', $post->slug) }}" class="flex items-center gap-4 group">
-                            <div class="h-[5.5rem] w-[8.5rem] flex-shrink-0 overflow-hidden rounded-md shadow-sm bg-gray-100">
+        <div class="flex flex-col gap-10">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 grid-flow-dense lg:grid-rows-[repeat(4,180px)] sm:auto-rows-[180px]" data-reveal>
+                    @foreach($articles->take(9) as $post)
+                        @php
+                            $cover = $post->featuredImage();
+                            $span = match($loop->index) {
+                                0 => 'sm:col-span-2 sm:row-span-2',
+                                1, 4, 7, 8 => 'sm:col-span-2 sm:row-span-1',
+                                default => 'sm:col-span-1 sm:row-span-1',
+                            };
+                        @endphp
+                        <a href="{{ route('articles.show', $post->slug) }}" class="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md {{ $span }}">
+                            <div class="flex-1 w-full overflow-hidden bg-gray-100 min-h-[80px]">
                                 @if($cover)
-                                    <img src="{{ $cover->url(480) }}" srcset="{{ $cover->srcset() }}" alt="" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
+                                    <img src="{{ $cover->url(768) }}" srcset="{{ $cover->srcset() }}" alt="{{ $cover->alt() ?: $post->title }}" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
                                 @else
-                                    <span class="uh-media-placeholder h-full w-full flex items-center justify-center text-xs text-center p-1 leading-tight">{{ $post->category?->name ?? __('Urban Haven') }}</span>
+                                    <span class="uh-media-placeholder flex h-full w-full items-center justify-center p-4 text-center text-xs leading-tight">{{ $post->category?->name ?? __('Urban Haven') }}</span>
                                 @endif
                             </div>
-                            <div class="flex flex-col justify-center flex-1 py-1">
-                                <h3 class="text-[15px] font-bold text-slate-900 leading-snug group-hover:text-primary-600 transition line-clamp-2">{{ $post->title }}</h3>
-                                <p class="mt-1 text-[13px] text-slate-500 line-clamp-2">{{ $post->excerpt ?? Str::limit(strip_tags($post->body), 100) }}</p>
+                            <div class="flex flex-col p-3 shrink-0 bg-white">
+                                <p class="text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500 mb-1">{{ $post->category?->name ?? __('Journal') }}</p>
+                                <h3 class="text-sm font-bold leading-snug text-slate-900 transition group-hover:text-primary-600 line-clamp-1">{{ $post->title }}</h3>
+                                <p class="mt-1 text-[0.7rem] leading-relaxed text-slate-500 line-clamp-1 sm:line-clamp-2 hidden sm:block">{{ $post->excerpt ?? Str::limit(strip_tags($post->body), 80) }}</p>
+                                <time class="mt-2 text-[0.65rem] text-slate-400" datetime="{{ $post->publicationState?->published_at?->toDateString() }}">{{ $post->publicationState?->published_at?->format('M d, Y') }}</time>
                             </div>
                         </a>
                     @endforeach
-                </div>
             </div>
 
-            <!-- Right Side: Property TV -->
             @if($propertyVideos->isNotEmpty())
-                <div class="lg:col-span-4">
+                <div>
                     <header class="flex items-center justify-between mb-8" data-reveal>
                         <h2 id="property-tv-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['videos_title'] }}</h2>
                         <a href="{{ route('properties.index') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm" aria-label="{{ __('View properties') }}">

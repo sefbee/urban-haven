@@ -88,7 +88,7 @@
                 
                 <div x-data="{ iconClass: '' }">
                     <x-ui.input name="icon_class" id="amenity-icon-class" label="FontAwesome Icon Class" optional maxlength="80" x-model="iconClass"
-                                hint="e.g. 'fa-solid fa-car'. You can use any FontAwesome free icon." />
+                                hint="e.g. 'fa-duotone fa-car'. You can use any FontAwesome Pro icon." />
                     <div class="mt-2 text-sm text-[var(--color-muted)] flex items-center gap-2" x-show="iconClass">
                         Preview: <i :class="iconClass + ' text-lg text-[var(--color-ink)]'"></i>
                     </div>
@@ -117,7 +117,7 @@
                     
                     <div x-data="{ iconClass: '{{ $amenity->icon_class }}' }">
                         <x-ui.input name="icon_class" :id="'am-icon-class-'.$amenity->id" label="FontAwesome Icon Class" :value="$amenity->icon_class" optional maxlength="80" x-model="iconClass"
-                                    hint="e.g. 'fa-solid fa-car'. You can use any FontAwesome free icon." />
+                                    hint="e.g. 'fa-duotone fa-car'. You can use any FontAwesome Pro icon." />
                         <div class="mt-2 text-sm text-[var(--color-muted)] flex items-center gap-2" x-show="iconClass">
                             Preview: <i :class="iconClass + ' text-lg text-[var(--color-ink)]'"></i>
                         </div>

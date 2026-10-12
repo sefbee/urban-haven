@@ -98,25 +98,25 @@
             </form>
 
             {{-- Multi-file selection review before committing --}}
-            <div class="mt-3 rounded-lg border-2 border-dashed border-gold/40 bg-gold/5 p-3.5"
+            <div class="mt-3 rounded-lg border-2 border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3.5"
                  x-show="pendingFiles.length > 0" x-cloak x-transition>
 
-                <ul class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                <ul class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));">
                     <template x-for="(pf, idx) in pendingFiles" :key="pf.id">
-                        <li class="relative rounded-md border border-line bg-white p-1 text-center shadow-xs">
+                        <li class="relative rounded-md border border-[var(--color-line)] bg-white p-1.5 text-center shadow-sm">
                             <template x-if="pf.previewUrl">
                                 <img :src="pf.previewUrl" class="aspect-4/3 w-full rounded object-cover" alt="">
                             </template>
                             <template x-if="!pf.previewUrl">
-                                <div class="aspect-4/3 flex items-center justify-center rounded bg-stone/20">
-                                    <x-icon :name="$isDocument ? 'document' : 'image'" class="size-6 text-muted" />
+                                <div class="aspect-4/3 flex items-center justify-center rounded bg-slate-100">
+                                    <x-icon :name="$isDocument ? 'document' : 'image'" class="size-6 text-slate-400" />
                                 </div>
                             </template>
-                            <p class="mt-1 truncate text-[11px] font-medium text-ink" x-text="pf.name" :title="pf.name"></p>
-                            <p class="text-[10px] text-muted" x-text="pf.sizeFormatted"></p>
-                            <p class="text-[10px] font-semibold text-forest" x-show="pf.uploaded">Uploaded</p>
+                            <p class="mt-1.5 truncate text-xs font-medium text-slate-700" x-text="pf.name" :title="pf.name"></p>
+                            <p class="text-[11px] text-slate-500" x-text="pf.sizeFormatted"></p>
+                            <p class="text-[11px] font-semibold text-green-600" x-show="pf.uploaded">Uploaded</p>
                             <button type="button" @click="removePending(idx)" x-show="!pf.uploaded"
-                                    class="absolute -top-1.5 -right-1.5 flex size-4.5 items-center justify-center rounded-full bg-danger text-white shadow-xs hover:bg-danger/80"
+                                    class="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600"
                                     aria-label="Remove this file" title="Remove">
                                 <x-icon name="close" class="size-3" />
                             </button>

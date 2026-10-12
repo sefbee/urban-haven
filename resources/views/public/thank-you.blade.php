@@ -19,8 +19,8 @@
                         </p>
                     @endif
                     <div class="uh-confirm-actions">
-                        <a class="uh-btn-primary" href="{{ route('properties.index') }}">{{ __('Keep browsing') }}</a>
-                        <a class="uh-btn-secondary" href="{{ route('home') }}">{{ __('Back to home') }}</a>
+                        <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Keep browsing') }}</x-ui.pill-link>
+                        <x-ui.pill-link variant="light" :href="route('home')">{{ __('Back to home') }}</x-ui.pill-link>
                     </div>
                 @else
                     <span class="uh-confirm-icon"><x-icon name="info" class="size-6" /></span>
@@ -28,7 +28,7 @@
                     <p class="uh-lede">{{ __('This page confirms an enquiry right after you send it. If you meant to contact us, use the form on any property or the contact page.') }}</p>
                     <div class="uh-confirm-actions">
                         <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Contact us') }}</x-ui.pill-link>
-                        <a class="uh-btn-secondary" href="{{ route('properties.index') }}">{{ __('Explore properties') }}</a>
+                        <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
                     </div>
                 @endif
             </div>

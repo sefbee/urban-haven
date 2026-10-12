@@ -78,7 +78,24 @@ class Media extends Model
             $path = $this->path;
         }
 
-        return Storage::disk($this->disk)->url($path);
+        $url = Storage::disk($this->disk)->url($path);
+
+        if (
+            ! app()->runningInConsole()
+            && $this->disk === 'public'
+            && config('filesystems.disks.public.driver') === 'local'
+        ) {
+            $publicDiskUrl = config('filesystems.disks.public.url');
+            $applicationUrl = config('app.url');
+            $configuredHost = parse_url($publicDiskUrl, PHP_URL_HOST);
+            $applicationHost = parse_url($applicationUrl, PHP_URL_HOST);
+
+            if ($configuredHost !== null && $configuredHost === $applicationHost && $configuredHost !== request()->getHost()) {
+                return url('/storage/'.ltrim($path, '/'));
+            }
+        }
+
+        return $url;
     }
 
     public function thumbUrl(): string

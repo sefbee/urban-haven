@@ -31,7 +31,7 @@
                     </a>
                 @endif
                 <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Inquire Now') }}</x-ui.pill-link>
-                <a class="uh-arrow-link" href="{{ route('properties.index') }}">{{ __('Browse homes') }} <x-icon name="arrow-right" class="size-3.5" /></a>
+                <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Browse homes') }}</x-ui.pill-link>
             </div>
         </aside>
     </div>

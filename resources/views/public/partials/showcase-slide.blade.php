@@ -1,6 +1,7 @@
 @php
     $listingLayout = $listingLayout ?? false;
     $gridLayout = $gridLayout ?? false;
+    $featuredContent = ! $listingLayout && ! $gridLayout;
     $onRequest = $property->isPriceOnRequest();
     $isRent = $property->listing_type === 'rent';
     $compact = $onRequest || $isRent ? null : \App\Support\MoneyFormatter::compactBdt($property->price);
@@ -101,10 +102,10 @@
                         :aria-pressed="$store.saved.has('compare', {{ $property->id }}).toString()"
                         :aria-label="$store.saved.has('compare', {{ $property->id }}) ? @js(__('Remove :title from compare', ['title' => $property->title])) : @js(__('Add :title to compare', ['title' => $property->title]))"
                         aria-label="{{ __('Add :title to compare', ['title' => $property->title]) }}"
-                        class="uh-icon-action uh-showcase-compare"
+                        @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => ! $listingLayout && ! $gridLayout])
                         @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
-                    <i class="fa-solid fa-code-compare" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
-                    <i class="fa-solid fa-code-compare text-brass" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                    <i class="fa-duotone fa-code-compare" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
+                    <i class="fa-duotone fa-code-compare text-brass" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
                 </button>
             </div>
 
@@ -118,22 +119,27 @@
                         <strong>{{ $priceAmount }}</strong>@if($priceUnit) <span>{{ $priceUnit }}</span>@endif
                     </p>
                 </div>
-                <div class="uh-showcase-info">
+                <div @class(['uh-showcase-info', 'is-featured-content' => $featuredContent])>
                     <div class="uh-showcase-description">
                         <p class="uh-showcase-location">
                             <x-icon name="pin" class="size-5" />
                             <span>{{ $place }}</span>
                         </p>
-                        <div class="uh-showcase-tags">
-                            @if($property->propertyType?->label)
-                                <span class="uh-showcase-chip"><x-icon name="building" class="size-5" />{{ $property->propertyType->label }}</span>
-                            @endif
-                            @foreach($amenityLabels as $amenityLabel)
-                                <span class="uh-showcase-chip"><x-icon name="sparkle" class="size-4" />{{ $amenityLabel }}</span>
-                            @endforeach
-                        </div>
+                        @unless($featuredContent)
+                            <div class="uh-showcase-tags">
+                                @if($property->propertyType?->label)
+                                    <span class="uh-showcase-chip"><x-icon name="building" class="size-5" />{{ $property->propertyType->label }}</span>
+                                @endif
+                                @foreach($amenityLabels as $amenityLabel)
+                                    <span class="uh-showcase-chip"><x-icon name="sparkle" class="size-4" />{{ $amenityLabel }}</span>
+                                @endforeach
+                            </div>
+                        @endunless
                     </div>
                     <div class="uh-showcase-facts uh-numeric">
+                        @if($featuredContent && $property->propertyType?->label)
+                            <span><x-icon name="building" class="size-4" />{{ $property->propertyType->label }}</span>
+                        @endif
                         @if($story->size())
                             <span><x-icon name="area" class="size-4" />{{ $story->size() }}</span>
                         @endif
@@ -144,13 +150,20 @@
                             <span><x-icon name="bath" class="size-4" />{{ $property->bathrooms }} {{ trans_choice(':count bathroom|:count bathrooms', (int) $property->bathrooms, ['count' => $property->bathrooms]) }}</span>
                         @endif
                     </div>
+                    @if($featuredContent)
+                        <div class="uh-showcase-tags">
+                            @foreach($amenityLabels as $amenityLabel)
+                                <span class="uh-showcase-chip"><x-icon name="sparkle" class="size-4" />{{ $amenityLabel }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
             <div class="uh-showcase-actions">
                 <div class="uh-showcase-contact">
                     @if($whatsapp)
-                        <a class="uh-showcase-action-icon" href="{{ $whatsapp }}" rel="noopener" target="_blank"
+                        <a class="uh-showcase-action-icon text-[#25D366] hover:text-[#25D366]" href="{{ $whatsapp }}" rel="noopener" target="_blank"
                            @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif
                            data-track="whatsapp_click" data-track-location="{{ $listingLayout ? 'list' : 'home_featured' }}"
                            data-track-property-id="{{ $property->id }}" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
@@ -158,24 +171,24 @@
                         </a>
                     @endif
                     @if($phoneHref)
-                        <a class="uh-showcase-action-icon" href="{{ $phoneHref }}"
+                        <a class="uh-showcase-action-icon text-blue-500 hover:text-blue-600" href="{{ $phoneHref }}"
                            @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif
                            data-track="phone_click" data-track-location="{{ $listingLayout ? 'list' : 'home_featured' }}"
-                           data-track-property-id="{{ $property->id }}" aria-label="{{ __('Call') }}">
+                           data-track-property-id="{{ $property->id }}" aria-label="{{ __('Call') }}" title="{{ __('Call') }}">
                             <x-icon name="phone" class="size-5" />
                         </a>
                     @endif
                     @if(filled($contactEmail))
-                        <a class="uh-showcase-action-icon" href="mailto:{{ $contactEmail }}"
-                           @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif aria-label="{{ __('Email') }}">
+                        <a class="uh-showcase-action-icon text-rose-500 hover:text-rose-600" href="mailto:{{ $contactEmail }}"
+                           @if(! $listingLayout) :tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif aria-label="{{ __('Email') }}" title="{{ __('Email') }}">
                             <x-icon name="mail" class="size-5" />
                         </a>
                     @endif
                     @if(! $listingLayout)
-                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5"
+                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon text-slate-500 hover:text-slate-700" icon-class="size-5"
                                       x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" />
                     @else
-                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon" icon-class="size-5" />
+                        <x-share-menu :url="$url" :title="$property->title" button-class="uh-showcase-action-icon text-slate-500 hover:text-slate-700" icon-class="size-5" />
                     @endif
                 </div>
                 <div class="uh-showcase-link-actions">

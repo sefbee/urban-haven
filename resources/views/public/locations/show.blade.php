@@ -15,10 +15,9 @@
                     @if($purposes)
                         <div class="uh-next-links mt-8">
                             @foreach($purposes as $purpose)
-                                <a class="uh-arrow-link" href="{{ route('properties.index', ['location_area_id' => $area->id, 'listing_type' => $purpose]) }}">
+                                <x-ui.pill-link variant="light" :href="route('properties.index', ['location_area_id' => $area->id, 'listing_type' => $purpose])">
                                     {{ $purpose === 'rent' ? __('Properties for rent in :area', ['area' => $area->name]) : __('Properties for sale in :area', ['area' => $area->name]) }}
-                                    <x-icon name="arrow-right" class="size-3.5" />
-                                </a>
+                                </x-ui.pill-link>
                             @endforeach
                         </div>
                     @endif
@@ -44,10 +43,9 @@
         <header class="uh-section-head">
             <h2 class="uh-h2">{{ __('Available in :area', ['area' => $area->name]) }}</h2>
             @if($listings->isNotEmpty())
-                <a class="uh-arrow-link" href="{{ route('properties.index', ['location_area_id' => $area->id]) }}">
+                <x-ui.pill-link variant="light" :href="route('properties.index', ['location_area_id' => $area->id])">
                     {{ __('See all properties in :area', ['area' => $area->name]) }}
-                    <x-icon name="arrow-right" class="size-3.5" />
-                </a>
+                </x-ui.pill-link>
             @endif
         </header>
 

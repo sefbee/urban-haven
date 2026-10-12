@@ -18,7 +18,7 @@ final class SettingsSchema
      * @var array<string, array{title: string, description: string, groups: list<string>}>
      */
     public const SCREENS = [
-        'general' => ['title' => 'Branding', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
+        'general' => ['title' => 'General setting', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
         'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using a 60/30/10 balance: dominant surfaces, secondary structure and one accent.', 'groups' => ['theme']],
         'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles, floating chat button, and enquiries.', 'groups' => ['contact', 'leads', 'chrome', 'floating']],
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],

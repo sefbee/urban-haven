@@ -27,7 +27,7 @@
     @endif
 
     <div @class(['uh-admin-compose', 'is-split' => $exists])>
-        <form method="POST" action="{{ $exists ? route('admin.posts.update', $post) : route('admin.posts.store') }}" class="uh-admin-compose-main" x-data="uhForm" @submit="submit" data-unsaved-guard>
+        <form method="POST" action="{{ $exists ? route('admin.posts.update', $post) : route('admin.posts.store') }}" enctype="multipart/form-data" class="uh-admin-compose-main" x-data="{{ $exists ? 'uhForm' : 'uhPostCreateForm' }}" @submit="submit" data-unsaved-guard>
             @csrf
             @if($exists) @method('PUT') @endif
 
@@ -57,6 +57,71 @@
                 </div>
             </section>
 
+            @unless($exists)
+                <section class="uh-panel">
+                    <section class="uh-admin-media" aria-labelledby="article-photos-heading">
+                        <div class="uh-admin-media-heading">
+                            <span class="uh-admin-media-heading-icon" aria-hidden="true"><x-icon name="image" class="size-4" /></span>
+                            <h2 id="article-photos-heading" class="uh-h4">Photographs</h2>
+                            <span class="text-xs text-[var(--admin-muted)]" x-text="`(${photos.length})`">(0)</span>
+                        </div>
+
+                        <p class="uh-admin-media-hint">
+                            <x-icon name="info" class="size-4" />
+                            <span>The maximum photograph size is {{ max(1, (int) ceil(((int) config('urbanhaven.media.max_image_kb')) / 1024)) }} MB. Formats: JPEG, PNG, WebP. The first photograph is used as the cover. Add up to 20 photos.</span>
+                        </p>
+
+                        <div class="uh-admin-media-drop mt-3" :class="{ 'is-dragging': dragging }"
+                             @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="dropPhotos($event)">
+                            <input id="article-photos" x-ref="photoInput" class="uh-admin-media-file" type="file" name="cover_images[]" accept="image/jpeg,image/png,image/webp" multiple @change="selectPhotos($event)">
+                            <div class="grid justify-items-center gap-1">
+                                <button type="button" class="uh-admin-media-trigger" @click="$refs.photoInput.click()">
+                                    <x-icon name="upload" class="size-4" />
+                                    <span>Upload photographs</span>
+                                </button>
+                                <span class="uh-admin-media-drop-hint">or drag photos here (up to 20 at once)</span>
+                            </div>
+                        </div>
+                        <p class="uh-error" x-show="photoLimitExceeded" x-cloak>Choose no more than 20 photographs at once.</p>
+
+                        <ul class="uh-admin-media-grid grid-cols-2 sm:grid-cols-4" x-show="photos.length > 0" x-cloak>
+                            <template x-for="(photo, index) in photos" :key="photo.id">
+                                <li class="uh-admin-media-card">
+                                    <div class="uh-admin-media-card-bar" :class="index === 0 ? 'is-cover' : 'is-ready'">
+                                        <div class="uh-admin-media-card-copy">
+                                            <p class="uh-admin-media-name" x-text="photo.name" :title="photo.name"></p>
+                                            <p class="uh-admin-media-size" x-text="formatPhotoSize(photo.size)"></p>
+                                        </div>
+                                        <button type="button" class="uh-icon-btn size-6 text-white/80 hover:text-white disabled:opacity-25"
+                                                :disabled="index === 0" @click="movePhoto(index, -1)" aria-label="Move photograph earlier" title="Move earlier">
+                                            <x-icon name="chevron-left" class="size-3.5" />
+                                        </button>
+                                        <button type="button" class="uh-icon-btn size-6 text-white/80 hover:text-white disabled:opacity-25"
+                                                :disabled="index === photos.length - 1" @click="movePhoto(index, 1)" aria-label="Move photograph later" title="Move later">
+                                            <x-icon name="chevron-right" class="size-3.5" />
+                                        </button>
+                                        <button type="button" class="uh-admin-media-remove" @click="removePhoto(index)" aria-label="Remove photograph" title="Remove">
+                                            <x-icon name="close" class="size-3.5" />
+                                        </button>
+                                    </div>
+                                    <div class="uh-admin-media-preview"><img :src="photo.previewUrl" :alt="photo.altText || ''"></div>
+                                    <div class="uh-admin-media-details">
+                                        <span class="text-[10px] font-semibold text-[#2f4ac7]" x-show="index === 0">Cover image</span>
+                                        <input type="hidden" :name="`cover_images_meta[${index}][alt_text]`" :value="photo.altText">
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                        @error('cover_images')<p class="uh-error"><x-icon name="alert" class="size-3.5 shrink-0" /> <span>{{ $message }}</span></p>@enderror
+                        @foreach($errors->getMessages() as $field => $messages)
+                            @if(str_starts_with($field, 'cover_images.'))
+                                <p class="uh-error"><x-icon name="alert" class="size-3.5 shrink-0" /> <span>{{ $messages[0] }}</span></p>
+                            @endif
+                        @endforeach
+                    </section>
+                </section>
+            @endunless
+
             @if($otherPosts->isNotEmpty())
                 <section class="uh-panel">
                     <h2 class="uh-h4">Related articles</h2>
@@ -81,10 +146,20 @@
 
             </div>
             <div class="uh-admin-dock">
-                <button type="submit" class="uh-btn-primary" :disabled="submitting">
-                    <span class="uh-spinner" x-show="submitting" x-cloak></span>
-                    <span>{{ $exists ? 'Save changes' : 'Save draft' }}</span>
-                </button>
+                @if(! $exists && $canPublish)
+                    <button type="submit" name="submit_action" value="draft" class="uh-btn-outline" :disabled="submitting">
+                        <span>{{ __('Save as draft') }}</span>
+                    </button>
+                    <button type="submit" name="submit_action" value="publish" class="uh-btn-primary" :disabled="submitting">
+                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                        <span>{{ __('Save & publish') }}</span>
+                    </button>
+                @else
+                    <button type="submit" @unless($exists) name="submit_action" value="draft" @endunless class="uh-btn-primary" :disabled="submitting">
+                        <span class="uh-spinner" x-show="submitting" x-cloak></span>
+                        <span>{{ $exists ? 'Save changes' : 'Save draft' }}</span>
+                    </button>
+                @endif
                 <a class="uh-btn-ghost" href="{{ route('admin.posts.index') }}">Cancel</a>
             </div>
         </form>
