@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use App\Services\Cms\CmsService;
-use App\Support\HomeSections;
 use App\Support\AboutPageSections;
-use App\Support\ContactPageSections;
 use App\Support\ArticlesPageSections;
+use App\Support\ContactPageSections;
+use App\Support\HomeSections;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,8 +18,9 @@ use Illuminate\View\View;
 
 class PageSectionController extends Controller
 {
-    private function getSectionsClass(string $page) {
-        return match($page) {
+    private function getSectionsClass(string $page)
+    {
+        return match ($page) {
             'home' => HomeSections::class,
             'about' => AboutPageSections::class,
             'contact' => ContactPageSections::class,
@@ -30,6 +31,7 @@ class PageSectionController extends Controller
 
     public function index(Request $request, string $page): View
     {
+
         $this->authorize('update', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
 
@@ -45,7 +47,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('update', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $blocks = $sectionsClass::blocks();
         $block = $blocks->get($section);
@@ -71,7 +73,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('update', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $block = $sectionsClass::blocks()->get($section);
 
@@ -89,7 +91,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('publish', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $block = $sectionsClass::blocks()->get($section);
 
@@ -103,7 +105,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('publish', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $direction = $request->input('direction');
         abort_unless(in_array($direction, ['up', 'down'], true), 400);
 
@@ -128,7 +130,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('publish', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $cms->publishBlock($sectionsClass::blocks()->get($section), $request->user());
 
@@ -139,7 +141,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('update', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $block = $sectionsClass::blocks()->get($section);
         $cms->discardBlockDraft($block, $request->user());
@@ -151,7 +153,7 @@ class PageSectionController extends Controller
     {
         $this->authorize('update', new CmsPage);
         $sectionsClass = $this->getSectionsClass($page);
-        
+
         $definition = $sectionsClass::definition($section);
         $cms->updateBlock($sectionsClass::blocks()->get($section), $sectionsClass::defaults($section), $request->user());
 
@@ -220,6 +222,7 @@ class PageSectionController extends Controller
                             return false;
                         }
                     }
+
                     return true;
                 }));
             } elseif (isset($input[$key])) {

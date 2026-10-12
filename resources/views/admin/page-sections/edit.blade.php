@@ -192,12 +192,12 @@
                 <h2 class="uh-h4">Other sections</h2>
                 <div class="mt-3 grid grid-cols-2 gap-2">
                     @if($previous)
-                        <a class="uh-btn-ghost uh-btn-sm justify-start" href="{{ route('admin.page-sections.edit', $previous) }}"><x-icon name="chevron-left" class="size-4" /> Previous</a>
+                        <a class="uh-btn-ghost uh-btn-sm justify-start" href="{{ route('admin.page-sections.edit', ['page' => $page, 'section' => $previous]) }}"><x-icon name="chevron-left" class="size-4" /> Previous</a>
                     @else
                         <span></span>
                     @endif
                     @if($next)
-                        <a class="uh-btn-ghost uh-btn-sm justify-end" href="{{ route('admin.page-sections.edit', $next) }}">Next <x-icon name="chevron-right" class="size-4" /></a>
+                        <a class="uh-btn-ghost uh-btn-sm justify-end" href="{{ route('admin.page-sections.edit', ['page' => $page, 'section' => $next]) }}">Next <x-icon name="chevron-right" class="size-4" /></a>
                     @endif
                 </div>
             </nav>
