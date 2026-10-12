@@ -98,9 +98,9 @@ const enhance = (el) => {
 };
 
 export const bootPublicSelects = (root = document) => {
-    if (!document.body.classList.contains('uh-home')) {
-        return;
-    }
+    // if (!document.body.classList.contains('uh-home')) {
+    //     return;
+    // }
 
     root.querySelectorAll('select[data-uh-select]').forEach(enhance);
 };
