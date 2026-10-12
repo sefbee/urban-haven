@@ -10,7 +10,7 @@
      @click="closeFilters()"></div>
 
 <aside id="more-filters"
-       class="uh-drawer"
+       class="uh-drawer fixed inset-y-0 right-0 z-[1201] flex-col"
        x-cloak
        x-bind:class="filtersOpen ? '!flex' : '!hidden'"
        role="dialog" aria-modal="true" aria-labelledby="more-filters-title"
@@ -84,52 +84,25 @@
 
         @endif
 
-        @php
-            $verification = array_map('strval', (array) ($filters['verification'] ?? []));
-            if ($verification === [] && ! empty($filters['is_verified'])) {
-                $verification = ['verified'];
-            }
-        @endphp
-        <fieldset class="uh-drawer-group">
-            <legend class="uh-legend">{{ __('Property Verification') }}</legend>
-            <label class="uh-check">
-                <input type="checkbox" form="property-filters" name="verification[]" value="verified" @checked(in_array('verified', $verification, true))>
-                <span>{{ __('Verified Listings') }}</span>
-            </label>
-            <label class="uh-check">
-                <input type="checkbox" form="property-filters" name="verification[]" value="unverified" @checked(in_array('unverified', $verification, true))>
-                <span>{{ __('Unverified') }}</span>
-            </label>
-        </fieldset>
 
         <fieldset class="uh-drawer-group">
-            <legend class="uh-legend">{{ __('Furnishing Status') }}</legend>
-            @php
-                $furnishing = array_map('strval', (array) ($filters['furnishing'] ?? []));
-                if ($furnishing === [] && ($furnished === true || $furnished === 1 || $furnished === '1')) {
-                    $furnishing = ['full'];
-                }
-                if ($furnishing === [] && ($furnished === false || $furnished === 0 || $furnished === '0')) {
-                    $furnishing = ['unfurnished'];
-                }
-            @endphp
+            <legend class="uh-legend">{{ __('Furnished') }}</legend>
             <div class="grid gap-1">
-                <label class="uh-check">
-                    <input type="checkbox" form="property-filters" name="furnishing[]" value="full" @checked(in_array('full', $furnishing, true))>
-                    <span>{{ __('Full Furnished') }}</span>
+                <label class="uh-choice">
+                    <input type="radio" form="property-filters" name="is_furnished" value="" @checked($furnished === null)>
+                    <span>{{ __('Any') }}</span>
                 </label>
-                <label class="uh-check">
-                    <input type="checkbox" form="property-filters" name="furnishing[]" value="semi" @checked(in_array('semi', $furnishing, true))>
-                    <span>{{ __('Semi Furnished') }}</span>
+                <label class="uh-choice">
+                    <input type="radio" form="property-filters" name="is_furnished" value="1" @checked($furnished === true || $furnished === '1')>
+                    <span>{{ __('Yes') }}</span>
                 </label>
-                <label class="uh-check">
-                    <input type="checkbox" form="property-filters" name="furnishing[]" value="unfurnished" @checked(in_array('unfurnished', $furnishing, true))>
-                    <span>{{ __('Unfurnished') }}</span>
+                <label class="uh-choice">
+                    <input type="radio" form="property-filters" name="is_furnished" value="0" @checked($furnished === false || $furnished === '0')>
+                    <span>{{ __('No') }}</span>
                 </label>
             </div>
         </fieldset>
-
-        <fieldset class="uh-drawer-group">
+<fieldset class="uh-drawer-group">
             <legend class="uh-legend">{{ __('Property Facing') }}</legend>
             <div class="grid grid-cols-2 gap-1">
                 @foreach(config('urbanhaven.facings') as $value => $label)
@@ -159,41 +132,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="uh-drawer-group">
-            <legend class="uh-legend">{{ __('Property Age') }}</legend>
-            @php
-                $ageChips = [
-                    '1' => '<1 Year',
-                    '3' => '<3 Years',
-                    '5' => '<5 Years',
-                    '10' => '<10 Years',
-                    '10plus' => '10+ Years',
-                ];
-            @endphp
-            <div class="flex flex-wrap gap-1.5">
-                @foreach($ageChips as $years => $label)
-                    <label class="uh-choice">
-                        <input type="radio" form="property-filters" name="max_age" value="{{ $years }}" @checked((string) ($filters['max_age'] ?? '') === $years)>
-                        <span>{{ __($label) }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </fieldset>
-
-        <fieldset class="uh-drawer-group">
-            <legend class="uh-legend">{{ __('Road Type') }}</legend>
-            <div class="grid gap-1">
-                @foreach(['Blacktopped', 'Concrete', 'Gravelled', 'Alley'] as $road)
-                    <label class="uh-choice">
-                        <input type="radio" form="property-filters" name="road_type" value="{{ $road }}" @checked((string) ($filters['road_type'] ?? '') === $road)>
-                        <span>{{ __($road) }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </fieldset>
-
-
-        @if($amenities->isNotEmpty())
+@if($amenities->isNotEmpty())
             <fieldset class="uh-drawer-group">
                 <legend class="uh-legend">{{ __('Amenities') }}</legend>
                 <div class="grid gap-1">
