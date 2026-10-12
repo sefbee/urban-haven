@@ -9,12 +9,12 @@
     {{-- Hero Section --}}
     <section class="grid lg:grid-cols-2 min-h-[500px] bg-[var(--color-dominant)]" aria-labelledby="about-title">
         <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24">
-            <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">{{ \App\Support\AboutPageSections::visible()['hero_eyebrow_block'] ?? '' }}</p>
+            <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">{{ $aboutSections['hero']['eyebrow'] ?? '' }}</p>
             <h1 id="about-title" class="uh-h1 mb-6 max-w-xl">
-                {!! nl2br(e($aboutContent['hero_title'])) !!}
+                {!! nl2br(e($aboutSections['hero']['title'])) !!}
             </h1>
             <p class="text-base sm:text-lg text-[var(--color-muted-text)] leading-relaxed max-w-lg">
-                {{ \App\Support\AboutPageSections::visible()['hero_intro_block'] ?? '' }}
+                {{ $aboutSections['hero']['intro'] ?? '' }}
             </p>
             <div class="mt-8 flex items-center gap-3 text-sm font-semibold text-[var(--color-muted-text)]">
                 <a href="{{ route('home') }}" class="hover:text-[var(--color-body-text)] transition-colors">Home</a>
@@ -37,9 +37,9 @@
                  class="absolute inset-0 w-full h-full object-cover" loading="lazy">
         </div>
         <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24 bg-[var(--color-card-surface)]">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['story_eyebrow_block'] ?? '' }}</p>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutSections['story']['eyebrow'] ?? '' }}</p>
             <h2 id="about-story-title" class="uh-h2 mb-6">
-                {{ \App\Support\AboutPageSections::visible()['story_title_block'] ?? '' }}
+                {{ $aboutSections['story']['title'] ?? '' }}
             </h2>
             <div class="uh-prose text-[15px] leading-relaxed text-[var(--color-muted-text)] mb-8 max-w-xl">
                 {!! \Stevebauman\Purify\Facades\Purify::clean((string) $page->body) !!}
@@ -47,7 +47,7 @@
             
             <blockquote class="pl-6 border-l-2 border-[var(--color-accent)] max-w-xl mb-10">
                 <p class="text-lg italic font-display text-[var(--color-body-text)]">
-                    "{{ \App\Support\AboutPageSections::visible()['hero_quote_block'] ?? '' }}"
+                    "{{ $aboutSections['hero']['quote'] ?? '' }}"
                 </p>
             </blockquote>
 
@@ -62,20 +62,20 @@
         <div class="uh-container">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-white/10 text-center">
                                 <div class="pt-4 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_one_value_block'] ?? '' }}</p>
-                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_one_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $aboutSections['story']['stat_one_value'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutSections['story']['stat_one_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_two_value_block'] ?? '' }}</p>
-                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_two_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $aboutSections['story']['stat_two_value'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutSections['story']['stat_two_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_three_value_block'] ?? '' }}</p>
-                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_three_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $aboutSections['story']['stat_three_value'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutSections['story']['stat_three_label'])) !!}</p>
                 </div>
                 <div class="pt-8 md:pt-0">
-                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ \App\Support\AboutPageSections::visible()['stat_four_value_block'] ?? '' }}</p>
-                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutContent['stat_four_label'])) !!}</p>
+                    <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $aboutSections['story']['stat_four_value'] ?? '' }}</p>
+                    <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($aboutSections['story']['stat_four_label'])) !!}</p>
                 </div>
             </div>
         </div>
@@ -84,8 +84,8 @@
     {{-- Purpose / Mission Vision --}}
     <section class="py-20 lg:py-28 bg-[var(--color-card-surface)]">
                         <div class="uh-container-narrow text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['team_eyebrow_block'] ?? '' }}</p>
-            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['team_title_block'] ?? '' }}</h2>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutSections['team']['eyebrow'] ?? '' }}</p>
+            <h2 class="uh-h2">{{ $aboutSections['team']['title'] ?? '' }}</h2>
         </div>
         
         <div class="uh-container">
@@ -96,9 +96,9 @@
                         <x-icon name="compass" class="size-7" />
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ \App\Support\AboutPageSections::visible()['mission_title_block'] ?? '' }}</h3>
+                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ $aboutSections['purpose']['mission_title'] ?? '' }}</h3>
                         <p class="text-sm text-[var(--color-muted-text)] leading-relaxed">
-                            {{ \App\Support\AboutPageSections::visible()['mission_text_block'] ?? '' }}
+                            {{ $aboutSections['purpose']['mission_text'] ?? '' }}
                         </p>
                     </div>
                 </div>
@@ -109,9 +109,9 @@
                         <x-icon name="building" class="size-7" />
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ \App\Support\AboutPageSections::visible()['vision_title_block'] ?? '' }}</h3>
+                        <h3 class="text-lg font-bold text-[var(--color-body-text)] mb-2 uppercase tracking-wide">{{ $aboutSections['purpose']['vision_title'] ?? '' }}</h3>
                         <p class="text-sm text-[var(--color-muted-text)] leading-relaxed">
-                            {{ \App\Support\AboutPageSections::visible()['vision_text_block'] ?? '' }}
+                            {{ $aboutSections['purpose']['vision_text'] ?? '' }}
                         </p>
                     </div>
                 </div>
@@ -123,17 +123,17 @@
     <section class="py-20 bg-[var(--color-card-surface)]">
         <div class="uh-container-narrow text-center mb-16">
             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">What Guides Us</p>
-            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['values_title_block'] ?? '' }}</h2>
+            <h2 class="uh-h2">{{ $aboutSections['values']['title'] ?? '' }}</h2>
         </div>
         
         <div class="uh-container">
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 @php
                     $values = [
-                        ['shield', $aboutContent['value_one_title'], $aboutContent['value_one_text']],
-                        ['users', $aboutContent['value_two_title'], $aboutContent['value_two_text']],
-                        ['sparkle', $aboutContent['value_three_title'], $aboutContent['value_three_text']],
-                        ['refresh', $aboutContent['value_four_title'], $aboutContent['value_four_text']],
+                        ['shield', $aboutSections['values']['value_one_title'], $aboutSections['values']['value_one_text']],
+                        ['users', $aboutSections['values']['value_two_title'], $aboutSections['values']['value_two_text']],
+                        ['sparkle', $aboutSections['values']['value_three_title'], $aboutSections['values']['value_three_text']],
+                        ['refresh', $aboutSections['values']['value_four_title'], $aboutSections['values']['value_four_text']],
                     ];
                 @endphp
                 @foreach($values as [$icon, $title, $description])
@@ -162,19 +162,19 @@
             </div>
             
                         <div class="relative z-10">
-                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['choose_eyebrow_block'] ?? '' }}</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutSections['choose']['eyebrow'] ?? '' }}</p>
                 <h2 class="text-3xl sm:text-[2.5rem] leading-[1.1] font-display mb-10 max-w-md">
-                    {{ \App\Support\AboutPageSections::visible()['choose_title_block'] ?? '' }}
+                    {{ $aboutSections['choose']['title'] ?? '' }}
                 </h2>
                 <ul class="space-y-4 mb-10">
-                    @foreach(array_filter(array_map('trim', explode("\n", $aboutContent['choose_list']))) as $item)
+                    @foreach(array_filter(array_map('trim', explode("\n", $aboutSections['choose']['list']))) as $item)
                         <li class="flex items-center gap-3 text-sm text-[color-mix(in_srgb,var(--color-secondary-text)_78%,transparent)]">
                             <x-icon name="check-circle" class="size-4 text-[var(--color-accent)]" /> {{ $item }}
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ \App\Support\AboutPageSections::visible()['choose_cta_url_block'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-sm font-semibold transition-colors">
-                    {{ \App\Support\AboutPageSections::visible()['choose_cta_label_block'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
+                <a href="{{ $aboutSections['choose']['cta_url'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-sm font-semibold transition-colors">
+                    {{ $aboutSections['choose']['cta_label'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
                 </a>
             </div>
         </div>
@@ -187,8 +187,8 @@
     {{-- Process Steps --}}
     <section class="py-20 lg:py-28 bg-[var(--color-dominant)]">
                 <div class="uh-container-narrow text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ \App\Support\AboutPageSections::visible()['approach_eyebrow_block'] ?? '' }}</p>
-            <h2 class="uh-h2">{{ \App\Support\AboutPageSections::visible()['approach_title_block'] ?? '' }}</h2>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutSections['approach']['eyebrow'] ?? '' }}</p>
+            <h2 class="uh-h2">{{ $aboutSections['approach']['title'] ?? '' }}</h2>
         </div>
         
         <div class="uh-container">
@@ -198,10 +198,10 @@
                 <div class="grid md:grid-cols-4 gap-10 md:gap-6 relative">
                     @php
                         $steps = [
-                            ['01', $aboutContent['approach_one_title'], $aboutContent['approach_one_text']],
-                            ['02', $aboutContent['approach_two_title'], $aboutContent['approach_two_text']],
-                            ['03', $aboutContent['approach_three_title'], $aboutContent['approach_three_text']],
-                            ['04', $aboutContent['approach_four_title'], $aboutContent['approach_four_text']],
+                            ['01', $aboutSections['approach']['approach_one_title'], $aboutSections['approach']['approach_one_text']],
+                            ['02', $aboutSections['approach']['approach_two_title'], $aboutSections['approach']['approach_two_text']],
+                            ['03', $aboutSections['approach']['approach_three_title'], $aboutSections['approach']['approach_three_text']],
+                            ['04', $aboutSections['approach']['approach_four_title'], $aboutSections['approach']['approach_four_text']],
                         ];
                     @endphp
                     @foreach($steps as [$num, $title, $desc])
@@ -221,8 +221,8 @@
     {{-- Team --}}
     <section class="py-20 bg-[var(--color-card-surface)]">
         <div class="uh-container-narrow text-center mb-16">
-            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutContent['team_eyebrow'] ?? 'Our People' }}</p>
-            <h2 class="uh-h2">{{ $aboutContent['team_title'] ?? 'Meet the Team Behind Urban Haven' }}</h2>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $aboutSections['team']['eyebrow'] ?? 'Our People' }}</p>
+            <h2 class="uh-h2">{{ $aboutSections['team']['title'] ?? 'Meet the Team Behind Urban Haven' }}</h2>
         </div>
         
         <div class="uh-container">
@@ -264,11 +264,11 @@
             </svg>
         </div>
         <div class="uh-container-narrow relative z-10">
-            <h2 class="uh-h2 mb-4">{{ \App\Support\AboutPageSections::visible()['cta_title_block'] ?? '' }}</h2>
-            <p class="text-[15px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] mb-8">{{ \App\Support\AboutPageSections::visible()['cta_body_block'] ?? '' }}</p>
+            <h2 class="uh-h2 mb-4">{{ $aboutSections['cta']['title'] ?? '' }}</h2>
+            <p class="text-[15px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] mb-8">{{ $aboutSections['cta']['body'] ?? '' }}</p>
             <div class="flex flex-wrap justify-center gap-4">
-                <a href="{{ \App\Support\AboutPageSections::visible()['cta_url_block'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
-                    {{ \App\Support\AboutPageSections::visible()['cta_label_block'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
+                <a href="{{ $aboutSections['cta']['url'] ?? '' }}" class="inline-flex items-center justify-center bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
+                    {{ $aboutSections['cta']['label'] ?? '' }} <x-icon name="arrow-right" class="size-3.5 ml-2" />
                 </a>
                 <a href="/contact" class="inline-flex items-center justify-center border border-white/20 hover:bg-[var(--color-card-surface)]/5 text-[var(--color-secondary-text)] px-8 py-3.5 rounded text-[13px] font-semibold transition-colors">
                     Contact Us

@@ -2,6 +2,7 @@
 
 @php
     $template = $page->slug === 'contact' ? 'contact' : ($page->slug === 'about' ? 'about' : ($page->template ?: 'default'));
+    $contactSections = \App\Support\ContactPageSections::visible();
     $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
     $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);
     $email = \App\Models\Setting::get('email') ?: ($contactBlock['email'] ?? null);
@@ -25,9 +26,9 @@
     @else
     <header class="uh-page-head">
         <div @class(['uh-container' => $hasForm, 'uh-container-narrow' => ! $hasForm])>
-            <h1 class="uh-h1 uh-page-title">{{ $template === 'contact' ? __('Talk to our sales team') : $page->title }}</h1>
+            <h1 class="uh-h1 uh-page-title">{{ $template === 'contact' ? ($contactSections['hero']['title'] ?? __('Talk to our sales team')) : $page->title }}</h1>
             @if($template === 'contact')
-                <p class="uh-page-lede">{{ __('Call, WhatsApp or send a message. The people who manage our homes will get back to you.') }}</p>
+                <p class="uh-page-lede">{{ $contactSections['hero']['intro'] ?? __('Call, WhatsApp or send a message. The people who manage our homes will get back to you.') }}</p>
                 <div class="uh-contact-actions">
                     @if(filled($phone))
                         <a class="uh-btn-primary" href="{{ \App\Support\PhoneNumber::telHref($phone) }}" data-track="phone_click" data-track-location="contact_page_head">

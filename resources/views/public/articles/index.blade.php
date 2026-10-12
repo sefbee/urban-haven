@@ -1,12 +1,16 @@
 @extends('layouts.public')
 
+@php
+    $articlesSections = \App\Support\ArticlesPageSections::visible();
+@endphp
+
 @section('content')
     <main class="uh-container uh-articles-page">
         <header class="uh-editorial-masthead">
             <div>
-                <p class="uh-editorial-overline">{{ __('Urban Haven Journal') }}</p>
-                <h1 class="uh-editorial-title">{{ $activeCategory?->name ?? __('Explore News, Insights and Videos') }}</h1>
-                <p class="uh-editorial-intro">{{ __('Ideas, places and perspectives shaping the way Bangladesh lives.') }}</p>
+                <p class="uh-editorial-overline">{{ $articlesSections['masthead']['eyebrow'] ?? __('Urban Haven Journal') }}</p>
+                <h1 class="uh-editorial-title">{{ $activeCategory?->name ?? ($articlesSections['masthead']['title'] ?? __('Explore News, Insights and Videos')) }}</h1>
+                <p class="uh-editorial-intro">{{ $articlesSections['masthead']['intro'] ?? __('Ideas, places and perspectives shaping the way Bangladesh lives.') }}</p>
             </div>
 
             @if($categories->isNotEmpty())

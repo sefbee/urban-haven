@@ -194,7 +194,7 @@
                                 <x-icon name="phone" class="size-[18px] text-[var(--color-accent)] transition-colors duration-300 group-hover/item:text-white" />
                             </div>
                             <div>
-                                <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ __('Direct Contact') }}</h4>
+                                <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $contactSections['direct']['title'] ?? __('Direct Contact') }}</h4>
                                 <a href="tel:{{ preg_replace('/[^0-9+]/', '', $phone ?? '') }}" class="mt-1.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $phone ?? '+880 1XXX-XXXXXX' }}</a>
                                 <a href="mailto:{{ $email ?? '' }}" class="mt-0.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $email ?? 'info@urbanhavenbd.com' }}</a>
                             </div>
