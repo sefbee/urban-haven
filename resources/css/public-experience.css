@@ -3041,6 +3041,37 @@ body.uh-home {
         gap: 0.75rem;
     }
 
+    .uh-showcase-info.is-featured-content {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .uh-showcase-info.is-featured-content .uh-showcase-facts {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        max-width: 100%;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 0.35rem;
+        overflow-x: auto;
+        text-align: left;
+    }
+
+    .uh-showcase-info.is-featured-content .uh-showcase-tags {
+        flex-wrap: nowrap;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .uh-showcase-info.is-featured-content .uh-showcase-chip,
+    .uh-showcase-info.is-featured-content .uh-showcase-facts > span {
+        flex: 0 0 auto;
+    }
+
+    .uh-showcase-info.is-featured-content .uh-showcase-facts > span {
+        text-align: left;
+    }
+
     .uh-showcase-description {
         display: flex;
         min-width: 0;
@@ -3184,6 +3215,33 @@ body.uh-home {
         color: #e34b43;
         box-shadow: 0 4px 14px rgb(29 29 31 / 0.16);
         transition: transform var(--uh-dur-1) var(--uh-ease), box-shadow var(--uh-dur-1) var(--uh-ease);
+    }
+
+    .uh-showcase-compare.is-featured-content {
+        position: absolute;
+        top: -2.75rem;
+        right: 5rem;
+        z-index: 4;
+        display: grid;
+        width: 3rem;
+        height: 3rem;
+        place-items: center;
+        border: 1px solid rgb(29 29 31 / 0.06);
+        border-radius: var(--uh-pill);
+        background: #ffffff;
+        color: var(--uh-ink-soft);
+        box-shadow: 0 4px 14px rgb(29 29 31 / 0.16);
+        transition: transform var(--uh-dur-1) var(--uh-ease), box-shadow var(--uh-dur-1) var(--uh-ease);
+    }
+
+    .uh-showcase-compare.is-featured-content:hover {
+        transform: scale(1.06);
+        box-shadow: 0 6px 18px rgb(29 29 31 / 0.2);
+    }
+
+    .uh-showcase-slide:not([data-slot='active']) .uh-showcase-compare.is-featured-content {
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .uh-showcase-favorite:hover {
@@ -3450,6 +3508,12 @@ body.uh-home {
 
         .uh-showcase-favorite {
             right: 0.875rem;
+            width: 2.625rem;
+            height: 2.625rem;
+        }
+
+        .uh-showcase-compare.is-featured-content {
+            right: 4.25rem;
             width: 2.625rem;
             height: 2.625rem;
         }
@@ -9846,6 +9910,7 @@ body.uh-home {
     .select2-container--uh {
         min-width: 0;
         font-size: 0.9375rem;
+        width: 100% !important;
     }
 
     .select2-container--uh .select2-selection {
