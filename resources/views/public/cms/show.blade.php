@@ -2,6 +2,7 @@
 
 @php
     $template = $page->slug === 'contact' ? 'contact' : ($page->slug === 'about' ? 'about' : ($page->template ?: 'default'));
+    $aboutSections = \App\Support\AboutPageSections::visible();
     $contactSections = \App\Support\ContactPageSections::visible();
     $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
     $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);

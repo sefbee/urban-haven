@@ -50,28 +50,33 @@
     $isHome = request()->routeIs('home');
     $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
 
+    $fixedNavLinks = array_values(array_filter([
+        in_array('sale', $purposes, true) ? ['label' => __('Buy'), 'url' => route('properties.index', ['listing_type' => 'sale']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'sale'] : null,
+        in_array('rent', $purposes, true) ? ['label' => __('Rent'), 'url' => route('properties.index', ['listing_type' => 'rent']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'rent'] : null,
+        ['label' => __('Articles'), 'url' => route('articles.index'), 'external' => false, 'active' => request()->routeIs('articles.*')],
+        ['label' => __('About Us'), 'url' => route('cms.show', 'about'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'about'],
+        ['label' => __('Contact'), 'url' => route('cms.show', 'contact'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'contact'],
+    ]));
     $headerMenu = \App\Models\MenuItem::forLocation('header');
-    $navLinks = $headerMenu->isNotEmpty()
-        ? $headerMenu->map(fn ($item) => ['label' => $item->label, 'url' => $item->url, 'external' => ! $item->isInternal(), 'active' => $item->isInternal() && request()->getRequestUri() === $item->url])->all()
-        : array_values(array_filter([
-            in_array('sale', $purposes, true) ? ['label' => __('Buy'), 'url' => route('properties.index', ['listing_type' => 'sale']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'sale'] : null,
-            in_array('rent', $purposes, true) ? ['label' => __('Rent'), 'url' => route('properties.index', ['listing_type' => 'rent']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'rent'] : null,
-            ['label' => __('Articles'), 'url' => route('articles.index'), 'external' => false, 'active' => request()->routeIs('articles.*')],
-            ['label' => __('About Us'), 'url' => route('cms.show', 'about'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'about'],
-            ['label' => __('Contact'), 'url' => route('cms.show', 'contact'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'contact'],
-        ]));
+    $customNavLinks = $headerMenu->map(fn ($item) => [
+        'label' => $item->label,
+        'url' => $item->url,
+        'external' => ! $item->isInternal(),
+        'active' => $item->isInternal() && request()->getRequestUri() === $item->url,
+    ]);
+    $navLinks = collect($fixedNavLinks)->concat($customNavLinks)->unique('url')->values()->all();
 
+    $fixedFooterLinks = array_values(array_filter([
+        ['label' => __('About Us'), 'url' => route('cms.show', 'about')],
+        ['label' => __('Articles'), 'url' => route('articles.index')],
+        ['label' => __('FAQ'), 'url' => route('faq')],
+        ['label' => __('Tools'), 'url' => route('tools')],
+        ['label' => __('Contact'), 'url' => route('cms.show', 'contact')],
+        $privacyUrl ? ['label' => __('Privacy'), 'url' => $privacyUrl] : null,
+    ]));
     $footerMenu = \App\Models\MenuItem::forLocation('footer');
-    $footerLinks = $footerMenu->isNotEmpty()
-        ? $footerMenu->map(fn ($item) => ['label' => $item->label, 'url' => $item->url])->all()
-        : array_values(array_filter([
-            ['label' => __('About Us'), 'url' => route('cms.show', 'about')],
-            ['label' => __('Articles'), 'url' => route('articles.index')],
-            ['label' => __('FAQ'), 'url' => route('faq')],
-            ['label' => __('Tools'), 'url' => route('tools')],
-            ['label' => __('Contact'), 'url' => route('cms.show', 'contact')],
-            $privacyUrl ? ['label' => __('Privacy'), 'url' => $privacyUrl] : null,
-        ]));
+    $customFooterLinks = $footerMenu->map(fn ($item) => ['label' => $item->label, 'url' => $item->url]);
+    $footerLinks = collect($fixedFooterLinks)->concat($customFooterLinks)->unique('url')->values()->all();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $locale) }}">

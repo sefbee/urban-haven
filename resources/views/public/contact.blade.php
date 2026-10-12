@@ -1,4 +1,5 @@
 @php
+    $contactSections = $contactSections ?? \App\Support\ContactPageSections::visible();
     $socialProfiles = collect((array) \App\Models\Setting::get('social_links', []))
         ->filter(fn ($profile): bool => is_array($profile) && ($profile['active'] ?? true) && filled($profile['url'] ?? null))
         ->take(4);

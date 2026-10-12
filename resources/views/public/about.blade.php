@@ -1,5 +1,5 @@
 @php
-    
+    $aboutSections = $aboutSections ?? \App\Support\AboutPageSections::visible();
     $aboutImages = $page->galleryImages();
     $heroImage = $aboutImages->get(0);
     $storyImage = $aboutImages->get(1) ?? $heroImage;

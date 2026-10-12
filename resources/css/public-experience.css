@@ -608,16 +608,30 @@ body.uh-home {
     }
 
     .uh-pill-link.is-light {
-        background: var(--uh-paper);
-        color: var(--uh-ink);
+        background: var(--uh-ink);
+        color: var(--uh-white);
     }
 
     .uh-pill-link.is-light .uh-pill-link-icon {
+        background: rgb(255 255 255 / 0.16);
+        color: var(--uh-white);
+    }
+
+    .uh-pill-link.is-light:hover {
+        background: #303432;
+    }
+
+    :is(.uh-cover, .uh-home-requirements, .uh-band-night) .uh-pill-link.is-light {
         background: var(--uh-white);
         color: var(--uh-ink);
     }
 
-    .uh-pill-link.is-light:hover {
+    :is(.uh-cover, .uh-home-requirements, .uh-band-night) .uh-pill-link.is-light .uh-pill-link-icon {
+        background: var(--uh-paper);
+        color: var(--uh-ink);
+    }
+
+    :is(.uh-cover, .uh-home-requirements, .uh-band-night) .uh-pill-link.is-light:hover {
         background: var(--uh-paper-2);
     }
 
