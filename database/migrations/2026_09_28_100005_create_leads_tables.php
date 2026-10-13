@@ -25,8 +25,8 @@ return new class extends Migration
             $table->string('referrer')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('message')->nullable();
-            $table->string('status')->default('new');
-            $table->string('priority')->default('normal');
+            $table->string('status', 32)->default('new');
+            $table->string('priority', 16)->default('normal');
             $table->string('next_action')->nullable();
             $table->timestamp('next_action_at')->nullable();
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();

@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('cms_blocks')->where('key', 'intent_blocks')->delete();
+        DB::table('cms_blocks')->where('key', 'intent_blocks')->update(['is_visible' => false]);
 
         DB::table('cms_pages')
             ->where('slug', 'contact')

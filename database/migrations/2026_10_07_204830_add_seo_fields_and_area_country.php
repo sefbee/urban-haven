@@ -16,6 +16,7 @@ return new class extends Migration
 
         Schema::table('location_areas', function (Blueprint $table) {
             $table->string('country', 80)->default('Bangladesh')->after('slug');
+            $table->string('city', 150)->change();
             $table->index(['country', 'city']);
         });
 

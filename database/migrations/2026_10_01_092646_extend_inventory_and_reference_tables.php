@@ -52,6 +52,8 @@ return new class extends Migration
         });
 
         Schema::table('media', function (Blueprint $table) {
+            $table->string('mediable_type', 100)->change();
+            $table->string('collection', 64)->default('gallery')->change();
             $table->string('original_disk')->default('public')->after('disk');
             $table->string('original_path')->nullable()->after('original_disk');
             $table->boolean('is_public')->default(true)->after('sort_order');

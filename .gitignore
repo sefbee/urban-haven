@@ -27,3 +27,6 @@ Homestead.yaml
 Thumbs.db
 
 /deploy.zip
+/deploy-live-fix*.zip
+/urban-haven-live-public_html*.zip
+/urban-haven-public_html-*.zip

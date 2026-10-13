@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +13,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $hasLegacyProjectData = DB::table('projects')->whereNotNull('trust_label')->exists();
+        $hasLegacyPropertyData = DB::table('properties')
+            ->where(function (Builder $query): void {
+                $query->whereNotNull('virtual_tour_url')
+                    ->orWhereNotNull('trust_label')
+                    ->orWhereNotNull('assigned_contact_id');
+            })
+            ->exists();
+
+        if ($hasLegacyProjectData || $hasLegacyPropertyData) {
+            return;
+        }
+
         Schema::table('projects', function (Blueprint $table) {
             $table->dropColumn('trust_label');
         });
