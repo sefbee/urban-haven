@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Exit script on any error
-set -e
+set -euo pipefail
 
 echo "=========================================="
 echo "🚀 URBAN HAVEN DEPLOYMENT PACKAGER"
@@ -17,17 +16,18 @@ echo "[3/4] Packaging files into deploy.zip..."
 # Remove old zip if it exists
 rm -f deploy.zip
 
-# Zip everything, excluding unnecessary dev/local files to save space
-zip -r -q deploy.zip . \
-    -x "*.git*" \
-    -x "*node_modules*" \
-    -x "*storage/logs/*.log" \
-    -x "*storage/framework/cache/data/*" \
-    -x "*storage/framework/views/*" \
-    -x "*tests*" \
-    -x "*.env" -x "public/hot" \
-    -x "deploy.sh" \
-    -x "deploy.zip"
+# Package only the Laravel application and its runtime dependencies. This avoids
+# bundling local uploads, editor worktrees, scratch files, and previous archives.
+zip -r -q deploy.zip \
+    app bootstrap config database public resources routes storage vendor \
+    artisan composer.json composer.lock package.json package-lock.json vite.config.js .npmrc \
+    -x 'storage/app/*' \
+    -x 'storage/framework/cache/*' \
+    -x 'storage/framework/sessions/*' \
+    -x 'storage/framework/views/*' \
+    -x 'storage/logs/*' \
+    -x 'public/hot' \
+    -x 'public/storage'
 
 FILESIZE=$(stat -c%s "deploy.zip")
 echo "[4/4] Package created successfully! (Size: $(($FILESIZE/1024/1024)) MB)"
