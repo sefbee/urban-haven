@@ -52,7 +52,10 @@ try {
 // 3. Clear and rebuild caches
 echo "[3/3] Optimizing and clearing application cache...\n";
 try {
+    Artisan::call('storage:link');
     Artisan::call('optimize:clear');
+    Artisan::call('optimize');
+    Artisan::call('view:cache');
     echo Artisan::output();
     echo "✅ Cache cleared.\n\n";
 } catch (Exception $e) {

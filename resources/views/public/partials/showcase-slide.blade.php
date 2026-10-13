@@ -1,7 +1,8 @@
 @php
     $listingLayout = $listingLayout ?? false;
     $gridLayout = $gridLayout ?? false;
-    $featuredContent = ! $listingLayout && ! $gridLayout;
+    $featuredContent = $featuredContent ?? (! $listingLayout && ! $gridLayout);
+    $showListingMeta = $showListingMeta ?? $listingLayout;
     $onRequest = $property->isPriceOnRequest();
     $isRent = $property->listing_type === 'rent';
     $compact = $onRequest || $isRent ? null : \App\Support\MoneyFormatter::compactBdt($property->price);
@@ -68,10 +69,10 @@
             <span @class(['uh-showcase-badge', 'is-rent' => $isRent, 'is-sale' => ! $isRent])>
                 {{ $isRent ? __('For Rent') : __('For Sale') }}
             </span>
-            @if($listingLayout)
+            @if($listingLayout && $showListingMeta)
                 <span class="uh-showcase-ref uh-numeric">#{{ $property->reference ?: $property->id }}</span>
             @endif
-            @if($listingLayout && $property->is_featured)
+            @if($listingLayout && $showListingMeta && $property->is_featured)
                 <span class="uh-showcase-highlight-mark" aria-label="{{ __('Featured property') }}">
                     <x-icon name="star" class="size-5" />
                 </span>
@@ -102,10 +103,10 @@
                         :aria-pressed="$store.saved.has('compare', {{ $property->id }}).toString()"
                         :aria-label="$store.saved.has('compare', {{ $property->id }}) ? @js(__('Remove :title from compare', ['title' => $property->title])) : @js(__('Add :title to compare', ['title' => $property->title]))"
                         aria-label="{{ __('Add :title to compare', ['title' => $property->title]) }}"
-                        @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => ! $listingLayout && ! $gridLayout])
+                        @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => $featuredContent])
                         @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
-                    <i class="fa-duotone fa-code-compare uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
-                    <i class="fa-duotone fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                    <i class="fa-light fa-code-compare uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
+                    <i class="fa-light fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
                 </button>
             </div>
 

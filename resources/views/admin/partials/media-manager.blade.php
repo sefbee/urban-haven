@@ -33,6 +33,7 @@
                      collection: @js($collection),
                      reorderUrl: @js(route('admin.media.reorder')),
                      batchUrl: @js(route('admin.media.batch-update')),
+                     bulkDeleteUrl: @js(route('admin.media.bulk-destroy')),
                      coverId: {{ $supportsCover && $owner->featured_media_id ? $owner->featured_media_id : 'null' }},
                      itemIds: @js($items->pluck('id')->values()),
                      items: @js($itemsConfig),
@@ -46,6 +47,33 @@
                 <h2 id="media-{{ $collection }}-heading" class="uh-h4">{{ $heading }}</h2>
                 <span class="text-xs text-[var(--admin-muted)]" x-text="'(' + itemIds.length + ')'">({{ $items->count() }})</span>
             </div>
+
+            @if($canEdit && ! $isDocument)
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" class="uh-btn-ghost uh-btn-sm" @click="selectAllMedia()" :disabled="deletingSelected || itemIds.length === 0">
+                        Select all
+                    </button>
+                    <button type="button" class="uh-btn-ghost uh-btn-sm" @click="selectedMediaIds = []"
+                            x-show="selectedMediaIds.length > 0" x-cloak :disabled="deletingSelected">
+                        Clear selection
+                    </button>
+                    <form method="POST" :action="bulkDeleteUrl" @submit="confirmBulkDelete($event)" class="inline-flex items-center gap-2">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="owner_type" value="{{ $ownerType }}">
+                        <input type="hidden" name="owner_id" value="{{ $owner->id }}">
+                        <input type="hidden" name="collection" value="{{ $collection }}">
+                        <template x-for="mediaId in selectedMediaIds" :key="mediaId">
+                            <input type="hidden" name="media_ids[]" :value="mediaId">
+                        </template>
+                        <button type="submit" class="uh-btn-outline uh-btn-sm text-[var(--dd-red)]"
+                                x-show="selectedMediaIds.length > 0" x-cloak :disabled="deletingSelected">
+                            <x-icon name="trash" class="size-4" />
+                            <span x-text="`Remove selected (${selectedMediaIds.length})`"></span>
+                        </button>
+                    </form>
+                </div>
+            @endif
 
         </div>
 
@@ -143,8 +171,16 @@
                     @php
                         $isCover = $supportsCover && $owner->featured_media_id === $item->id;
                     @endphp
-                    <li class="uh-admin-media-card" id="media-item-{{ $item->id }}"
+                    <li class="uh-admin-media-card relative" id="media-item-{{ $item->id }}"
                         :class="{ 'ring-2 ring-gold shadow-md': coverId === {{ $item->id }} }">
+                        @if($canEdit && ! $isDocument)
+                            <label class="absolute left-2 top-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-md bg-white/95 shadow" title="Select image">
+                                <input type="checkbox" class="size-4 accent-[var(--color-accent)]"
+                                       :checked="selectedMediaIds.includes({{ $item->id }})"
+                                       @change="toggleMediaSelection({{ $item->id }}, $event.target.checked)"
+                                       aria-label="Select {{ $item->original_filename }}">
+                            </label>
+                        @endif
                         <div class="uh-admin-media-card-bar"
                              :class="{ 'is-ready': itemsData[{{ $item->id }}]?.is_public, 'is-cover': coverId === {{ $item->id }} }">
                             <div class="uh-admin-media-card-copy">

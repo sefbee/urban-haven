@@ -39,22 +39,22 @@ class ReferenceDataSeeder extends Seeder
         }
 
         $amenities = [
-            'pool' => ['label' => 'Swimming pool', 'icon_class' => 'fa-duotone fa-person-swimming'],
-            'gym' => ['label' => 'Fitness centre / Gym', 'icon_class' => 'fa-duotone fa-dumbbell'],
-            'parking' => ['label' => 'Dedicated parking', 'icon_class' => 'fa-duotone fa-square-parking'],
-            'security' => ['label' => '24/7 Security & CCTV', 'icon_class' => 'fa-duotone fa-shield-check'],
-            'lift' => ['label' => 'High-speed passenger lift', 'icon_class' => 'fa-duotone fa-elevator'],
-            'generator' => ['label' => 'Full backup generator', 'icon_class' => 'fa-duotone fa-bolt'],
-            'garden' => ['label' => 'Landscaped garden & lawn', 'icon_class' => 'fa-duotone fa-tree'],
-            'rooftop' => ['label' => 'Rooftop terrace lounge', 'icon_class' => 'fa-duotone fa-building'],
-            'intercom' => ['label' => 'Video intercom facility', 'icon_class' => 'fa-duotone fa-phone-office'],
-            'fire_exit' => ['label' => 'Fire safety & emergency exit', 'icon_class' => 'fa-duotone fa-fire-extinguisher'],
-            'gas' => ['label' => 'Central gas connection', 'icon_class' => 'fa-duotone fa-fire-flame-curved'],
-            'play_area' => ['label' => "Children's play area", 'icon_class' => 'fa-duotone fa-gamepad'],
-            'community_hall' => ['label' => 'Multi-purpose community hall', 'icon_class' => 'fa-duotone fa-users'],
-            'servant_room' => ['label' => 'Servant room & washroom', 'icon_class' => 'fa-duotone fa-door-closed'],
-            'solar' => ['label' => 'Rooftop solar energy system', 'icon_class' => 'fa-duotone fa-sun'],
-            'smart_home' => ['label' => 'Smart home automation', 'icon_class' => 'fa-duotone fa-house-laptop'],
+            'pool' => ['label' => 'Swimming pool', 'icon_class' => 'fa-light fa-person-swimming'],
+            'gym' => ['label' => 'Fitness centre / Gym', 'icon_class' => 'fa-light fa-dumbbell'],
+            'parking' => ['label' => 'Dedicated parking', 'icon_class' => 'fa-light fa-square-parking'],
+            'security' => ['label' => '24/7 Security & CCTV', 'icon_class' => 'fa-light fa-shield-check'],
+            'lift' => ['label' => 'High-speed passenger lift', 'icon_class' => 'fa-light fa-elevator'],
+            'generator' => ['label' => 'Full backup generator', 'icon_class' => 'fa-light fa-bolt'],
+            'garden' => ['label' => 'Landscaped garden & lawn', 'icon_class' => 'fa-light fa-tree'],
+            'rooftop' => ['label' => 'Rooftop terrace lounge', 'icon_class' => 'fa-light fa-building'],
+            'intercom' => ['label' => 'Video intercom facility', 'icon_class' => 'fa-light fa-phone-office'],
+            'fire_exit' => ['label' => 'Fire safety & emergency exit', 'icon_class' => 'fa-light fa-fire-extinguisher'],
+            'gas' => ['label' => 'Central gas connection', 'icon_class' => 'fa-light fa-fire-flame-curved'],
+            'play_area' => ['label' => "Children's play area", 'icon_class' => 'fa-light fa-gamepad'],
+            'community_hall' => ['label' => 'Multi-purpose community hall', 'icon_class' => 'fa-light fa-users'],
+            'servant_room' => ['label' => 'Servant room & washroom', 'icon_class' => 'fa-light fa-door-closed'],
+            'solar' => ['label' => 'Rooftop solar energy system', 'icon_class' => 'fa-light fa-sun'],
+            'smart_home' => ['label' => 'Smart home automation', 'icon_class' => 'fa-light fa-house-laptop'],
         ];
 
         foreach ($amenities as $key => $data) {

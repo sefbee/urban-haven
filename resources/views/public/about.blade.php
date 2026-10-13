@@ -123,25 +123,25 @@
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-white/10 text-center">
                                 @if(!empty($data['stat_one_value']))
                                     <div class="pt-4 md:pt-0">
-                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $data['stat_one_value'] }}</p>
+                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-secondary-text)] mb-2">{{ $data['stat_one_value'] }}</p>
                                         <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($data['stat_one_label'] ?? '')) !!}</p>
                                     </div>
                                 @endif
                                 @if(!empty($data['stat_two_value']))
                                     <div class="pt-8 md:pt-0">
-                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $data['stat_two_value'] }}</p>
+                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-secondary-text)] mb-2">{{ $data['stat_two_value'] }}</p>
                                         <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($data['stat_two_label'] ?? '')) !!}</p>
                                     </div>
                                 @endif
                                 @if(!empty($data['stat_three_value']))
                                     <div class="pt-8 md:pt-0">
-                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $data['stat_three_value'] }}</p>
+                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-secondary-text)] mb-2">{{ $data['stat_three_value'] }}</p>
                                         <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($data['stat_three_label'] ?? '')) !!}</p>
                                     </div>
                                 @endif
                                 @if(!empty($data['stat_four_value']))
                                     <div class="pt-8 md:pt-0">
-                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-accent)] mb-2">{{ $data['stat_four_value'] }}</p>
+                                        <p class="text-4xl lg:text-5xl font-display text-[var(--color-secondary-text)] mb-2">{{ $data['stat_four_value'] }}</p>
                                         <p class="text-[13px] text-[color-mix(in_srgb,var(--color-secondary-text)_65%,transparent)] font-medium">{!! nl2br(e($data['stat_four_label'] ?? '')) !!}</p>
                                     </div>
                                 @endif
@@ -313,60 +313,6 @@
                         </div>
                     </div>
                 </section>
-                @break
-
-            @case('team')
-                {{-- Team --}}
-                @php
-                    $members = $data['members'] ?? [];
-                    if (empty($members)) {
-                        $staffUsers = \App\Models\User::query()
-                            ->where('is_active', true)
-                            ->with('roles')
-                            ->take(6)
-                            ->get();
-
-                        $members = $staffUsers->map(fn ($u) => [
-                            'name' => $u->name,
-                            'role' => $u->roles->pluck('name')->first() ?? __('Property Specialist'),
-                            'image' => $u->avatar_url ?? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-                            'linkedin' => null,
-                        ])->toArray();
-                    }
-                @endphp
-                @if(!empty($members))
-                    <section class="py-20 bg-[var(--color-card-surface)]">
-                        <div class="uh-container-narrow text-center mb-16">
-                            @if(!empty($data['eyebrow']))
-                                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $data['eyebrow'] }}</p>
-                            @endif
-                            <h2 class="uh-h2">{{ $data['title'] ?? __('Meet the Team Behind Urban Haven') }}</h2>
-                        </div>
-                        
-                        <div class="uh-container">
-                            <div class="grid md:grid-cols-3 gap-8">
-                                @foreach($members as $member)
-                                    <div class="group">
-                                        <div class="relative w-full aspect-square bg-[var(--color-page-background)] rounded-sm overflow-hidden mb-5">
-                                            <img src="{{ $member['image'] ?? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80' }}" alt="{{ $member['name'] ?? '' }}" class="absolute inset-0 w-full h-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-500">
-                                        </div>
-                                        <div class="flex items-start justify-between">
-                                            <div>
-                                                <h3 class="text-sm font-bold text-[var(--color-body-text)] uppercase tracking-wide">{{ $member['name'] ?? '' }}</h3>
-                                                <p class="text-xs text-[var(--color-muted-text)] mt-1">{{ $member['role'] ?? '' }}</p>
-                                            </div>
-                                            @if(!empty($member['linkedin']))
-                                                <a href="{{ $member['linkedin'] }}" target="_blank" rel="noopener" class="text-[var(--color-accent)] hover:text-[var(--color-body-text)] transition-colors">
-                                                    <x-icon name="linkedin" class="size-4" />
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </section>
-                @endif
                 @break
 
             @case('cta')

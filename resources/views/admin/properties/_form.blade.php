@@ -185,7 +185,9 @@
                         <label class="uh-check">
                             <input type="checkbox" name="amenity_ids[]" value="{{ $amenity->id }}"
                                    @checked(in_array((int) $amenity->id, $selectedAmenities, true))>
-                            @if($amenity->iconUrl())
+                            @if($amenity->icon_class)
+                                <i class="{{ $amenity->icon_class }} size-4" aria-hidden="true"></i>
+                            @elseif($amenity->iconUrl())
                                 <img class="size-5 object-contain" src="{{ $amenity->iconUrl() }}" alt="" loading="lazy">
                             @else
                                 <x-icon name="sparkle" class="size-4 text-[var(--color-muted)]" />

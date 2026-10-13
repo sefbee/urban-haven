@@ -1,5 +1,8 @@
 @import 'tailwindcss';
-@import "../fontawesome-pro/css/all.css";
+@import "../fontawesome-pro/css/fontawesome.css";
+@import "../fontawesome-pro/css/light.css";
+@import "../fontawesome-pro/css/brands.css";
+@import "../fontawesome-pro/css/solid.css";
 @import './public-experience.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -2574,6 +2577,7 @@ body.uh-auth {
 }
 .uh-auth-input-wrap .uh-input::placeholder { color: #536988; opacity: 1; }
 .uh-auth-input-wrap > svg,
+.uh-auth-input-wrap > i,
 .uh-auth-password-toggle {
     position: absolute;
     top: 50%;

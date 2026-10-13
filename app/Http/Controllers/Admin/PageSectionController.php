@@ -192,6 +192,8 @@ class PageSectionController extends Controller
                     $rules["content.$key"] = [$presence, 'string', 'max:'.$field['max'], 'regex:/^\/[a-zA-Z0-9\-\/]+$/'];
                 } elseif ($field['type'] === 'number') {
                     $rules["content.$key"] = [$presence, 'integer', 'min:'.$field['min'], 'max:'.$field['max']];
+                } elseif ($field['type'] === 'select') {
+                    $rules["content.$key"] = [$presence, 'string', Rule::in(array_keys($field['options']))];
                 }
             }
         }

@@ -30,4 +30,13 @@ class Amenity extends Model
     {
         return $this->icon_path ? Storage::disk('public')->url($this->icon_path) : null;
     }
+
+    public function getIconClassAttribute(?string $value): ?string
+    {
+        if (! $value) {
+            return $value;
+        }
+
+        return str_replace(['fa-duotone', 'fa-solid', 'fa-regular'], 'fa-light', $value);
+    }
 }

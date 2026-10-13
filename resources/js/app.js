@@ -1804,8 +1804,11 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
     collection: config.collection || 'gallery',
     reorderUrl: config.reorderUrl || '',
     batchUrl: config.batchUrl || '',
+    bulkDeleteUrl: config.bulkDeleteUrl || '',
     coverId: config.coverId || null,
     itemIds: Array.isArray(config.itemIds) ? [...config.itemIds] : [],
+    selectedMediaIds: [],
+    deletingSelected: false,
     itemsData: {},
     pendingFiles: [],
     submitting: false,
@@ -1848,6 +1851,29 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
                 this.statusNotice = '';
             }, 5000);
         }
+    },
+
+    toggleMediaSelection(id, selected) {
+        const selectedIds = new Set(this.selectedMediaIds);
+        if (selected) {
+            selectedIds.add(id);
+        } else {
+            selectedIds.delete(id);
+        }
+        this.selectedMediaIds = [...selectedIds];
+    },
+
+    selectAllMedia() {
+        this.selectedMediaIds = [...this.itemIds];
+    },
+
+    confirmBulkDelete(event) {
+        const count = this.selectedMediaIds.length;
+        if (count === 0 || ! window.confirm(`Remove ${count} selected ${count === 1 ? 'image' : 'images'}?`)) {
+            event.preventDefault();
+            return;
+        }
+        this.deletingSelected = true;
     },
 
     pick() {
@@ -2058,7 +2084,7 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             }
 
             const li = document.createElement('li');
-            li.className = 'uh-admin-media-card';
+            li.className = 'uh-admin-media-card relative';
             li.id = 'media-item-' + record.id;
 
             const filename = record.original_filename || 'Uploaded file';
@@ -2068,6 +2094,9 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
                 : `<img src="${record.thumb_url || record.url}" alt="" loading="lazy" decoding="async">`;
 
             li.innerHTML = `
+                ${!isDoc ? `<label class="absolute left-2 top-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-md bg-white/95 shadow" title="Select image">
+                    <input type="checkbox" class="size-4" aria-label="Select image" onchange="window.Alpine?.$data(this.closest('.uh-admin-media'))?.toggleMediaSelection(${record.id}, this.checked)">
+                </label>` : ''}
                 <div class="uh-admin-media-card-bar">
                     <div class="uh-admin-media-card-copy">
                         <p class="uh-admin-media-name" title="${filename}">${filename}</p>

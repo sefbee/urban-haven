@@ -185,6 +185,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
         Route::patch('media', [MediaController::class, 'batchUpdate'])->name('media.batch-update');
         Route::put('media/reorder', [MediaController::class, 'reorder'])->name('media.reorder');
+        Route::delete('media/bulk', [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
         Route::patch('media/{medium}', [MediaController::class, 'update'])->name('media.update');
         Route::delete('media/{medium}', [MediaController::class, 'destroy'])->name('media.destroy');
 

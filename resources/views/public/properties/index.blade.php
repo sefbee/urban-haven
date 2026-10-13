@@ -135,7 +135,8 @@
                                     'index' => $loop->index,
                                     'total' => $loop->count,
                                     'listingLayout' => true,
-                                    'gridLayout' => true,
+                                    'featuredContent' => true,
+                                    'showListingMeta' => false,
                                 ])
                             @endforeach
                         </div>

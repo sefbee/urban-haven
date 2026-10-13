@@ -119,29 +119,6 @@ final class AboutPageSections
                     'approach_four_text' => ['label' => 'Step 4 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We guide you through the decision and handover.'],
                 ],
             ],
-            'team' => [
-                'block' => 'about_team',
-                'label' => 'Our People',
-                'summary' => 'Meet the team.',
-                'source' => ['label' => 'Manage staff', 'route' => 'admin.staff.index'],
-                'fields' => [
-                    'eyebrow' => ['label' => 'Team label', 'type' => 'text', 'max' => 80, 'default' => 'Our People'],
-                    'title' => ['label' => 'Team heading', 'type' => 'text', 'max' => 140, 'default' => 'Meet the Team Behind Urban Haven'],
-                    'members' => [
-                        'label' => 'Team members (optional - leave empty to display active staff)',
-                        'type' => 'repeater',
-                        'max' => 8,
-                        'default' => [],
-                        'item_label' => 'member',
-                        'fields' => [
-                            'name' => ['label' => 'Name', 'type' => 'text', 'max' => 80, 'required' => true],
-                            'role' => ['label' => 'Role / Designation', 'type' => 'text', 'max' => 80, 'required' => true],
-                            'image_url' => ['label' => 'Photo URL', 'type' => 'text', 'max' => 500],
-                            'linkedin_url' => ['label' => 'LinkedIn / Profile URL', 'type' => 'text', 'max' => 255],
-                        ],
-                    ],
-                ],
-            ],
             'cta' => [
                 'block' => 'about_cta',
                 'label' => 'Call to Action',

@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class MediaController extends Controller
@@ -177,6 +178,33 @@ class MediaController extends Controller
         }
 
         return back()->with('status', 'File removed.');
+    }
+
+    public function bulkDestroy(Request $request, MediaService $media): RedirectResponse
+    {
+        $validated = $request->validate([
+            'owner_type' => ['required', Rule::in(array_keys(self::OWNERS))],
+            'owner_id' => ['required', 'integer'],
+            'collection' => ['required', Rule::in(Media::IMAGE_COLLECTIONS)],
+            'media_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'media_ids.*' => ['required', 'integer', 'distinct', 'exists:media,id'],
+        ]);
+
+        $owner = $this->owner($validated['owner_type'], (int) $validated['owner_id']);
+        $this->authorize('update', $owner);
+
+        $selectedMedia = $owner->media()
+            ->where('collection', $validated['collection'])
+            ->whereKey($validated['media_ids'])
+            ->get();
+
+        abort_unless($selectedMedia->count() === count($validated['media_ids']), 404);
+
+        foreach ($selectedMedia as $medium) {
+            $media->delete($medium, $request->user());
+        }
+
+        return back()->with('status', $selectedMedia->count().' '.Str::plural('image', $selectedMedia->count()).' removed.');
     }
 
     private function owner(string $type, int $id): Model

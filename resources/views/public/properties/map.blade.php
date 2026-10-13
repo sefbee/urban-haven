@@ -66,7 +66,7 @@
                         aria-label="{{ __('Show map') }}">
                     <span class="font-medium text-[0.9375rem]">{{ __('Show map') }}</span>
                     <span class="bg-white text-black rounded-full size-8 flex items-center justify-center">
-                        <i class="fa-duotone fa-map"></i>
+                        <i class="fa-light fa-map"></i>
                     </span>
                 </button>
             </div>

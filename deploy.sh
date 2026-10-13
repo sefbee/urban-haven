@@ -25,7 +25,7 @@ zip -r -q deploy.zip . \
     -x "*storage/framework/cache/data/*" \
     -x "*storage/framework/views/*" \
     -x "*tests*" \
-    -x "*/.env" \
+    -x "*.env" -x "public/hot" \
     -x "deploy.sh" \
     -x "deploy.zip"
 

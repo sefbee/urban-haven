@@ -90,6 +90,12 @@
                                 </label>
                                 @if($field['type'] === 'textarea')
                                     <textarea id="{{ $fieldId }}" class="uh-textarea" rows="3" name="content[{{ $name }}]" maxlength="{{ $field['max'] }}">{{ $current }}</textarea>
+                                @elseif($field['type'] === 'select')
+                                    <select id="{{ $fieldId }}" class="uh-select" name="content[{{ $name }}]" data-native-select>
+                                        @foreach($field['options'] as $optionValue => $optionLabel)
+                                            <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ \Illuminate\Support\Str::headline($optionLabel) }}</option>
+                                        @endforeach
+                                    </select>
                                 @elseif($field['type'] === 'number')
                                     <input id="{{ $fieldId }}" class="uh-input max-w-40" type="number" name="content[{{ $name }}]" value="{{ $current }}" min="{{ $field['min'] }}" max="{{ $field['max'] }}" step="1">
                                 @else

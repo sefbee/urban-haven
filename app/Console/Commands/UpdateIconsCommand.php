@@ -15,7 +15,7 @@ class UpdateIconsCommand extends Command
     {
         $count = 0;
         foreach (Amenity::all() as $a) {
-            $a->icon_class = str_replace(['fa-solid', 'fa-regular', 'fa-light'], 'fa-duotone', $a->icon_class);
+            $a->icon_class = str_replace(['fa-duotone', 'fa-solid', 'fa-regular'], 'fa-light', $a->getRawOriginal('icon_class') ?? $a->icon_class);
             if ($a->isDirty()) {
                 $a->save();
                 $count++;
