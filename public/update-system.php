@@ -42,7 +42,7 @@ $kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 try {
-    Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+    // Artisan::call('migrate', ['--force' => true]);
     echo Artisan::output();
     echo "✅ Fresh Migrations and Seeding complete.\n\n";
 } catch (Exception $e) {
