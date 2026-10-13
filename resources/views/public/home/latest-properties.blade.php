@@ -3,11 +3,16 @@
     $showTabs = $latestSale->isNotEmpty() && $latestRent->isNotEmpty();
 @endphp
 
-<section class="uh-section uh-band-paper uh-latest-section uh-trending-section" aria-labelledby="latest-title">
+<section class="uh-section uh-band-paper uh-latest-section uh-trending-section" @if(filled($sectionContent['title'])) aria-labelledby="latest-title" @else aria-label="{{ __('Latest properties') }}" @endif>
     <div class="uh-container" x-data="uhHomeTabs('{{ $defaultTab }}')">
+        @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || $showTabs)
         <header class="uh-section-head" data-reveal>
-            <h2 id="latest-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-            <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
+            @if(filled($sectionContent['title']))
+                <h2 id="latest-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+            @endif
+            @if(filled($sectionContent['subtitle']))
+                <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
+            @endif
             @if($showTabs)
                 <div class="uh-seg" role="group" aria-label="{{ __('Listing type') }}">
                     <button type="button" class="uh-seg-btn" :aria-pressed="(tab === 'sale').toString()"
@@ -17,6 +22,7 @@
                 </div>
             @endif
         </header>
+        @endif
 
         @foreach(['sale' => $latestSale, 'rent' => $latestRent] as $purpose => $listings)
             @if($listings->isNotEmpty())
@@ -42,10 +48,12 @@
             @endif
         @endforeach
 
-        <div class="uh-section-foot">
-            <x-ui.pill-link :href="route('properties.index', ['sort' => 'newest'])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?sort=newest&listing_type=' + tab">
-                {{ $sectionContent['link_label'] }}
-            </x-ui.pill-link>
-        </div>
+        @if(filled($sectionContent['link_label']))
+            <div class="uh-section-foot">
+                <x-ui.pill-link :href="route('properties.index', ['sort' => 'newest'])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?sort=newest&listing_type=' + tab">
+                    {{ $sectionContent['link_label'] }}
+                </x-ui.pill-link>
+            </div>
+        @endif
     </div>
 </section>

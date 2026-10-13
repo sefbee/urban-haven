@@ -1,12 +1,18 @@
-<section id="home-locations" class="uh-section uh-band-paper scroll-mt-20" aria-labelledby="locations-title">
+<section id="home-locations" class="uh-section uh-band-paper scroll-mt-20" @if(filled($sectionContent['title'])) aria-labelledby="locations-title" @else aria-label="{{ __('Explore by location') }}" @endif>
     <div class="uh-container">
-        <header class="uh-section-head" data-reveal>
-            <h2 id="locations-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-            @if(filled($sectionContent['subtitle']))
-                <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
-            @endif
-            <x-ui.pill-link :href="route('properties.index', ['view' => 'map'])">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
-        </header>
+        @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['link_label']))
+            <header class="uh-section-head" data-reveal>
+                @if(filled($sectionContent['title']))
+                    <h2 id="locations-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                @endif
+                @if(filled($sectionContent['subtitle']))
+                    <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
+                @endif
+                @if(filled($sectionContent['link_label']))
+                    <x-ui.pill-link :href="route('properties.index', ['view' => 'map'])">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
+                @endif
+            </header>
+        @endif
 
         <ul class="uh-places">
             @foreach($areas as $area)

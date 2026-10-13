@@ -92,6 +92,9 @@
                                     <textarea id="{{ $fieldId }}" class="uh-textarea" rows="3" name="content[{{ $name }}]" maxlength="{{ $field['max'] }}">{{ $current }}</textarea>
                                 @elseif($field['type'] === 'select')
                                     <select id="{{ $fieldId }}" class="uh-select" name="content[{{ $name }}]" data-native-select>
+                                        @if(blank($current))
+                                            <option value="">No icon</option>
+                                        @endif
                                         @foreach($field['options'] as $optionValue => $optionLabel)
                                             <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ \Illuminate\Support\Str::headline($optionLabel) }}</option>
                                         @endforeach
@@ -195,10 +198,10 @@
             </nav>
 
             @if($canPublish)
-                <form method="POST" action="{{ route('admin.page-sections.reset', ['page' => $page, 'section' => $section]) }}" class="px-1"
-                      x-data="uhConfirm('Replace this section’s text with the built-in wording?')" @submit="confirm">
+            <form method="POST" action="{{ route('admin.page-sections.reset', ['page' => $page, 'section' => $section]) }}" class="px-1"
+                      x-data="uhConfirm('Clear this section’s text and restore its display settings?')" @submit="confirm">
                     @csrf
-                    <button type="submit" class="uh-link text-xs text-[var(--color-muted)]">Restore the built-in text</button>
+                    <button type="submit" class="uh-link text-xs text-[var(--color-muted)]">Clear section text</button>
                 </form>
             @endif
         </aside>

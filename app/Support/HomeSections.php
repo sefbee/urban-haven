@@ -25,11 +25,11 @@ final class HomeSections
                 'summary' => 'Top of the homepage: headline, property search and background photos.',
                 'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'Urban Haven Properties Ltd.'],
-                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 120, 'default' => 'Considered places to live in Dhaka.', 'required' => true],
-                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => 'Search houses, apartments, and land across Dhaka at prices you can verify with our desk.', 'hint' => 'Also used as the homepage description in Google when no SEO default is set.'],
-                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Explore properties'],
-                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/properties', 'hint' => 'A page on this website, starting with “/”.'],
+                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => '', 'hint' => 'Also used as the homepage description in Google when no SEO default is set.'],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '', 'hint' => 'A page on this website, starting with “/”.'],
                     'slide_seconds' => ['label' => 'Seconds per background photo', 'type' => 'number', 'min' => 3, 'max' => 20, 'default' => 7],
                 ],
             ],
@@ -39,8 +39,8 @@ final class HomeSections
                 'summary' => 'Live residential apartment listings shown in the housing rail.',
                 'source' => ['label' => 'Manage properties', 'route' => 'admin.properties.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Housing & Apartment Projects in Bangladesh', 'required' => true],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 1, 'max' => 16, 'default' => 8],
                 ],
             ],
@@ -50,9 +50,9 @@ final class HomeSections
                 'summary' => 'Projects published by the team and marked for homepage placement.',
                 'source' => ['label' => 'Manage projects', 'route' => 'admin.projects.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Featured Developments', 'required' => true],
-                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Explore considered developments from our team.'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all projects'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of projects', 'type' => 'number', 'min' => 1, 'max' => 12, 'default' => 6],
                 ],
             ],
@@ -62,9 +62,9 @@ final class HomeSections
                 'summary' => 'Listings marked “Featured”, shown as a large carousel.',
                 'source' => ['label' => 'Choose featured properties', 'route' => 'admin.properties.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Featured Properties', 'required' => true],
-                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'A closer look at the places our team is featuring right now.'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'See every property'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 16, 'default' => 8],
                 ],
             ],
@@ -74,8 +74,8 @@ final class HomeSections
                 'summary' => 'The most viewed live listings over the last 30 days.',
                 'source' => ['label' => 'Manage properties', 'route' => 'admin.properties.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Trending Properties', 'required' => true],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View All'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 12, 'default' => 6],
                 ],
             ],
@@ -85,9 +85,9 @@ final class HomeSections
                 'summary' => 'Areas with live listings, each with a cover photo.',
                 'source' => ['label' => 'Manage areas', 'route' => 'admin.areas.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Explore Properties by Location', 'required' => true],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
                     'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
-                    'link_label' => ['label' => 'Map link text', 'type' => 'text', 'max' => 40, 'default' => 'See them on the map'],
+                    'link_label' => ['label' => 'Map link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of areas', 'type' => 'number', 'min' => 3, 'max' => 24, 'default' => 12],
                 ],
             ],
@@ -97,8 +97,8 @@ final class HomeSections
                 'summary' => 'Property types grouped under Residential and Commercial tabs.',
                 'source' => ['label' => 'Manage property types', 'route' => 'admin.property-types.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Explore Real Estate in Bangladesh', 'required' => true],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                 ],
             ],
             'latest' => [
@@ -107,9 +107,9 @@ final class HomeSections
                 'summary' => 'The newest live listings with For sale / For rent tabs.',
                 'source' => ['label' => 'Manage properties', 'route' => 'admin.properties.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Latest Properties', 'required' => true],
-                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'New to Urban Haven this week.'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'See everything new'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of properties', 'type' => 'number', 'min' => 3, 'max' => 16, 'default' => 8],
                 ],
             ],
@@ -118,11 +118,11 @@ final class HomeSections
                 'label' => 'Property search callout',
                 'summary' => 'The callout inviting visitors to tell the team what they need.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label', 'type' => 'text', 'max' => 60, 'default' => 'Personal property search'],
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Can’t find what you’re looking for?', 'required' => true],
-                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => 'Tell us your preferred area, budget and needs. Our team will help you find a property that fits.'],
-                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Tell us what you need'],
-                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                    'eyebrow' => ['label' => 'Small label', 'type' => 'text', 'max' => 60, 'default' => ''],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
             'why' => [
@@ -130,13 +130,13 @@ final class HomeSections
                 'label' => 'Why Urban Haven',
                 'summary' => 'A short statement about the company with reasons to choose you.',
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Why Urban Haven?', 'required' => true],
-                    'body' => ['label' => 'Statement', 'type' => 'textarea', 'max' => 600, 'default' => 'One place to find Urban Haven properties, with the details you need to decide. The same team that publishes each listing answers your questions and walks you through the door.'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'More about us'],
-                    'link_url' => ['label' => 'Link', 'type' => 'path', 'max' => 255, 'default' => '/about'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'body' => ['label' => 'Statement', 'type' => 'textarea', 'max' => 600, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'link_url' => ['label' => 'Link', 'type' => 'path', 'max' => 255, 'default' => ''],
                     'items' => ['label' => 'Reasons', 'type' => 'repeater', 'max' => 6, 'default' => [], 'item_label' => 'reason', 'fields' => [
                         'icon' => ['label' => 'Icon', 'type' => 'icon', 'default' => 'check-circle'],
-                        'title' => ['label' => 'Title', 'type' => 'text', 'max' => 80, 'required' => true],
+                        'title' => ['label' => 'Title', 'type' => 'text', 'max' => 80],
                         'text' => ['label' => 'Short line', 'type' => 'textarea', 'max' => 200],
                     ]],
                 ],
@@ -147,10 +147,10 @@ final class HomeSections
                 'summary' => 'The newest published articles from the blog.',
                 'source' => ['label' => 'Manage articles', 'route' => 'admin.posts.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Latest Articles & Blog', 'required' => true],
-                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Practical notes on buying, renting and investing in property from the Urban Haven team.'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'Read all articles'],
-                    'videos_title' => ['label' => 'Property video heading', 'type' => 'text', 'max' => 80, 'default' => 'Property TV'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'videos_title' => ['label' => 'Property video heading', 'type' => 'text', 'max' => 80, 'default' => ''],
                     'video_limit' => ['label' => 'Number of property videos', 'type' => 'number', 'min' => 1, 'max' => 9, 'default' => 3],
                 ],
             ],
@@ -160,10 +160,10 @@ final class HomeSections
                 'summary' => 'Visible FAQs with a link to the full FAQ page.',
                 'source' => ['label' => 'Manage FAQs', 'route' => 'admin.faqs.index'],
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Frequently asked questions.', 'required' => true],
-                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Answers to your questions, every step of the way.'],
-                    'cta_label' => ['label' => 'Contact button text', 'type' => 'text', 'max' => 40, 'default' => 'Get in touch'],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'View all'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
+                    'subtitle' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'cta_label' => ['label' => 'Contact button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'limit' => ['label' => 'Number of questions', 'type' => 'number', 'min' => 1, 'max' => 12, 'default' => 5],
                 ],
             ],
@@ -280,6 +280,11 @@ final class HomeSections
 
         foreach ($defaults as $field => $default) {
             $value = $content[$field] ?? null;
+            if ($section === 'why' && $field === 'items' && is_array($value)) {
+                $value = array_values(array_filter($value, fn (mixed $item): bool => is_array($item)
+                    && (filled($item['title'] ?? null) || filled($item['text'] ?? null))));
+            }
+
             if ($value !== null && $value !== '' && $value !== []) {
                 $defaults[$field] = $value;
             }

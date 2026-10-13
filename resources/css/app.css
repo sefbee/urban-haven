@@ -6820,6 +6820,18 @@ body.uh-admin .dd-urls-tabs button.is-active {
     box-shadow: var(--shadow-uh-lg);
 }
 
+body.uh-admin .dd-urls-page .uh-admin-row-actions {
+    flex-wrap: nowrap;
+}
+
+body.uh-admin .dd-urls-page .uh-admin-row-actions > * {
+    flex: 0 0 auto;
+}
+
+body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
+    min-width: 19rem;
+}
+
 @media (max-width: 639px) {
     .dd-urls-toolbar {
         align-items: stretch;

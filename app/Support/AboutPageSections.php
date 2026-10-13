@@ -18,17 +18,17 @@ final class AboutPageSections
                 'summary' => 'Top of the about page: headline, intro, quote, and background photos.',
                 'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'A home is more than an address'],
-                    'title' => ['label' => 'Headline', 'type' => 'textarea', 'max' => 200, 'default' => "Building Trust.\nCreating Better Places to Live.", 'required' => true],
-                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Urban Haven Properties Ltd. helps people discover thoughtfully selected homes and investment opportunities through transparency, expertise and personal service.'],
-                    'quote' => ['label' => 'Quote', 'type' => 'textarea', 'max' => 240, 'default' => 'We believe the right property is more than an address — it is the foundation for a better future.'],
-                    'quote_kicker' => ['label' => 'Quote eyebrow', 'type' => 'text', 'max' => 80, 'default' => 'Our point of view'],
-                    'quote_label' => ['label' => 'Quote attribution', 'type' => 'text', 'max' => 80, 'default' => 'The Urban Haven approach'],
-                    'badge' => ['label' => 'Corner label', 'type' => 'text', 'max' => 100, 'default' => 'Made for your next chapter'],
-                    'primary_cta' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => 'Discover Our Properties'],
-                    'primary_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
-                    'secondary_cta' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => 'Talk to our team'],
-                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Headline', 'type' => 'textarea', 'max' => 200, 'default' => ''],
+                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'quote' => ['label' => 'Quote', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'quote_kicker' => ['label' => 'Quote eyebrow', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'quote_label' => ['label' => 'Quote attribution', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'badge' => ['label' => 'Corner label', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'primary_cta' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'primary_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => ''],
+                    'secondary_cta' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
             'story' => [
@@ -37,21 +37,21 @@ final class AboutPageSections
                 'summary' => 'The story section.',
                 'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Story label', 'type' => 'text', 'max' => 80, 'default' => 'Our Story'],
-                    'title' => ['label' => 'Story heading', 'type' => 'text', 'max' => 140, 'default' => 'A New Standard in Property Experience'],
+                    'eyebrow' => ['label' => 'Story label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Story heading', 'type' => 'text', 'max' => 140, 'default' => ''],
                     'quote' => ['label' => 'Story quote', 'type' => 'textarea', 'max' => 240, 'default' => ''],
                     'quote_kicker' => ['label' => 'Story quote eyebrow', 'type' => 'text', 'max' => 80, 'default' => ''],
                     'quote_label' => ['label' => 'Story quote attribution', 'type' => 'text', 'max' => 80, 'default' => ''],
-                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Discover Our Properties'],
-                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
-                    'stat_one_value' => ['label' => 'Stat 1 Value', 'type' => 'text', 'max' => 40, 'default' => '10+'],
-                    'stat_one_label' => ['label' => 'Stat 1 Label', 'type' => 'text', 'max' => 100, 'default' => 'Years of Combined Experience'],
-                    'stat_two_value' => ['label' => 'Stat 2 Value', 'type' => 'text', 'max' => 40, 'default' => '25+'],
-                    'stat_two_label' => ['label' => 'Stat 2 Label', 'type' => 'text', 'max' => 100, 'default' => 'Property Opportunities'],
-                    'stat_three_value' => ['label' => 'Stat 3 Value', 'type' => 'text', 'max' => 40, 'default' => '500+'],
-                    'stat_three_label' => ['label' => 'Stat 3 Label', 'type' => 'text', 'max' => 100, 'default' => 'Client Consultations'],
-                    'stat_four_value' => ['label' => 'Stat 4 Value', 'type' => 'text', 'max' => 40, 'default' => '100%'],
-                    'stat_four_label' => ['label' => 'Stat 4 Label', 'type' => 'text', 'max' => 100, 'default' => 'Commitment to Transparency'],
+                    'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => ''],
+                    'stat_one_value' => ['label' => 'Stat 1 Value', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'stat_one_label' => ['label' => 'Stat 1 Label', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'stat_two_value' => ['label' => 'Stat 2 Value', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'stat_two_label' => ['label' => 'Stat 2 Label', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'stat_three_value' => ['label' => 'Stat 3 Value', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'stat_three_label' => ['label' => 'Stat 3 Label', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'stat_four_value' => ['label' => 'Stat 4 Value', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'stat_four_label' => ['label' => 'Stat 4 Label', 'type' => 'text', 'max' => 100, 'default' => ''],
                 ],
             ],
             'purpose' => [
@@ -59,12 +59,12 @@ final class AboutPageSections
                 'label' => 'Our Purpose',
                 'summary' => 'Mission and Vision statement.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Purpose label', 'type' => 'text', 'max' => 80, 'default' => 'Our Purpose'],
-                    'title' => ['label' => 'Purpose heading', 'type' => 'text', 'max' => 140, 'default' => 'Driven by Purpose, Guided by Trust'],
-                    'mission_title' => ['label' => 'Mission title', 'type' => 'text', 'max' => 80, 'default' => 'Mission'],
-                    'mission_text' => ['label' => 'Mission text', 'type' => 'textarea', 'max' => 300, 'default' => 'To simplify the property journey through expert guidance, transparent communication and carefully selected real-estate opportunities.'],
-                    'vision_title' => ['label' => 'Vision title', 'type' => 'text', 'max' => 80, 'default' => 'Vision'],
-                    'vision_text' => ['label' => 'Vision text', 'type' => 'textarea', 'max' => 300, 'default' => 'To become a trusted real-estate name in Bangladesh, known for quality properties, lasting relationships and responsible growth.'],
+                    'eyebrow' => ['label' => 'Purpose label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Purpose heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'mission_title' => ['label' => 'Mission title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'mission_text' => ['label' => 'Mission text', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'vision_title' => ['label' => 'Vision title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'vision_text' => ['label' => 'Vision text', 'type' => 'textarea', 'max' => 300, 'default' => ''],
                 ],
             ],
             'values' => [
@@ -72,21 +72,21 @@ final class AboutPageSections
                 'label' => 'Values',
                 'summary' => 'The four core values.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Values label', 'type' => 'text', 'max' => 80, 'default' => 'What Guides Us'],
-                    'title' => ['label' => 'Values heading', 'type' => 'text', 'max' => 140, 'default' => 'Values Behind Every Decision'],
+                    'eyebrow' => ['label' => 'Values label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Values heading', 'type' => 'text', 'max' => 140, 'default' => ''],
                     'intro' => ['label' => 'Values introduction', 'type' => 'textarea', 'max' => 300, 'default' => ''],
-                    'value_one_icon' => ['label' => 'First value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'shield'],
-                    'value_one_title' => ['label' => 'First value heading', 'type' => 'text', 'max' => 80, 'default' => 'Integrity'],
-                    'value_one_text' => ['label' => 'First value text', 'type' => 'textarea', 'max' => 240, 'default' => 'We communicate clearly and act responsibly.'],
-                    'value_two_icon' => ['label' => 'Second value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'users'],
-                    'value_two_title' => ['label' => 'Second value heading', 'type' => 'text', 'max' => 80, 'default' => 'Client First'],
-                    'value_two_text' => ['label' => 'Second value text', 'type' => 'textarea', 'max' => 240, 'default' => 'Every recommendation begins with your needs.'],
-                    'value_three_icon' => ['label' => 'Third value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'sparkle'],
-                    'value_three_title' => ['label' => 'Third value heading', 'type' => 'text', 'max' => 80, 'default' => 'Quality'],
-                    'value_three_text' => ['label' => 'Third value text', 'type' => 'textarea', 'max' => 240, 'default' => 'We focus on properties with lasting value.'],
-                    'value_four_icon' => ['label' => 'Fourth value icon', 'type' => 'select', 'options' => self::ICONS, 'default' => 'refresh'],
-                    'value_four_title' => ['label' => 'Fourth value heading', 'type' => 'text', 'max' => 80, 'default' => 'Long-Term Partnership'],
-                    'value_four_text' => ['label' => 'Fourth value text', 'type' => 'textarea', 'max' => 240, 'default' => 'Our relationship continues beyond the transaction.'],
+                    'value_one_icon' => ['label' => 'First value icon', 'type' => 'select', 'options' => array_combine(self::ICONS, self::ICONS), 'default' => ''],
+                    'value_one_title' => ['label' => 'First value heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'value_one_text' => ['label' => 'First value text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'value_two_icon' => ['label' => 'Second value icon', 'type' => 'select', 'options' => array_combine(self::ICONS, self::ICONS), 'default' => ''],
+                    'value_two_title' => ['label' => 'Second value heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'value_two_text' => ['label' => 'Second value text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'value_three_icon' => ['label' => 'Third value icon', 'type' => 'select', 'options' => array_combine(self::ICONS, self::ICONS), 'default' => ''],
+                    'value_three_title' => ['label' => 'Third value heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'value_three_text' => ['label' => 'Third value text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'value_four_icon' => ['label' => 'Fourth value icon', 'type' => 'select', 'options' => array_combine(self::ICONS, self::ICONS), 'default' => ''],
+                    'value_four_title' => ['label' => 'Fourth value heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'value_four_text' => ['label' => 'Fourth value text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
                 ],
             ],
             'choose' => [
@@ -95,11 +95,11 @@ final class AboutPageSections
                 'summary' => 'Reasons to choose us.',
                 'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Why Choose Us label', 'type' => 'text', 'max' => 80, 'default' => 'Why Choose Us'],
-                    'title' => ['label' => 'Why Choose Us heading', 'type' => 'text', 'max' => 140, 'default' => 'Property Guidance You Can Rely On'],
-                    'list' => ['label' => 'Why Choose Us list (one per line)', 'type' => 'textarea', 'max' => 500, 'default' => "Carefully selected property portfolio\nClear and transparent communication\nDedicated property consultants\nSupport from enquiry to handover\nLocal market knowledge"],
-                    'cta_label' => ['label' => 'Why Choose button text', 'type' => 'text', 'max' => 40, 'default' => 'Talk to Our Team'],
-                    'cta_url' => ['label' => 'Why Choose button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                    'eyebrow' => ['label' => 'Why Choose Us label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Why Choose Us heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'list' => ['label' => 'Why Choose Us list (one per line)', 'type' => 'textarea', 'max' => 500, 'default' => ''],
+                    'cta_label' => ['label' => 'Why Choose button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'cta_url' => ['label' => 'Why Choose button link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
             'approach' => [
@@ -107,16 +107,16 @@ final class AboutPageSections
                 'label' => 'Our Approach',
                 'summary' => 'The four step approach.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Approach label', 'type' => 'text', 'max' => 80, 'default' => 'Our Approach'],
-                    'title' => ['label' => 'Approach heading', 'type' => 'text', 'max' => 140, 'default' => 'A Simpler Way to Find Your Property'],
-                    'approach_one_title' => ['label' => 'Step 1 title', 'type' => 'text', 'max' => 80, 'default' => 'Understand'],
-                    'approach_one_text' => ['label' => 'Step 1 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We listen to your goals, preferences and budget.'],
-                    'approach_two_title' => ['label' => 'Step 2 title', 'type' => 'text', 'max' => 80, 'default' => 'Recommend'],
-                    'approach_two_text' => ['label' => 'Step 2 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We shortlist relevant property opportunities.'],
-                    'approach_three_title' => ['label' => 'Step 3 title', 'type' => 'text', 'max' => 80, 'default' => 'Experience'],
-                    'approach_three_text' => ['label' => 'Step 3 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We arrange visits and provide complete information.'],
-                    'approach_four_title' => ['label' => 'Step 4 title', 'type' => 'text', 'max' => 80, 'default' => 'Support'],
-                    'approach_four_text' => ['label' => 'Step 4 text', 'type' => 'textarea', 'max' => 240, 'default' => 'We guide you through the decision and handover.'],
+                    'eyebrow' => ['label' => 'Approach label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Approach heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'approach_one_title' => ['label' => 'Step 1 title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'approach_one_text' => ['label' => 'Step 1 text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'approach_two_title' => ['label' => 'Step 2 title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'approach_two_text' => ['label' => 'Step 2 text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'approach_three_title' => ['label' => 'Step 3 title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'approach_three_text' => ['label' => 'Step 3 text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
+                    'approach_four_title' => ['label' => 'Step 4 title', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'approach_four_text' => ['label' => 'Step 4 text', 'type' => 'textarea', 'max' => 240, 'default' => ''],
                 ],
             ],
             'cta' => [
@@ -124,13 +124,13 @@ final class AboutPageSections
                 'label' => 'Call to Action',
                 'summary' => 'Bottom call to action.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'max' => 80, 'default' => 'Your next chapter'],
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => 'Let’s Build Your Property Journey Together.'],
-                    'body' => ['label' => 'Body text', 'type' => 'textarea', 'max' => 300, 'default' => 'Speak with our team and discover an opportunity that matches your goals.'],
-                    'label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => 'Book a Consultation'],
-                    'url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
-                    'secondary_label' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => 'Contact Us'],
-                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => '/contact'],
+                    'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'body' => ['label' => 'Body text', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => ''],
+                    'secondary_label' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
         ];
@@ -206,15 +206,23 @@ final class AboutPageSections
 
     public static function defaults(string $section): array
     {
-        return array_map(fn (array $field): mixed => $field['default'] ?? null, self::definition($section)['fields']);
+        return array_map(fn (array $field): mixed => in_array($field['type'], ['text', 'textarea', 'path', 'select'], true)
+            ? ''
+            : ($field['default'] ?? null), self::definition($section)['fields']);
     }
 
     public static function resolve(string $section, ?array $content): array
     {
+        $definition = self::definition($section);
         $defaults = self::defaults($section);
 
         foreach ($defaults as $field => $default) {
             $value = $content[$field] ?? null;
+
+            if ($definition['fields'][$field]['type'] === 'select' && is_numeric($value)) {
+                $value = self::ICONS[(int) $value] ?? '';
+            }
+
             if ($value !== null && $value !== '' && $value !== []) {
                 $defaults[$field] = $value;
             }

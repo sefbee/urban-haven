@@ -1,13 +1,27 @@
-<section class="uh-section uh-band-paper uh-home-editorial" aria-labelledby="articles-title">
+<section class="uh-section uh-band-paper uh-home-editorial" @if(filled($sectionContent['title'])) aria-labelledby="articles-title" @else aria-label="{{ __('Latest articles') }}" @endif>
     <div class="uh-container">
         
         <!-- Section Header (Full Width) -->
-        <header class="flex items-center justify-between mb-8" data-reveal>
-            <h2 id="articles-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['title'] }}</h2>
-            <a href="{{ route('articles.index') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm" aria-label="{{ __('View all articles') }}">
-                <x-icon name="arrow-up-right" class="size-4" />
-            </a>
+        @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['link_label']))
+        <header class="mb-8 flex items-center justify-between gap-6" data-reveal>
+            <div>
+                @if(filled($sectionContent['title']))
+                    <h2 id="articles-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['title'] }}</h2>
+                @endif
+                @if(filled($sectionContent['subtitle']))
+                    <p class="uh-lede mt-2">{{ $sectionContent['subtitle'] }}</p>
+                @endif
+            </div>
+            @if(filled($sectionContent['link_label']))
+                <a href="{{ route('articles.index') }}" class="flex shrink-0 items-center gap-3 text-sm font-semibold text-slate-900 transition hover:text-slate-600" aria-label="{{ $sectionContent['link_label'] }}">
+                    <span>{{ $sectionContent['link_label'] }}</span>
+                    <span class="flex size-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition hover:bg-slate-800">
+                        <x-icon name="arrow-up-right" class="size-4" />
+                    </span>
+                </a>
+            @endif
         </header>
+        @endif
 
         <div class="flex flex-col gap-10">
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5" data-reveal>
@@ -34,12 +48,14 @@
 
             @if($propertyVideos->isNotEmpty())
                 <div>
-                    <header class="flex items-center justify-between mb-8" data-reveal>
-                        <h2 id="property-tv-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['videos_title'] }}</h2>
-                        <a href="{{ route('properties.index') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm" aria-label="{{ __('View properties') }}">
-                            <x-icon name="arrow-up-right" class="size-4" />
-                        </a>
-                    </header>
+                    @if(filled($sectionContent['videos_title']))
+                        <header class="mb-8 flex items-center justify-between" data-reveal>
+                            <h2 id="property-tv-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['videos_title'] }}</h2>
+                            <a href="{{ route('properties.index') }}" class="flex size-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition hover:bg-slate-800" aria-label="{{ __('View properties') }}">
+                                <x-icon name="arrow-up-right" class="size-4" />
+                            </a>
+                        </header>
+                    @endif
 
                     <div class="flex flex-col gap-6">
                         @foreach($propertyVideos as $property)

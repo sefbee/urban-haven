@@ -4,10 +4,9 @@
     $template = $page->slug === 'contact' ? 'contact' : ($page->slug === 'about' ? 'about' : ($page->template ?: 'default'));
     $aboutSections = \App\Support\AboutPageSections::visible();
     $contactSections = \App\Support\ContactPageSections::visible();
-    $contactBlock = $template === 'contact' ? (\App\Models\CmsBlock::contentFor('contact_details') ?? []) : [];
-    $phone = \App\Models\Setting::get('phone') ?: ($contactBlock['phone'] ?? null);
-    $email = \App\Models\Setting::get('email') ?: ($contactBlock['email'] ?? null);
-    $address = \App\Models\Setting::get('address') ?: ($contactBlock['address'] ?? null);
+    $phone = \App\Models\Setting::get('phone');
+    $email = \App\Models\Setting::get('email');
+    $address = \App\Models\Setting::get('address');
     $officeHours = \App\Models\Setting::get('office_hours');
     $whatsappHref = \App\Support\PhoneNumber::whatsappHref(\App\Models\Setting::get('whatsapp'));
     $hasForm = in_array($template, ['contact', 'campaign'], true);

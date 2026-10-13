@@ -16,7 +16,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <div x-data="{
+    <div class="dd-urls-page" x-data="{
         q: '',
         group: 'all',
         copied: null,
@@ -159,7 +159,7 @@
                         @csrf
                         <div class="uh-field">
                             <label class="uh-label" for="menu-location">{{ __('Menu') }}</label>
-                            <select id="menu-location" x-ref="menuLocation" name="location" class="uh-select" x-model="menu.location" @change="menu.parent_id = ''" required>
+                            <select id="menu-location" x-ref="menuLocation" name="location" class="uh-select" data-native-select x-model="menu.location" @change="menu.parent_id = ''" required>
                                 @foreach($menuLocations as $location => $label)
                                     <option value="{{ $location }}">{{ $label }}</option>
                                 @endforeach
@@ -167,7 +167,7 @@
                         </div>
                         <div class="uh-field">
                             <label class="uh-label" for="menu-parent">{{ __('Parent link') }}</label>
-                            <select id="menu-parent" name="parent_id" class="uh-select" x-model="menu.parent_id">
+                            <select id="menu-parent" name="parent_id" class="uh-select" data-native-select x-model="menu.parent_id">
                                 <option value="">{{ __('Top level') }}</option>
                                 <template x-for="parent in menuParents.filter(item => item.location === menu.location)" :key="parent.id">
                                     <option :value="parent.id" x-text="parent.label"></option>

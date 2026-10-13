@@ -14,15 +14,7 @@
                     <p class="uh-editorial-intro">{{ $articlesSections['masthead']['intro'] ?? __('Ideas, places and perspectives shaping the way Bangladesh lives.') }}</p>
                 </div>
 
-                @if($categories->isNotEmpty())
-                    <nav class="uh-editorial-categories" aria-label="{{ __('Article categories') }}">
-                        <a href="{{ route('articles.index') }}" @class(['is-active' => ! $activeCategory])>{{ __('All stories') }}</a>
-                        @foreach($categories as $category)
-                            <a href="{{ route('articles.index', ['category' => $category->slug]) }}"
-                               @class(['is-active' => $activeCategory?->is($category)])>{{ $category->name }}</a>
-                        @endforeach
-                    </nav>
-                @endif
+
             </header>
         @endif
 
@@ -204,33 +196,7 @@
                 @endforeach
                 @endif
 
-            @if(isset($articlesSections['grid']))
-                <section class="uh-editorial-listing-grid" aria-label="{{ __('Articles') }}">
-                    @foreach($posts as $post)
-                        <a href="{{ route('articles.show', $post->slug) }}" class="uh-editorial-card group">
-                            <span class="uh-editorial-card-image">
-                                @if($cover = $post->featuredImage())
-                                    <img src="{{ $cover->url(768) }}" alt="{{ $cover->alt() ?: $post->title }}" loading="lazy" decoding="async">
-                                @else
-                                    <span class="uh-editorial-image-placeholder"></span>
-                                @endif
-                            </span>
-                            <span class="uh-editorial-card-copy">
-                                <span class="uh-editorial-kicker">{{ $post->category?->name }}</span>
-                                <span class="uh-editorial-card-title">{{ $post->title }}</span>
-                                @if($post->excerpt)
-                                    <span class="uh-editorial-card-excerpt">{{ $post->excerpt }}</span>
-                                @endif
-                                <span class="uh-editorial-date">{{ $post->publicationState?->published_at?->format('M d, Y') }}</span>
-                            </span>
-                        </a>
-                    @endforeach
-                </section>
 
-                @if($posts->hasPages())
-                    <div class="uh-pagination-wrap">{{ $posts->onEachSide(1)->links() }}</div>
-                @endif
-            @endif
         @else
             <x-ui.empty icon="document" :title="__('No articles published yet')"
                         :description="__('Guides from our team will appear here. In the meantime, browse our properties or ask us a question.')">

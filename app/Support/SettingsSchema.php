@@ -20,7 +20,7 @@ final class SettingsSchema
     public const SCREENS = [
         'general' => ['title' => 'General setting', 'description' => 'Company name, tagline, logos and the icon browsers show in the tab.', 'groups' => ['branding', 'brand_assets', 'admin_login']],
         'theme' => ['title' => 'Theme & colours', 'description' => 'Set the website palette using the 6-colour rule across a 60/30/10 balance: 2 primary, 2 secondary, and 2 accent colours.', 'groups' => ['theme']],
-        'contact' => ['title' => 'Contact & social', 'description' => 'Public phone, email and address, the header button and footer text, social profiles, floating chat button, and enquiries.', 'groups' => ['contact', 'leads', 'chrome', 'floating']],
+        'contact' => ['title' => 'Contact & social', 'description' => 'Public contact details, footer text, social profiles, floating chat button, and enquiry settings.', 'groups' => ['contact', 'leads', 'chrome', 'floating']],
         'listings' => ['title' => 'Listing display', 'description' => 'What the public website shows and how property addresses appear on listing pages.', 'groups' => ['listings']],
         'analytics' => ['title' => 'Analytics & tracking', 'description' => 'Google Tag Manager, Google Analytics, Google Ads and Meta Pixel, and the cookie banner that asks visitors first.', 'groups' => ['analytics', 'consent']],
         'seo' => ['title' => 'SEO defaults', 'description' => 'Default title and description, Search Console verification and whether search engines may index the site.', 'groups' => ['seo']],
@@ -34,7 +34,7 @@ final class SettingsSchema
         'branding' => 'Identity',
         'brand_assets' => 'Logos and icons',
         'admin_login' => 'Staff sign-in page',
-        'chrome' => 'Header button and footer',
+        'chrome' => 'Footer content',
         'consent' => 'Cookie banner',
         'theme' => 'Brand colours',
         'contact' => 'Contact details',
@@ -92,8 +92,6 @@ final class SettingsSchema
             'office_hours' => ['group' => 'contact', 'cast' => 'string', 'label' => 'Office hours', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:120'], 'placeholder' => 'Sat–Thu, 10 am – 7 pm'],
             'map_url' => ['group' => 'contact', 'cast' => 'string', 'label' => 'Google Maps link', 'input' => 'url', 'rules' => ['nullable', 'url:https', 'max:500'], 'help' => 'The “Get directions” link for the office.'],
 
-            'header_cta_label' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Header button text', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:30'], 'placeholder' => 'Talk to us', 'help' => 'The highlighted button at the top of every page. Leave blank to hide it.'],
-            'header_cta_url' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Header button link', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:255', 'regex:/^(\/[^\s]*|https:\/\/[^\s]+|tel:[0-9+ ]+|mailto:[^\s]+)$/'], 'placeholder' => '/contact', 'help' => 'A page on this website such as /contact, a full https:// address, or tel:/mailto:.'],
             'footer_note' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Footer statement', 'input' => 'textarea', 'rules' => ['nullable', 'string', 'max:300'], 'help' => 'The short line beside the logo in the footer.'],
             'footer_copyright' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Copyright line', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:160'], 'placeholder' => 'All rights reserved.', 'help' => 'Shown after “© year company name”.'],
 

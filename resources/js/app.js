@@ -1794,6 +1794,15 @@ Alpine.data('uhPostCreateForm', () => ({
             return;
         }
 
+        const submitter = event.submitter;
+        if (submitter?.name && submitter.value) {
+            const submitAction = document.createElement('input');
+            submitAction.type = 'hidden';
+            submitAction.name = submitter.name;
+            submitAction.value = submitter.value;
+            this.$el.append(submitAction);
+        }
+
         this.submitting = true;
     },
 }));

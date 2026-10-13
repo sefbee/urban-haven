@@ -51,7 +51,11 @@
                         @endif
                     </div>
                     <p class="dd-hs-summary">{{ $definition['summary'] }}</p>
-                    <p class="dd-hs-preview">“{{ \Illuminate\Support\Str::limit($content['title'] ?? '', 80) }}”</p>
+                    @if(filled($content['title'] ?? null))
+                        <p class="dd-hs-preview">“{{ \Illuminate\Support\Str::limit($content['title'], 80) }}”</p>
+                    @else
+                        <p class="dd-hs-preview">No custom heading</p>
+                    @endif
                 </div>
 
                 <div class="dd-hs-actions">

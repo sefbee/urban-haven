@@ -6,7 +6,7 @@
         'lede' => __('Saved on this device. No account needed.'),
     ])
 
-    <div class="uh-container uh-section-tight" x-data="uhSavedList('shortlist', @js(route('saved.cards')))">
+    <div class="uh-container uh-section-tight uh-shortlist-page" x-data="uhSavedList('shortlist', @js(route('saved.cards')))">
         <template x-if="loading && !html">
             <div role="status">
                 <p class="sr-only">{{ __('Loading your shortlist…') }}</p>

@@ -1,11 +1,11 @@
 @php
-    $heroTitle = trim($hero['title'] ?? __('Considered places to live in Dhaka.'));
+    $heroTitle = trim($hero['title'] ?? '');
     $coverListing = $heroListing;
     $coverPlace = collect([$coverListing?->locationArea?->name, $coverListing?->locationArea?->city])->filter()->implode(', ');
     $hasHeroImage = $heroImages->isNotEmpty();
 @endphp
 
-<section @class(['uh-cover uh-under-bar', 'is-bare' => ! $hasHeroImage]) data-cover aria-labelledby="hero-title"
+<section @class(['uh-cover uh-under-bar', 'is-bare' => ! $hasHeroImage]) data-cover aria-label="{{ filled($heroTitle) ? $heroTitle : __('Homepage property search') }}"
          @if($heroImages->count() > 1) x-data="uhCoverSlides({{ $heroImages->count() }}, {{ (int) ($hero['slide_seconds'] ?? 7) }})" @endif>
     @if($hasHeroImage)
         <div class="uh-cover-media">
@@ -24,12 +24,25 @@
     @endif
 
     <div class="uh-cover-inner">
-        <h1 id="hero-title" class="sr-only">{{ $heroTitle }}</h1>
-        <p class="sr-only">{{ $hero['eyebrow'] }} {{ $hero['body'] }}</p>
+        @if(filled($hero['eyebrow']) || filled($heroTitle) || filled($hero['body']))
+            <div class="uh-cover-copy">
+                @if(filled($hero['eyebrow']))
+                    <p class="uh-cover-eyebrow">{{ $hero['eyebrow'] }}</p>
+                @endif
+                @if(filled($heroTitle))
+                    <h1 id="hero-title" class="uh-display">{{ $heroTitle }}</h1>
+                @endif
+                @if(filled($hero['body']))
+                    <p class="uh-cover-description">{{ $hero['body'] }}</p>
+                @endif
+            </div>
+        @endif
         @include('public.home.find')
-        <x-ui.pill-link variant="light" :href="$hero['cta_url']" data-track="home_cta_click" data-track-cta="cover">
-            {{ $hero['cta_label'] }}
-        </x-ui.pill-link>
+        @if(filled($hero['cta_label']) && filled($hero['cta_url']))
+            <x-ui.pill-link variant="light" :href="$hero['cta_url']" data-track="home_cta_click" data-track-cta="cover">
+                {{ $hero['cta_label'] }}
+            </x-ui.pill-link>
+        @endif
     </div>
 
     @if($heroImages->count() > 1)

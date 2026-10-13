@@ -3,14 +3,20 @@
          @keydown.escape.window="onEscape()"
          @keydown.left.window="preview && previousSlide()"
          @keydown.right.window="preview && nextSlide()"
-         aria-labelledby="housing-projects-title">
+         @if(filled($sectionContent['title'])) aria-labelledby="housing-projects-title" @else aria-label="{{ __('Housing and apartment listings') }}" @endif>
     <div class="uh-container">
-        <header class="uh-trending-head" data-reveal>
-            <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-            <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
-                {{ $sectionContent['link_label'] }}
-            </x-ui.pill-link>
-        </header>
+        @if(filled($sectionContent['title']) || filled($sectionContent['link_label']))
+            <header class="uh-trending-head" data-reveal>
+                @if(filled($sectionContent['title']))
+                    <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                @endif
+                @if(filled($sectionContent['link_label']))
+                    <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
+                        {{ $sectionContent['link_label'] }}
+                    </x-ui.pill-link>
+                @endif
+            </header>
+        @endif
 
         <div class="uh-housing-rail" x-data="uhRail()">
             <button type="button" class="uh-housing-arrow is-prev" x-show="canPrev" x-cloak

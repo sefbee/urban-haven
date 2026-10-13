@@ -15,12 +15,36 @@ final class ContactPageSections
             'hero' => [
                 'block' => 'contact_hero',
                 'label' => 'Hero / General contact',
-                'summary' => 'Top section with main heading, contact details and the contact form.',
+                'summary' => 'Optional introductory copy and hero photo.',
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'Contact Us'],
-                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 140, 'default' => 'Talk to our sales team'],
-                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Call, WhatsApp or send a message. The people who manage our homes will get back to you.'],
-                    'heading' => ['label' => 'Contact details heading', 'type' => 'text', 'max' => 80, 'default' => 'General Contact'],
+                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                ],
+            ],
+            'channels' => [
+                'block' => 'contact_channels',
+                'label' => 'Contact methods',
+                'summary' => 'Headings and descriptions for the phone, email, and office cards.',
+                'fields' => [
+                    'title' => ['label' => 'Section heading', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'intro' => ['label' => 'Section description', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'phone_title' => ['label' => 'Phone card heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'phone_intro' => ['label' => 'Phone card description', 'type' => 'textarea', 'max' => 200, 'default' => ''],
+                    'email_title' => ['label' => 'Email card heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'email_intro' => ['label' => 'Email card description', 'type' => 'textarea', 'max' => 200, 'default' => ''],
+                    'office_title' => ['label' => 'Office card heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'office_intro' => ['label' => 'Office card description', 'type' => 'textarea', 'max' => 200, 'default' => ''],
+                ],
+            ],
+            'enquiry' => [
+                'block' => 'contact_enquiry',
+                'label' => 'Enquiry form introduction',
+                'summary' => 'Copy above the contact form.',
+                'fields' => [
+                    'eyebrow' => ['label' => 'Small label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'intro' => ['label' => 'Description', 'type' => 'textarea', 'max' => 300, 'default' => ''],
                 ],
             ],
             'office' => [
@@ -29,7 +53,10 @@ final class ContactPageSections
                 'summary' => 'Office locations and operating hours.',
                 'images' => true,
                 'fields' => [
-                    'title' => ['label' => 'Office details heading', 'type' => 'text', 'max' => 80, 'default' => 'Corporate Office'],
+                    'title' => ['label' => 'Office details heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'address_label' => ['label' => 'Address label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'hours_label' => ['label' => 'Business hours label', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'social_label' => ['label' => 'Social links label', 'type' => 'text', 'max' => 80, 'default' => ''],
                 ],
             ],
             'direct' => [
@@ -37,8 +64,17 @@ final class ContactPageSections
                 'label' => 'Direct contact',
                 'summary' => 'Contact form fallback direct details.',
                 'fields' => [
-                    'title' => ['label' => 'Direct contact heading', 'type' => 'text', 'max' => 80, 'default' => 'Direct Contact'],
-                    'intro' => ['label' => 'Direct contact intro', 'type' => 'textarea', 'max' => 300, 'default' => 'Reach out to our agents directly for immediate assistance with any property inquiries.'],
+                    'title' => ['label' => 'Direct contact heading', 'type' => 'text', 'max' => 80, 'default' => ''],
+                    'intro' => ['label' => 'Direct contact intro', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                ],
+            ],
+            'map' => [
+                'block' => 'contact_map',
+                'label' => 'Office map',
+                'summary' => 'Map card copy. The location comes from Contact settings.',
+                'fields' => [
+                    'title' => ['label' => 'Map card heading', 'type' => 'text', 'max' => 100, 'default' => ''],
+                    'button' => ['label' => 'Directions button text', 'type' => 'text', 'max' => 50, 'default' => ''],
                 ],
             ],
             'cta' => [
@@ -46,12 +82,12 @@ final class ContactPageSections
                 'label' => 'Bottom Call to Action',
                 'summary' => 'Bottom banner inviting visitors to schedule a consultation or browse properties.',
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => 'Ready to Make Your Next Property Move?'],
-                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Schedule a confidential consultation with our real-estate team and let us guide you home.'],
-                    'primary_cta' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => 'Book a Consultation'],
-                    'primary_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => '#page-form-heading'],
-                    'secondary_cta' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => 'Browse Properties'],
-                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => '/properties'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 140, 'default' => ''],
+                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => ''],
+                    'primary_cta' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'primary_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => ''],
+                    'secondary_cta' => ['label' => 'Secondary button text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'secondary_url' => ['label' => 'Secondary button link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
         ];
@@ -135,8 +171,8 @@ final class ContactPageSections
         $defaults = self::defaults($section);
 
         foreach ($defaults as $field => $default) {
-            $value = $content[$field] ?? null;
-            if ($value !== null && $value !== '' && $value !== []) {
+            if (array_key_exists($field, $content ?? [])) {
+                $value = $content[$field];
                 $defaults[$field] = $value;
             }
         }

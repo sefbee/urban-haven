@@ -26,11 +26,13 @@
     ];
 @endphp
 
-<section id="home-types" class="uh-section uh-home-types scroll-mt-20" x-data="{ category: @js($firstCategory) }" aria-labelledby="types-title">
+<section id="home-types" class="uh-section uh-home-types scroll-mt-20" x-data="{ category: @js($firstCategory) }" @if(filled($sectionContent['title'])) aria-labelledby="types-title" @else aria-label="{{ __('Explore by property type') }}" @endif>
     <div class="uh-container">
-        <header class="uh-type-section-head" data-reveal>
-            <h2 id="types-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-        </header>
+        @if(filled($sectionContent['title']))
+            <header class="uh-type-section-head" data-reveal>
+                <h2 id="types-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+            </header>
+        @endif
 
         <div class="uh-type-tiles-bar" data-reveal>
             @if($typeGroups->count() > 1)
@@ -43,9 +45,11 @@
                     @endforeach
                 </div>
             @endif
-            <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
-                {{ $sectionContent['link_label'] }}
-            </x-ui.pill-link>
+            @if(filled($sectionContent['link_label']))
+                <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
+                    {{ $sectionContent['link_label'] }}
+                </x-ui.pill-link>
+            @endif
         </div>
 
         @foreach($typeGroups as $category => $group)

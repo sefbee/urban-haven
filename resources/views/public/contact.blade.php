@@ -7,10 +7,17 @@
     $mapUrl = filled($configuredMapUrl)
         ? $configuredMapUrl
         : (filled($address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address) : null);
+    $mapEmbedUrl = filled($address) ? 'https://maps.google.com/maps?q='.urlencode($address).'&output=embed' : null;
     $contactImage = $page->galleryImages()->first();
+    $channels = $contactSections['channels'] ?? [];
+    $enquiry = $contactSections['enquiry'] ?? [];
+    $office = $contactSections['office'] ?? [];
+    $direct = $contactSections['direct'] ?? [];
+    $map = $contactSections['map'] ?? [];
+    $cta = $contactSections['cta'] ?? [];
 @endphp
 
-<main class="bg-white pb-0">
+<main class="uh-container overflow-hidden rounded-3xl bg-white pb-0">
     {{-- Hero Section --}}
     @if(isset($contactSections['hero']))
     <div class="group flex flex-col lg:flex-row min-h-[550px] 2xl:min-h-[650px] overflow-hidden">
@@ -23,16 +30,10 @@
             <div class="w-full max-w-xl relative">
                 <div class="inline-flex items-center gap-3 mb-5">
                     <span class="w-8 h-px bg-[var(--color-accent)]"></span>
-                    <p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ $contactSections['hero']['eyebrow'] ?? __('Let\'s connect') }}</p>
+                    @if(filled($contactSections['hero']['eyebrow'] ?? null))<p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ $contactSections['hero']['eyebrow'] }}</p>@endif
                 </div>
-                <h1 class="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4rem] font-display text-[var(--color-body-text)] text-balance transition-all duration-700">
-                    {{ $contactSections['hero']['title'] ?? ($page->title ?: __('Let’s Find the Right Property for You.')) }}
-                </h1>
-                <p class="mt-6 text-[15px] sm:text-base leading-relaxed text-[var(--color-muted-text)] max-w-[480px]">
-                    {{ $contactSections['hero']['intro'] ?? (filled(trim(strip_tags((string) $page->body)))
-                        ? trim(strip_tags((string) $page->body))
-                        : __('Whether you\'re looking to buy, sell or invest, our property specialists are ready to guide you.')) }}
-                </p>
+                @if(filled($contactSections['hero']['title'] ?? null))<h1 class="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4rem] font-display text-[var(--color-body-text)] text-balance transition-all duration-700">{{ $contactSections['hero']['title'] }}</h1>@endif
+                @if(filled($contactSections['hero']['intro'] ?? null))<p class="mt-6 text-[15px] sm:text-base leading-relaxed text-[var(--color-muted-text)] max-w-[480px]">{{ $contactSections['hero']['intro'] }}</p>@endif
 
             </div>
         </div>
@@ -49,47 +50,57 @@
     @endif
 
     {{-- How Can We Help Section --}}
+    @if(isset($contactSections['channels']) && (filled($phone) || filled($email) || filled($address)))
     <section class="py-24 px-4 sm:px-6 lg:px-8 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
         <div class="max-w-7xl mx-auto relative z-10">
-            <div class="text-center max-w-2xl mx-auto">
-                <x-icon name="sparkles" class="size-6 text-[var(--color-accent)] mx-auto mb-4 opacity-50" />
-                <h2 class="text-3xl sm:text-4.5xl font-display text-[var(--color-body-text)]">{{ $contactSections['hero']['heading'] ?? __('How Can We Help?') }}</h2>
-                <p class="mt-4 text-[16px] text-[var(--color-muted-text)]">{{ __('Choose the most convenient way to connect with our team of property specialists.') }}</p>
-            </div>
+            @if(filled($channels['title'] ?? null) || filled($channels['intro'] ?? null))
+                <div class="text-center max-w-2xl mx-auto">
+                    <x-icon name="sparkles" class="size-6 text-[var(--color-accent)] mx-auto mb-4 opacity-50" />
+                    @if(filled($channels['title'] ?? null))<h2 class="text-3xl sm:text-4.5xl font-display text-[var(--color-body-text)]">{{ $channels['title'] }}</h2>@endif
+                    @if(filled($channels['intro'] ?? null))<p class="mt-4 text-[16px] text-[var(--color-muted-text)]">{{ $channels['intro'] }}</p>@endif
+                </div>
+            @endif
             
             <div class="mt-16 grid gap-6 md:grid-cols-3 max-w-[1050px] mx-auto">
                 {{-- Call Us --}}
+                @if(filled($phone))
                 <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="phone" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
-                    <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Call Us') }}</h3>
-                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $phone ?? '') }}" class="mt-2 inline-block text-[15px] font-semibold text-[var(--color-body-text)] hover:text-[var(--color-accent)] transition-colors">{{ $phone ?? '+880 1XXX-XXXXXX' }}</a>
-                    <p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ __('Speak directly with a property consultant.') }}</p>
+                    @if(filled($channels['phone_title'] ?? null))<h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ $channels['phone_title'] }}</h3>@endif
+                    @if(filled($phone))<a href="{{ \App\Support\PhoneNumber::telHref($phone) }}" class="mt-2 inline-block text-[15px] font-semibold text-[var(--color-body-text)] hover:text-[var(--color-accent)] transition-colors">{{ $phone }}</a>@endif
+                    @if(filled($channels['phone_intro'] ?? null))<p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ $channels['phone_intro'] }}</p>@endif
                 </div>
+                @endif
                 
                 {{-- Email Us (elevated) --}}
+                @if(filled($email))
                 <div class="group rounded-2xl border border-[var(--color-divider)] border-t-[3px] border-t-[var(--color-accent)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] hover:-translate-y-4 relative transform md:-translate-y-2 text-center flex flex-col items-center z-10">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="mail" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
-                    <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Email Us') }}</h3>
-                    <a href="mailto:{{ $email ?? '' }}" class="mt-2 inline-block text-[15px] font-semibold text-[var(--color-body-text)] hover:text-[var(--color-accent)] transition-colors">{{ $email ?? 'info@urbanhavenbd.com' }}</a>
-                    <p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ __('Send your questions and requirements.') }}</p>
+                    @if(filled($channels['email_title'] ?? null))<h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ $channels['email_title'] }}</h3>@endif
+                    @if(filled($email))<a href="mailto:{{ $email }}" class="mt-2 inline-block text-[15px] font-semibold text-[var(--color-body-text)] hover:text-[var(--color-accent)] transition-colors">{{ $email }}</a>@endif
+                    @if(filled($channels['email_intro'] ?? null))<p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ $channels['email_intro'] }}</p>@endif
                 </div>
+                @endif
                 
                 {{-- Visit Our Office --}}
+                @if(filled($address))
                 <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="pin" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
-                    <h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ __('Visit Our Office') }}</h3>
-                    <p class="mt-2 text-[15px] font-semibold text-[var(--color-body-text)]">{{ $address ?? 'Office Address, Dhaka, Bangladesh' }}</p>
-                    <p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ __('Meet our team for a personal consultation.') }}</p>
+                    @if(filled($channels['office_title'] ?? null))<h3 class="mt-6 font-display text-[22px] text-[var(--color-body-text)] transition-colors group-hover:text-[var(--color-accent)]">{{ $channels['office_title'] }}</h3>@endif
+                    @if(filled($address))<p class="mt-2 text-[15px] font-semibold text-[var(--color-body-text)]">{{ $address }}</p>@endif
+                    @if(filled($channels['office_intro'] ?? null))<p class="mt-3 text-[14px] text-[var(--color-muted-text)] leading-relaxed max-w-[220px]">{{ $channels['office_intro'] }}</p>@endif
                 </div>
+                @endif
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Form & Sidebar Section --}}
     <section class="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 bg-white" id="page-form-heading">
@@ -97,14 +108,9 @@
             
             {{-- Form --}}
             <div class="pt-2">
-                <div class="inline-flex items-center gap-3 mb-4">
-                    <span class="w-6 h-px bg-[var(--color-accent)]"></span>
-                    <p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ __('Send an enquiry') }}</p>
-                </div>
-                <h2 class="text-[2rem] sm:text-[2.75rem] leading-[1.1] font-display text-[var(--color-body-text)]">{{ __('Tell Us What You\'re Looking For') }}</h2>
-                <p class="mt-5 text-[16px] text-[var(--color-muted-text)] leading-relaxed max-w-[500px]">
-                    {{ __('Share a few details and our team will contact you with relevant property options.') }}
-                </p>
+                @if(filled($enquiry['eyebrow'] ?? null))<div class="inline-flex items-center gap-3 mb-4"><span class="w-6 h-px bg-[var(--color-accent)]"></span><p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ $enquiry['eyebrow'] }}</p></div>@endif
+                @if(filled($enquiry['title'] ?? null))<h2 class="text-[2rem] sm:text-[2.75rem] leading-[1.1] font-display text-[var(--color-body-text)]">{{ $enquiry['title'] }}</h2>@endif
+                @if(filled($enquiry['intro'] ?? null))<p class="mt-5 text-[16px] text-[var(--color-muted-text)] leading-relaxed max-w-[500px]">{{ $enquiry['intro'] }}</p>@endif
                 
                 <div class="mt-8">
                     @include('public.partials.lead-form', [
@@ -129,68 +135,55 @@
                     <img src="{{ $officeImage?->url(800) ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=85' }}" alt="{{ $officeImage?->alt(app()->getLocale()) ?: __('Office Interior') }}" class="absolute inset-0 size-full object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-110">
                 </div>
                 <div class="p-8 sm:p-10 flex-1 flex flex-col relative text-white z-10">
-                    <h3 class="font-display text-[32px] text-white">{{ $contactSections['office']['title'] ?? __('Visit Urban Haven') }}</h3>
+                    @if(filled($office['title'] ?? null))<h3 class="font-display text-[32px] text-white">{{ $office['title'] }}</h3>@endif
                     
                     <div class="mt-10 space-y-8 flex-1">
-                        <div class="flex gap-5 group/item">
+                        @if(filled($address))<div class="flex gap-5 group/item">
                             <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-colors duration-300 group-hover/item:bg-[var(--color-accent)] group-hover/item:border-[var(--color-accent)]">
                                 <x-icon name="pin" class="size-[18px] text-[var(--color-accent)] transition-colors duration-300 group-hover/item:text-white" />
                             </div>
                             <div>
-                                <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ __('Office Address') }}</h4>
-                                <p class="mt-1.5 text-[14px] text-white/70 leading-relaxed">{{ $address ?? 'Dhaka, Bangladesh' }}</p>
+                                @if(filled($office['address_label'] ?? null))<h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $office['address_label'] }}</h4>@endif
+                                <p class="{{ filled($office['address_label'] ?? null) ? 'mt-1.5' : '' }} text-[14px] text-white/70 leading-relaxed">{{ $address }}</p>
                             </div>
-                        </div>
-                        <div class="flex gap-5 group/item">
+                        </div>@endif
+                        @if(filled($officeHours))<div class="flex gap-5 group/item">
                             <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-colors duration-300 group-hover/item:bg-[var(--color-accent)] group-hover/item:border-[var(--color-accent)]">
                                 <x-icon name="clock" class="size-[18px] text-[var(--color-accent)] transition-colors duration-300 group-hover/item:text-white" />
                             </div>
                             <div>
-                                <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ __('Business Hours') }}</h4>
-                                <p class="mt-1.5 text-[14px] text-white/70 leading-relaxed">{!! nl2br(e($officeHours ?? "Saturday - Thursday\n9:00 AM - 6:00 PM")) !!}</p>
+                                @if(filled($office['hours_label'] ?? null))<h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $office['hours_label'] }}</h4>@endif
+                                <p class="{{ filled($office['hours_label'] ?? null) ? 'mt-1.5' : '' }} text-[14px] text-white/70 leading-relaxed">{!! nl2br(e($officeHours)) !!}</p>
                             </div>
-                        </div>
+                        </div>@endif
+                        @if(filled($direct['title'] ?? null) || filled($direct['intro'] ?? null) || filled($phone) || filled($email))
                         <div class="flex gap-5 group/item">
                             <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-colors duration-300 group-hover/item:bg-[var(--color-accent)] group-hover/item:border-[var(--color-accent)]">
                                 <x-icon name="phone" class="size-[18px] text-[var(--color-accent)] transition-colors duration-300 group-hover/item:text-white" />
                             </div>
                             <div>
-                                <h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $contactSections['direct']['title'] ?? __('Direct Contact') }}</h4>
-                                @if(filled($contactSections['direct']['intro'] ?? null))
-                                    <p class="mt-1.5 text-[14px] text-white/70 leading-relaxed">{{ $contactSections['direct']['intro'] }}</p>
+                                @if(filled($direct['title'] ?? null))<h4 class="text-[15px] font-semibold text-white tracking-wide">{{ $direct['title'] }}</h4>@endif
+                                @if(filled($direct['intro'] ?? null))
+                                    <p class="mt-1.5 text-[14px] text-white/70 leading-relaxed">{{ $direct['intro'] }}</p>
                                 @endif
-                                <a href="tel:{{ preg_replace('/[^0-9+]/', '', $phone ?? '') }}" class="mt-1.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $phone ?? '+880 1XXX-XXXXXX' }}</a>
-                                <a href="mailto:{{ $email ?? '' }}" class="mt-0.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $email ?? 'info@urbanhavenbd.com' }}</a>
+                                @if(filled($phone))<a href="{{ \App\Support\PhoneNumber::telHref($phone) }}" class="mt-1.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $phone }}</a>@endif
+                                @if(filled($email))<a href="mailto:{{ $email }}" class="mt-0.5 block text-[14px] text-white/70 hover:text-white transition-colors">{{ $email }}</a>@endif
                             </div>
                         </div>
-                    </div>
-
-                    <div class="mt-12 border-t border-white/10 pt-8 relative">
-                        <h4 class="text-[12px] font-bold tracking-[0.15em] uppercase text-white/90 mb-5">{{ __('Follow Us') }}</h4>
-                        @if($socialProfiles->isNotEmpty())
-                            <div class="flex gap-3">
-                                @foreach($socialProfiles as $profile)
-                                    <a href="{{ $profile['url'] }}" target="_blank" rel="noopener" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:-translate-y-1">
-                                        <span class="sr-only">{{ $profile['label'] ?: ucfirst($profile['platform'] ?? 'Social') }}</span>
-                                        <x-icon :name="$profile['platform'] ?? 'link'" class="size-[18px] text-white" />
-                                    </a>
-                                @endforeach
-                            </div>
-                        @else
-                            {{-- Fallback social icons --}}
-                            <div class="flex gap-3">
-                                <a href="#" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(166,132,86,0.4)]">
-                                    <x-icon name="facebook" class="size-[18px] text-white" />
-                                </a>
-                                <a href="#" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(166,132,86,0.4)]">
-                                    <x-icon name="instagram" class="size-[18px] text-white" />
-                                </a>
-                                <a href="#" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(166,132,86,0.4)]">
-                                    <x-icon name="linkedin" class="size-[18px] text-white" />
-                                </a>
-                            </div>
                         @endif
                     </div>
+
+                    @if($socialProfiles->isNotEmpty())<div class="mt-12 border-t border-white/10 pt-8 relative">
+                        @if(filled($office['social_label'] ?? null))<h4 class="text-[12px] font-bold tracking-[0.15em] uppercase text-white/90 mb-5">{{ $office['social_label'] }}</h4>@endif
+                        <div class="flex gap-3">
+                            @foreach($socialProfiles as $profile)
+                                <a href="{{ $profile['url'] }}" target="_blank" rel="noopener" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:-translate-y-1">
+                                    <span class="sr-only">{{ $profile['label'] ?: ucfirst($profile['platform'] ?? 'Social') }}</span>
+                                    <x-icon :name="$profile['platform'] ?? 'link'" class="size-[18px] text-white" />
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>@endif
 
                     {{-- Gold line art pattern at bottom right - gently animated --}}
                     <div class="absolute bottom-0 right-4 opacity-50 pointer-events-none transition-transform duration-[3000ms] ease-out group-hover:scale-105 group-hover:opacity-70 origin-bottom-right">
@@ -209,29 +202,33 @@
     </section>
 
     {{-- Map Section --}}
+    @if(isset($contactSections['map']) && (filled($address) || filled($map['title'] ?? null)))
     <section class="group relative h-[500px] w-full bg-[var(--color-dominant)] overflow-hidden">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14602.700312015096!2d90.39513346977234!3d23.794582087733475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c70c15ea1de1%3A0x97856381e88fb311!2sBanani%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000 grayscale opacity-80 mix-blend-multiply group-hover:grayscale-0 group-hover:opacity-100 group-hover:mix-blend-normal"></iframe>
+        @if(filled($mapEmbedUrl))<iframe src="{{ $mapEmbedUrl }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000 grayscale opacity-80 mix-blend-multiply group-hover:grayscale-0 group-hover:opacity-100 group-hover:mix-blend-normal"></iframe>@endif
         
         <div class="absolute inset-0 pointer-events-none transition-colors duration-1000 group-hover:bg-[var(--color-secondary)]/5">
             <div class="max-w-7xl mx-auto h-full relative px-4 sm:px-6 lg:px-8">
+                @if(filled($map['title'] ?? null) || filled($map['button'] ?? null))
                 <div class="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 w-full max-w-[360px] bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto rounded-2xl transition-transform duration-700 ease-out group-hover:-translate-y-[calc(50%+8px)] border border-white/40 backdrop-blur-md">
                     <div class="w-12 h-12 bg-sand rounded-full flex items-center justify-center mb-5 text-[var(--color-accent)]">
                         <x-icon name="building-office" class="size-6" />
                     </div>
-                    <h3 class="font-display text-[22px] text-[var(--color-body-text)]">{{ __('Urban Haven Properties') }}</h3>
-                    <p class="mt-3 text-[15px] text-[var(--color-muted-text)] leading-relaxed">{{ $address ?? 'Office Address, Dhaka, Bangladesh' }}</p>
-                    @if($mapUrl)
+                    @if(filled($map['title'] ?? null))<h3 class="font-display text-[22px] text-[var(--color-body-text)]">{{ $map['title'] }}</h3>@endif
+                    @if(filled($address))<p class="mt-3 text-[15px] text-[var(--color-muted-text)] leading-relaxed">{{ $address }}</p>@endif
+                    @if($mapUrl && filled($map['button'] ?? null))
                         <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="group/btn mt-8 flex w-full items-center justify-center rounded-xl bg-[var(--color-accent)] px-6 py-4 text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_20px_rgba(166,132,86,0.25)]">
-                            {{ __('Get Directions') }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                            {{ $map['button'] }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
                         </a>
                     @endif
                 </div>
             </div>
+                @endif
         </div>
     </section>
+    @endif
 
     {{-- Bottom CTA Section --}}
-    @if(isset($contactSections['cta']))
+    @if(isset($contactSections['cta']) && (filled($cta['title'] ?? null) || filled($cta['intro'] ?? null) || (filled($cta['primary_cta'] ?? null) && filled($cta['primary_url'] ?? null)) || (filled($cta['secondary_cta'] ?? null) && filled($cta['secondary_url'] ?? null))))
     <section class="bg-[var(--color-secondary)] py-24 lg:py-32 relative overflow-hidden group">
         {{-- Animated Gold line art pattern at background --}}
         <div class="absolute bottom-0 right-0 opacity-30 pointer-events-none transform transition-transform duration-[3000ms] ease-out group-hover:scale-105 group-hover:-translate-y-4">
@@ -247,16 +244,17 @@
         
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[1fr_auto] gap-12 items-center relative z-10">
             <div class="max-w-2xl">
-                <h2 class="text-[2.25rem] sm:text-[3.25rem] leading-[1.05] font-display text-white text-balance">{{ $contactSections['cta']['title'] ?? __('Ready to Make Your Next Property Move?') }}</h2>
-                <p class="mt-6 text-[17px] text-white/75 leading-relaxed">{{ $contactSections['cta']['intro'] ?? __('Schedule a confidential consultation with our real-estate team and let us guide you home.') }}</p>
+                @if(filled($cta['title'] ?? null))<h2 class="text-[2.25rem] sm:text-[3.25rem] leading-[1.05] font-display text-white text-balance">{{ $cta['title'] }}</h2>@endif
+                @if(filled($cta['intro'] ?? null))<p class="mt-6 text-[17px] text-white/75 leading-relaxed">{{ $cta['intro'] }}</p>@endif
             </div>
             <div class="flex flex-col sm:flex-row gap-5">
-                <a href="{{ $contactSections['cta']['primary_url'] ?? '#page-form-heading' }}" class="group/btn inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_25px_rgba(166,132,86,0.3)] hover:-translate-y-1">
-                    {{ $contactSections['cta']['primary_cta'] ?? __('Book a Consultation') }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                @if(filled($cta['primary_cta'] ?? null) && filled($cta['primary_url'] ?? null))<a href="{{ $cta['primary_url'] }}" class="group/btn inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_25px_rgba(166,132,86,0.3)] hover:-translate-y-1">
+                    {{ $cta['primary_cta'] }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </a>
-                <a href="{{ $contactSections['cta']['secondary_url'] ?? route('properties.index') }}" class="group/btn2 inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1">
-                    {{ $contactSections['cta']['secondary_cta'] ?? __('Browse Properties') }}
-                </a>
+                @endif
+                @if(filled($cta['secondary_cta'] ?? null) && filled($cta['secondary_url'] ?? null))<a href="{{ $cta['secondary_url'] }}" class="group/btn2 inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-4.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1">
+                    {{ $cta['secondary_cta'] }}
+                </a>@endif
             </div>
         </div>
     </section>

@@ -1775,6 +1775,37 @@ body.uh-home {
         padding-block: calc(var(--uh-bar-h) + 2rem) 3.5rem;
     }
 
+    .uh-cover-copy {
+        display: grid;
+        max-width: min(54rem, 100%);
+        justify-items: center;
+        gap: 0.75rem;
+        padding-inline: var(--uh-gutter);
+        text-align: center;
+        text-shadow: 0 2px 24px rgb(0 0 0 / 0.45);
+    }
+
+    .uh-cover-eyebrow {
+        color: rgb(255 255 255 / 0.9);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .uh-cover-copy .uh-display {
+        max-width: 18ch;
+        color: var(--uh-white);
+        font-size: clamp(2.25rem, 5.6vw, 4.5rem);
+    }
+
+    .uh-cover-description {
+        max-width: 42rem;
+        color: rgb(255 255 255 / 0.92);
+        font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
+        line-height: 1.6;
+    }
+
     .uh-cover-caption {
         position: absolute;
         right: var(--uh-gutter);
@@ -4352,9 +4383,19 @@ body.uh-home {
         height: 1.875rem;
     }
 
+    .uh-shortlist-page .uh-listing-foot .uh-card-contact {
+        opacity: 1;
+    }
+
     .uh-listing:hover .uh-listing-foot .uh-card-contact,
     .uh-listing:focus-within .uh-listing-foot .uh-card-contact {
         opacity: 1;
+    }
+
+    .uh-pd-similar .uh-listing-foot .uh-card-contact {
+        width: 100%;
+        justify-content: center;
+        margin-right: 0;
     }
 
     @media (hover: none) {

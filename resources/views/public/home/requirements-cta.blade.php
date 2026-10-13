@@ -1,13 +1,22 @@
-<section class="uh-section uh-home-requirements-section" aria-labelledby="requirements-cta-title">
+@if(filled($sectionContent['eyebrow']) || filled($sectionContent['title']) || filled($sectionContent['body']) || (filled($sectionContent['cta_label']) && filled($sectionContent['cta_url'])))
+<section class="uh-section uh-home-requirements-section" aria-label="{{ filled($sectionContent['title']) ? $sectionContent['title'] : __('Property search callout') }}">
     <div class="uh-container">
         <div class="uh-home-requirements" data-reveal>
             <div class="uh-home-requirements-copy">
-                <p class="uh-home-requirements-kicker">{{ $sectionContent['eyebrow'] }}</p>
-                <h2 id="requirements-cta-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
-                <p>{{ $sectionContent['body'] }}</p>
-                <x-ui.pill-link variant="light" class="mt-5" :href="$sectionContent['cta_url']">
-                    {{ $sectionContent['cta_label'] }}
-                </x-ui.pill-link>
+                @if(filled($sectionContent['eyebrow']))
+                    <p class="uh-home-requirements-kicker">{{ $sectionContent['eyebrow'] }}</p>
+                @endif
+                @if(filled($sectionContent['title']))
+                    <h2 id="requirements-cta-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                @endif
+                @if(filled($sectionContent['body']))
+                    <p>{{ $sectionContent['body'] }}</p>
+                @endif
+                @if(filled($sectionContent['cta_label']) && filled($sectionContent['cta_url']))
+                    <x-ui.pill-link variant="light" class="mt-5" :href="$sectionContent['cta_url']">
+                        {{ $sectionContent['cta_label'] }}
+                    </x-ui.pill-link>
+                @endif
             </div>
             <div class="uh-home-requirements-art" aria-hidden="true">
                 <span class="uh-home-requirements-art-window">
@@ -22,3 +31,4 @@
         </div>
     </div>
 </section>
+@endif
