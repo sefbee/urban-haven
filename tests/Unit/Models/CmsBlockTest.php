@@ -31,7 +31,7 @@ class CmsBlockTest extends TestCase
             $this->assertContains($key, $keys);
         }
 
-        $this->assertContains('about_team', $keys);
+        $this->assertContains('about_approach', $keys);
         $this->assertContains('contact_hero', $keys);
         $this->assertContains('articles_promo', $keys);
         $this->assertContains('hero', $keys);

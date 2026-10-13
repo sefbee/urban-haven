@@ -111,7 +111,7 @@ class HomeController extends Controller
                 ->get(),
             'heroImages' => $heroImages,
             'heroListing' => $heroImageSource,
-            'liveListingCount' => $this->liveListings(Property::query(), $purposes)->count(),
+            'liveListingCount' => TaggedCache::remember(['homepage', 'properties'], 'home:count:'.implode('-', $purposes), self::CACHE_SECONDS, fn () => $this->liveListings(Property::query(), $purposes)->count()),
             'seo' => SeoMeta::for(null, config('app.name'), $hero['body'] ?? 'Apartments, homes, land and commercial space for sale and rent in Dhaka, published directly by Urban Haven.', [
                 'json_ld' => [StructuredData::website()],
             ]),
@@ -142,7 +142,12 @@ class HomeController extends Controller
                 return $query->limit($limit)->pluck('id')->all();
             });
 
-            $models = Property::query()->with($this->listingRelations)->whereKey($ids)->get()->sortBy(fn (Property $property) => array_search($property->id, $ids, true))->values();
+            $models = Property::query()
+                ->with($this->listingRelations)
+                ->whereKey($ids)
+                ->get()
+                ->sortBy(fn (Property $property) => array_search($property->id, $ids, true))
+                ->values();
 
             return [$purpose => $models];
         });
@@ -193,7 +198,12 @@ class HomeController extends Controller
             ->pluck('properties.id')
             ->all());
 
-        return Property::query()->with($this->listingRelations)->whereKey($ids)->get()->sortBy(fn (Property $property) => array_search($property->id, $ids, true))->values();
+        return Property::query()
+            ->with($this->listingRelations)
+            ->whereKey($ids)
+            ->get()
+            ->sortBy(fn (Property $property) => array_search($property->id, $ids, true))
+            ->values();
     }
 
     /**
@@ -214,16 +224,16 @@ class HomeController extends Controller
         $missing = $items->pluck('id')->diff($covers->keys());
 
         if ($missing->isNotEmpty()) {
-            $covers = $covers->union(
-                $this->liveListings(Property::query(), $purposes)
-                    ->with('media')
-                    ->whereIn($foreignKey, $missing->all())
-                    ->whereHas('media')
-                    ->orderByDesc('id')
-                    ->get()
-                    ->unique($foreignKey)
-                    ->keyBy($foreignKey)
-            );
+            $missingCovers = $this->liveListings(Property::query(), $purposes)
+                ->with('media')
+                ->whereIn($foreignKey, $missing->all())
+                ->whereHas('media')
+                ->orderByDesc('id')
+                ->get()
+                ->unique($foreignKey)
+                ->keyBy($foreignKey);
+
+            $covers = $covers->union($missingCovers);
         }
 
         return $items->map(function (PropertyType|LocationArea $item) use ($covers): PropertyType|LocationArea {

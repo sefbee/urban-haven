@@ -64,6 +64,11 @@ class Media extends Model
     }
 
     /**
+     * @var array<string, bool>
+     */
+    private static array $derivativeExists = [];
+
+    /**
      * Public URL of a processed display copy; uploaded originals are never exposed.
      */
     public function url(?int $width = null): string
@@ -74,8 +79,15 @@ class Media extends Model
 
         $path = $width ? $this->derivativePath($width) : $this->path;
 
-        if ($width && ! Storage::disk($this->disk)->exists($path)) {
-            $path = $this->path;
+        if ($width) {
+            $cacheKey = $this->disk.':'.$path;
+            if (! isset(self::$derivativeExists[$cacheKey])) {
+                self::$derivativeExists[$cacheKey] = Storage::disk($this->disk)->exists($path);
+            }
+
+            if (! self::$derivativeExists[$cacheKey]) {
+                $path = $this->path;
+            }
         }
 
         $url = Storage::disk($this->disk)->url($path);

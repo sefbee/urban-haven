@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\Publishable;
+use App\Support\TaggedCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Sluggable\HasSlug;
@@ -69,6 +70,8 @@ class CmsPage extends Model
         static::created(function (CmsPage $page): void {
             $page->publicationState()->create(['status' => PublicationState::DRAFT]);
         });
+        static::saved(fn () => TaggedCache::flush(['cms']));
+        static::deleted(fn () => TaggedCache::flush(['cms']));
     }
 
     public function getSlugOptions(): SlugOptions

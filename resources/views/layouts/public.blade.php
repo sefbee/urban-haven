@@ -44,7 +44,7 @@
     ]);
     $themeStyle = collect($themeVariables)->map(fn ($colour, $variable) => $variable.':'.$colour)->implode(';');
     $showChat = (bool) \App\Models\Setting::get('floating_chat_enabled', true) && ($chatWhatsapp || $chatMessenger);
-    $privacyUrl = \App\Models\CmsPage::query()->where('slug', 'privacy')->published()->exists() ? route('cms.show', 'privacy') : null;
+    $privacyUrl = \App\Support\TaggedCache::remember(['cms'], 'privacy_page_exists', 3600, fn () => \App\Models\CmsPage::query()->where('slug', 'privacy')->published()->exists()) ? route('cms.show', 'privacy') : null;
     $isHome = request()->routeIs('home');
     $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
 
