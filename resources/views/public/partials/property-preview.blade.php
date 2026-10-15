@@ -38,7 +38,7 @@
             <p class="uh-preview-meta">
                 <span x-text="preview?.listing"></span><template x-if="preview?.type"><span x-text="' · ' + preview.type"></span></template>
             </p>
-            <h2 id="preview-title" class="uh-h3 mt-2" x-text="preview?.title"></h2>
+            <p id="preview-title" class="uh-h3 mt-2 font-bold" x-text="preview?.title"></p>
             <p class="mt-1 text-[var(--uh-muted)]" x-show="preview?.location" x-text="preview?.location"></p>
 
             <p class="uh-preview-price uh-numeric" x-text="preview?.price"></p>
