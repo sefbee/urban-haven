@@ -9,12 +9,18 @@
                 <x-icon name="grid" class="size-4" />
                 Edit home page
             </a>
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">
+            <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.cms.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New page
             </a>
         </x-slot:actions>
     </x-ui.page-header>
+
+    @if($canCreatePages)
+        <a class="uh-admin-add-fab" href="{{ route('admin.cms.create') }}" aria-label="New page" title="New page">
+            <x-icon name="plus" class="size-5" />
+        </a>
+    @endif
 
     <x-ui.admin-related label="Also on the site">
         <a href="{{ route('admin.posts.index') }}">Articles</a>

@@ -10,12 +10,16 @@
         <x-ui.page-header compact title="Frequently asked questions">
             <x-slot:eyebrow>Website pages</x-slot:eyebrow>
             <x-slot:actions>
-                <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
+                <button type="button" class="uh-btn-primary uh-btn-sm uh-admin-add-action" @click="open('create')">
                     <x-icon name="plus" class="size-4" />
                     Add question
                 </button>
             </x-slot:actions>
         </x-ui.page-header>
+
+        <button type="button" class="uh-admin-add-fab" aria-label="Add question" title="Add question" @click="open('create')">
+            <x-icon name="plus" class="size-5" />
+        </button>
 
         <x-ui.admin-related label="Also on the site">
             <a href="{{ route('admin.cms.index') }}">Custom pages</a>

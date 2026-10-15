@@ -12,10 +12,16 @@
                 <button type="submit" class="sr-only">Search</button>
             </form>
             @can('create', \App\Models\Post::class)
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.posts.create') }}"><x-icon name="plus" class="size-4" /> New article</a>
+                <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.posts.create') }}"><x-icon name="plus" class="size-4" /> New article</a>
             @endcan
         </x-slot:actions>
     </x-ui.page-header>
+
+    @can('create', \App\Models\Post::class)
+        <a class="uh-admin-add-fab" href="{{ route('admin.posts.create') }}" aria-label="New article" title="New article">
+            <x-icon name="plus" class="size-5" />
+        </a>
+    @endcan
 
     <x-ui.admin-related label="Also on the site">
         <a href="{{ route('admin.cms.index') }}">Pages</a>

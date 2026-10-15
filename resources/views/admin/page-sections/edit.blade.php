@@ -51,8 +51,8 @@
                                             <div class="dd-repeater-head">
                                                 <span class="dd-repeater-index" x-text="index + 1"></span>
                                                 <span class="flex-1 truncate text-sm font-medium" x-text="item.title || 'New {{ $field['item_label'] ?? 'item' }}'"></span>
-                                                <button type="button" class="uh-admin-icon-btn" @click="if (index > 0) { [items[index - 1], items[index]] = [items[index], items[index - 1]] }" :disabled="index === 0" aria-label="Move up"><x-icon name="chevron-down" class="size-4 rotate-180" /></button>
-                                                <button type="button" class="uh-admin-icon-btn" @click="if (index < items.length - 1) { [items[index + 1], items[index]] = [items[index], items[index + 1]] }" :disabled="index === items.length - 1" aria-label="Move down"><x-icon name="chevron-down" class="size-4" /></button>
+                                                <button type="button" class="uh-admin-icon-btn dd-hs-move-btn" @click="if (index > 0) { [items[index - 1], items[index]] = [items[index], items[index - 1]] }" :disabled="index === 0" aria-label="Move up"><x-icon name="fa-light fa-arrow-up" class="size-3.5" /></button>
+                                                <button type="button" class="uh-admin-icon-btn dd-hs-move-btn" @click="if (index < items.length - 1) { [items[index + 1], items[index]] = [items[index], items[index + 1]] }" :disabled="index === items.length - 1" aria-label="Move down"><x-icon name="fa-light fa-arrow-down" class="size-3.5" /></button>
                                                 <button type="button" class="uh-admin-icon-btn text-[var(--dd-red)]" @click="items.splice(index, 1)" aria-label="Remove"><x-icon name="trash" class="size-4" /></button>
                                             </div>
                                             <div class="grid gap-3 sm:grid-cols-[10rem_1fr]">

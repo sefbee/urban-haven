@@ -30,10 +30,11 @@
     ];
 @endphp
 
-<div class="uh-filter-bar">
+<div class="uh-filter-bar" :class="filterCardOpen ? '' : 'is-collapsed'">
     <div class="uh-container">
         <form id="property-filters" x-ref="form" method="GET" action="{{ route($browseRoute) }}"
               class="uh-filter-grid"
+              x-show="filterCardOpen"
               @submit.prevent="search($event.target)"
               @change.debounce.250ms="search($event.target.form || $el)">
             <input x-ref="status" type="hidden" name="listing_type" value="{{ $listing }}">
@@ -171,6 +172,14 @@
             </button>
 
         </form>
+        <div class="uh-filter-card-toggle-wrap">
+            <button type="button" class="uh-filter-card-toggle" @click="filterCardOpen = !filterCardOpen"
+                    :aria-expanded="filterCardOpen.toString()" aria-controls="property-filters"
+                    aria-label="{{ __('Toggle filters') }}" title="{{ __('Toggle filters') }}">
+                <x-icon name="chevron-down" class="size-4" x-show="filterCardOpen" />
+                <x-icon name="chevron-up" class="size-4" x-show="!filterCardOpen" x-cloak />
+            </button>
+        </div>
     </div>
     <span class="uh-progress" x-show="submitting" x-cloak aria-hidden="true"></span>
 </div>

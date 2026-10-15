@@ -54,6 +54,7 @@
         'bell' => 'fa-light fa-bell',
         'home' => 'fa-light fa-house',
         'compare' => 'fa-light fa-code-compare',
+        'compare-solid' => 'fa-solid fa-code-compare',
         'document' => 'fa-light fa-file-lines',
         'download' => 'fa-light fa-download',
         'expand' => 'fa-light fa-expand',

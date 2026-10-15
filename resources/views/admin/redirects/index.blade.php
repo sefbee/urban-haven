@@ -16,12 +16,16 @@
                     <button type="submit" class="uh-btn-outline uh-btn-sm">Search</button>
                 </form>
                 <button type="button" class="uh-btn-outline uh-btn-sm" @click="open('import')">Import CSV</button>
-                <button type="button" class="uh-btn-primary uh-btn-sm" @click="open('create')">
+                <button type="button" class="uh-btn-primary uh-btn-sm uh-admin-add-action" @click="open('create')">
                     <x-icon name="plus" class="size-4" />
                     Add redirect
                 </button>
             </x-slot:actions>
         </x-ui.page-header>
+
+        <button type="button" class="uh-admin-add-fab" aria-label="Add redirect" title="Add redirect" @click="open('create')">
+            <x-icon name="plus" class="size-5" />
+        </button>
 
         @if(session('importFailures'))
             <x-ui.alert tone="warn" class="mb-4">

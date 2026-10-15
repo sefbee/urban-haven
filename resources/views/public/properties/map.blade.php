@@ -7,6 +7,7 @@
 
 @section('content')
     <div class="uh-mapview" x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
+         @scroll.window.throttle.100ms="handleFilterCardScroll()"
          :class="{
             'is-map-full': mapMode === 'full',
             'is-map-hidden': mapMode === 'hidden',
@@ -117,7 +118,7 @@
 
                 <div class="uh-workspace-results mt-5" :class="submitting ? 'is-busy' : ''" :aria-busy="submitting.toString()">
                     @if($properties->isNotEmpty())
-                        <div class="uh-mapview-grid" x-show="layout === 'grid'">
+                        <div class="uh-mapview-grid uh-property-results-grid" x-show="layout === 'grid'">
                             @foreach($properties as $index => $property)
                                 @include('public.partials.showcase-slide', [
                                     'property' => $property,

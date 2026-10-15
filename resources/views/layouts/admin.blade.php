@@ -80,6 +80,9 @@
                             </span>
                         @endif
                     </a>
+                    <button type="button" class="dd-sidebar-close" @click="closeMobile()" aria-label="Close navigation">
+                        <x-icon name="close" class="size-5" />
+                    </button>
                 </div>
 
                 <nav class="dd-nav" x-init="$nextTick(() => {

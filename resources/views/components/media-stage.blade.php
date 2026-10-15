@@ -13,32 +13,39 @@
     ]);
 @endphp
 
-<div {{ $attributes->class(['uh-stage', 'has-switch' => count($views) > 1]) }} x-data="{ view: 'photos' }">
-    @if(count($views) > 1)
-        <div class="uh-stage-switch" role="group" aria-label="{{ __('Media') }}">
-            @foreach($views as $key => $item)
-                <button type="button"
-                        :class="{ 'is-on': view === '{{ $key }}' }" :aria-pressed="(view === '{{ $key }}').toString()"
-                        @if($key === 'map')
-                            @click="view = 'map'; $nextTick(() => window.dispatchEvent(new CustomEvent('uh:refresh-maps')))"
-                        @else
-                            @click="view = '{{ $key }}'"
-                        @endif
-                        @class(['uh-stage-tab', 'is-on' => $loop->first, 'is-available' => $key === 'video'])>
-                    <x-icon :name="$item['icon']" class="size-4" />
-                    {{ $item['label'] }}
-                </button>
-            @endforeach
+<div {{ $attributes->class(['uh-stage', 'has-switch' => count($views) > 1]) }}>
+    @if(count($views) > 1 || isset($actions))
+        <div class="uh-stage-toolbar">
+            @isset($actions)
+                <div class="uh-stage-actions">{{ $actions }}</div>
+            @endisset
+            @if(count($views) > 1)
+                <div class="uh-stage-switch" role="group" aria-label="{{ __('Media') }}">
+                    @foreach($views as $key => $item)
+                        <button type="button"
+                                :class="{ 'is-on': mediaView === '{{ $key }}' }" :aria-pressed="(mediaView === '{{ $key }}').toString()"
+                                @if($key === 'map')
+                                    @click="mediaView = 'map'; $nextTick(() => window.dispatchEvent(new CustomEvent('uh:refresh-maps')))"
+                                @else
+                                    @click="mediaView = '{{ $key }}'"
+                                @endif
+                                @class(['uh-stage-tab', 'is-on' => $loop->first, 'is-available' => $key === 'video'])>
+                            <x-icon :name="$item['icon']" class="size-4" />
+                            {{ $item['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endif
 
-    <div class="uh-stage-view" x-show="view === 'photos'">
+    <div class="uh-stage-view" x-show="mediaView === 'photos'">
         {{ $slot }}
     </div>
 
     @if($video)
-        <div class="uh-stage-view uh-stage-panel is-dark" x-show="view === 'video'" x-cloak>
-            <template x-if="view === 'video'">
+        <div class="uh-stage-view uh-stage-panel is-dark" x-show="mediaView === 'video'" x-cloak>
+            <template x-if="mediaView === 'video'">
                 <iframe src="{{ $video }}" title="{{ __('Video of :title', ['title' => $title]) }}"
                         loading="lazy"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -49,7 +56,7 @@
     @endif
 
     @if($coordinates)
-        <div class="uh-stage-view uh-stage-panel" x-show="view === 'map'" x-cloak>
+        <div class="uh-stage-view uh-stage-panel" x-show="mediaView === 'map'" x-cloak>
             <div class="uh-stage-map" role="region" aria-label="{{ __('Map of :title', ['title' => $title]) }}"
                  data-uh-map data-lat="{{ $coordinates['lat'] }}" data-lng="{{ $coordinates['lng'] }}"
                  data-zoom="{{ $coordinates['approximate'] ? 14 : 16 }}"

@@ -53,7 +53,7 @@
                         'fallbackDescription' => $siteDescription,
                     ])
 
-                    <div class="flex items-center gap-3">
+                    <div class="dd-pageseo-actions flex items-center gap-3">
                         <button type="submit" class="uh-btn-primary" :disabled="submitting">
                             <span class="uh-spinner" x-show="submitting" x-cloak></span>
                             <span>Save {{ Str::lower($page['label']) }} SEO</span>

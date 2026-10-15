@@ -6,12 +6,16 @@
                       description="Accounts that can sign in to this desk, and the role each one holds.">
         <x-slot:eyebrow>Administration</x-slot:eyebrow>
         <x-slot:actions>
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.staff.create') }}">
+            <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.staff.create') }}">
                 <x-icon name="plus" class="size-4" />
                 Add staff
             </a>
         </x-slot:actions>
     </x-ui.page-header>
+
+    <a class="uh-admin-add-fab" href="{{ route('admin.staff.create') }}" aria-label="Add staff" title="Add staff">
+        <x-icon name="plus" class="size-5" />
+    </a>
 
     <div class="uh-panel-flush overflow-hidden">
         <div class="uh-table-scroll">

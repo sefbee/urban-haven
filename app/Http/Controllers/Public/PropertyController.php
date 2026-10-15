@@ -44,6 +44,7 @@ class PropertyController extends Controller
 
         return view('public.properties.show', [
             'property' => $property,
+            'amenities' => $property->amenities(),
             'similar' => $similar->similar($property),
             'isUnavailable' => $property->isUnavailable(),
             'callHref' => PhoneNumber::telHref($callNumber),

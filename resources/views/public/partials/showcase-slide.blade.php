@@ -106,7 +106,7 @@
                         @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => $featuredContent])
                         @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
                     <i class="fa-light fa-code-compare uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
-                    <i class="fa-light fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                    <i class="fa-solid fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
                 </button>
             </div>
 

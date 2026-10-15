@@ -17,7 +17,6 @@
         default => $place,
     };
     $coordinates = $project->publicCoordinates();
-    $mapUrl = $coordinates ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($coordinates['lat'].','.$coordinates['lng']) : null;
     $videoEmbed = \App\Support\VideoEmbed::embedUrl($project->video_url);
     $stage = \App\Models\Project::STAGE_LABELS[$project->development_stage] ?? ucfirst($project->development_stage);
     $category = $project->property_category
@@ -52,28 +51,17 @@
 @endphp
 
 @section('content')
-    <article class="uh-pd pb-24 lg:pb-0" x-data="uhGallery({{ $media->count() }})">
+    <article class="uh-pd uh-pd-project-page pb-24 lg:pb-0" x-data="uhGallery({{ $media->count() }})">
         <div class="uh-container">
 
             <header id="identity" class="uh-pd-head">
                 <div class="min-w-0">
-                    <div class="uh-pd-tags" aria-label="{{ __('Project identity') }}">
-                        <span class="uh-pd-tag is-dark"><x-icon name="building" class="size-4" />{{ __('Development') }}</span>
-                        <span class="uh-pd-tag">{{ $stage }}</span>
-                        @if($category)<span class="uh-pd-tag">{{ $category }}</span>@endif
-                        @if($project->developer_name)<span class="uh-pd-tag">{{ $project->developer_name }}</span>@endif
-                    </div>
-                    <h1 id="project-title" class="uh-pd-title mt-3">{{ $project->name }}</h1>
+                    <h1 id="project-title" class="uh-pd-title">{{ $project->name }}</h1>
                     @if($publicAddress)
                         <p class="uh-pd-address">
                             <x-icon name="pin" class="size-4" />
                             {{ $publicAddress }}
                         </p>
-                    @endif
-                    @if($mapUrl)
-                        <a class="uh-link mt-3 inline-flex items-center gap-2" href="{{ $mapUrl }}" rel="noopener" target="_blank">
-                            <x-icon name="pin" class="size-4" /> {{ $coordinates['approximate'] ? __('View approximate location') : __('View location') }}
-                        </a>
                     @endif
                     <ul class="uh-pd-quick" aria-label="{{ __('Development availability') }}">
                         <li><x-icon name="check-circle" class="size-4" /><span>{{ number_format($availability['available']) }} {{ __('available') }}</span></li>
@@ -94,7 +82,10 @@
                         <x-share-menu :url="$shareUrl" :title="$project->name" />
                     </div>
                     <div class="uh-pd-head-highlights">
-                        <span class="uh-listing-row-badge is-type">{{ __('Project') }}</span>
+                        <span class="uh-listing-row-badge is-type is-project-kind">{{ __('Project') }}</span>
+                        <span class="uh-listing-row-badge is-purpose is-project-stage">{{ $stage }}</span>
+                        @if($category)<span class="uh-listing-row-badge is-purpose is-project-category">{{ $category }}</span>@endif
+                        @if($project->developer_name)<span class="uh-listing-row-badge is-purpose is-project-developer">{{ $project->developer_name }}</span>@endif
                     </div>
                 </div>
             </header>
@@ -102,6 +93,14 @@
             <div class="uh-pd-layout">
                 <x-media-stage class="uh-pd-stage" :title="$project->name" :photo-count="$media->count()"
                                :video="$videoEmbed" :coordinates="$coordinates">
+                    <x-slot:actions>
+                        <div class="uh-pd-stage-highlights" role="group" aria-label="{{ __('Project highlights') }}">
+                            <span class="uh-listing-row-badge is-type is-project-kind">{{ __('Project') }}</span>
+                            <span class="uh-listing-row-badge is-purpose is-project-stage">{{ $stage }}</span>
+                            @if($category)<span class="uh-listing-row-badge is-purpose is-project-category">{{ $category }}</span>@endif
+                            @if($project->developer_name)<span class="uh-listing-row-badge is-purpose is-project-developer">{{ $project->developer_name }}</span>@endif
+                        </div>
+                    </x-slot:actions>
                     <div class="uh-pd-gallery-wrap">
                         <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2]) aria-label="{{ __('Project photographs') }}">
                             @if($media->isNotEmpty())

@@ -6,12 +6,16 @@
                       description="Developments that group several listings together.">
         <x-slot:eyebrow>Content library</x-slot:eyebrow>
         <x-slot:actions>
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.projects.create') }}">
+            <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.projects.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New project
             </a>
         </x-slot:actions>
     </x-ui.page-header>
+
+    <a class="uh-admin-add-fab" href="{{ route('admin.projects.create') }}" aria-label="New project" title="New project">
+        <x-icon name="plus" class="size-5" />
+    </a>
 
     <x-ui.admin-related label="Connected to">
         <a href="{{ route('admin.properties.index') }}">Properties</a>

@@ -2,18 +2,10 @@
 @section('title', 'Properties')
 
 @section('content')
-    <x-ui.page-header compact title="Properties"
-                      description="Every listing we own, with its editorial and availability state.">
+    <x-ui.page-header compact title="Properties">
         <x-slot:eyebrow>Content library</x-slot:eyebrow>
         <x-slot:actions>
-            <form method="GET" class="uh-admin-search" role="search">
-                <label class="sr-only" for="property-search">Search listings</label>
-                <x-icon name="search" />
-                <input id="property-search" class="uh-input min-h-9 py-1.5 text-sm" type="search" name="q"
-                       value="{{ $q ?? '' }}" placeholder="Title or reference" autocomplete="off">
-                <button type="submit" class="sr-only">Search</button>
-            </form>
-            <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.properties.create') }}">
+            <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.properties.create') }}">
                 <x-icon name="plus" class="size-4" />
                 New property
             </a>
@@ -32,8 +24,32 @@
         @endcan
     </x-ui.admin-related>
 
+    <a class="uh-admin-add-fab" href="{{ route('admin.properties.create') }}" aria-label="New property" title="New property">
+        <x-icon name="plus" class="size-5" />
+    </a>
+
     @if($properties->isNotEmpty())
-        <div class="uh-panel-flush overflow-hidden">
+        <div class="uh-admin-property-cards lg:hidden">
+            @foreach($properties as $property)
+                <article class="uh-admin-property-card">
+                    <div class="uh-admin-property-card-heading">
+                        <div class="min-w-0">
+                            <a class="uh-admin-row-main uh-link-quiet" href="{{ route('admin.properties.edit', $property) }}">{{ $property->title }}</a>
+                            <p>{{ $property->locationArea?->name ?? '—' }} · {{ $property->listing_type === 'rent' ? 'Rent' : 'Sale' }}</p>
+                        </div>
+                        <span class="uh-admin-property-price uh-numeric">{{ \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis) ?? '—' }}</span>
+                    </div>
+                    <dl class="uh-admin-property-card-meta">
+                        <div><dt>Reference</dt><dd class="uh-numeric">{{ $property->reference ?? '—' }}</dd></div>
+                        <div><dt>Editorial</dt><dd><x-ui.status :status="$property->editorialStatus()" /></dd></div>
+                        <div><dt>Availability</dt><dd><x-ui.status :status="$property->availability" /></dd></div>
+                    </dl>
+                    <a class="uh-btn-outline uh-btn-sm uh-btn-block" href="{{ route('admin.properties.edit', $property) }}">Edit property</a>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="uh-panel-flush overflow-hidden hidden lg:block">
             <div class="uh-table-scroll">
                 <table class="uh-table">
                     <caption class="sr-only">Property listings</caption>

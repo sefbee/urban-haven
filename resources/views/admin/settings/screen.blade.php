@@ -19,9 +19,20 @@
         <x-slot:eyebrow>Website settings</x-slot:eyebrow>
     </x-ui.page-header>
 
-    <x-ui.admin-tabs label="Settings sections" class="mb-5">
+    <x-ui.admin-tabs label="Settings sections" class="uh-settings-tabs mb-5">
         @foreach($tabs as $key => [$label, $route])
-            <a href="{{ route($route) }}" @class(['is-active' => $screen === $key]) @if($screen === $key) aria-current="page" @endif>{{ $label }}</a>
+            <a href="{{ route($route) }}" @class(['is-active' => $screen === $key]) @if($screen === $key) aria-current="page" @endif>
+                <span class="uh-settings-tab-full">{{ $label }}</span>
+                <span class="uh-settings-tab-short">{{ __(match ($key) {
+                    'general' => 'General',
+                    'theme' => 'Theme',
+                    'contact' => 'Contact',
+                    'listings' => 'Listings',
+                    'analytics' => 'Stats',
+                    'seo' => 'SEO',
+                    'copy' => 'Copy',
+                }) }}</span>
+            </a>
         @endforeach
     </x-ui.admin-tabs>
 

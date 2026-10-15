@@ -32,10 +32,10 @@
     </x-ui.alert>
 @endif
 
-<nav class="dd-steps" aria-label="Form sections">
+<nav class="dd-steps" x-data="uhAdminFormSteps" aria-label="Form sections">
     @foreach($steps as $anchor => $label)
         @continue($anchor === 'media' && ! $exists)
-        <a href="#step-{{ $anchor }}">{{ $label }}</a>
+        <a href="#step-{{ $anchor }}" :class="{ 'is-active': current === 'step-{{ $anchor }}' }">{{ $label }}</a>
     @endforeach
 </nav>
 

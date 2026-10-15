@@ -71,15 +71,15 @@
                             <form method="POST" action="{{ route('admin.page-sections.move', ['page' => $page, 'section' => $section]) }}">
                                 @csrf
                                 <input type="hidden" name="direction" value="up">
-                                <button type="submit" class="uh-admin-icon-btn" @disabled($loop->first) aria-label="Move {{ $definition['label'] }} up" title="Move up">
-                                    <x-icon name="chevron-down" class="size-4 rotate-180" />
+                                <button type="submit" class="uh-admin-icon-btn dd-hs-move-btn" @disabled($loop->first) aria-label="Move {{ $definition['label'] }} up" title="Move up">
+                                    <x-icon name="fa-light fa-arrow-up" class="size-3.5" />
                                 </button>
                             </form>
                             <form method="POST" action="{{ route('admin.page-sections.move', ['page' => $page, 'section' => $section]) }}">
                                 @csrf
                                 <input type="hidden" name="direction" value="down">
-                                <button type="submit" class="uh-admin-icon-btn" @disabled($loop->last) aria-label="Move {{ $definition['label'] }} down" title="Move down">
-                                    <x-icon name="chevron-down" class="size-4" />
+                                <button type="submit" class="uh-admin-icon-btn dd-hs-move-btn" @disabled($loop->last) aria-label="Move {{ $definition['label'] }} down" title="Move down">
+                                    <x-icon name="fa-light fa-arrow-down" class="size-3.5" />
                                 </button>
                             </form>
                         </div>

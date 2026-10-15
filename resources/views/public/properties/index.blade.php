@@ -49,6 +49,7 @@
     @endif
 
     <div x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})" x-init="layout = 'grid'"
+         @scroll.window.throttle.100ms="handleFilterCardScroll()"
          @open-preview="openPreview($event.detail)"
          @keydown.escape.window="onEscape()"
          @keydown.left.window="preview && previousSlide()"

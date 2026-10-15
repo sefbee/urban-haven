@@ -1,6 +1,11 @@
 @extends('layouts.public')
 
-@php($cover = $post->featuredImage())
+@php
+    $cover = $post->featuredImage();
+    $authorName = $post->author_label ?: \App\Models\Setting::get('company_name', 'Urban Haven');
+    $publishedAt = $post->publicationState?->published_at;
+    $readingMinutes = max(1, (int) ceil(str_word_count(strip_tags((string) $post->body)) / 220));
+@endphp
 
 @section('content')
     @if($isPreview ?? false)
@@ -9,59 +14,79 @@
         </div>
     @endif
 
-    <article>
-        <header class="uh-page-head">
-            <div class="uh-container-narrow">
-                <h1 class="uh-h1 uh-page-title">{{ $post->title }}</h1>
-                <p class="uh-article-meta mt-6">
+    <article class="uh-blog-detail">
+        <header class="uh-blog-hero">
+            @if($cover)
+                <img class="uh-blog-hero-image" src="{{ $cover->url(1920) }}" srcset="{{ $cover->srcset() }}"
+                     sizes="100vw" alt="{{ $cover->alt(app()->getLocale()) }}" fetchpriority="high" decoding="async">
+            @endif
+            <div class="uh-blog-hero-shade"></div>
+            <div class="uh-blog-hero-inner uh-container">
+                <a class="uh-blog-back" href="{{ route('articles.index') }}" aria-label="{{ __('Back to articles') }}">
+                    <x-icon name="arrow-left" class="size-4" />
+                </a>
+                <div class="uh-blog-hero-copy">
                     @if($post->category)
-                        <span>{{ $post->category->name }}</span>
+                        <a class="uh-blog-category" href="{{ route('articles.index', ['category' => $post->category->slug]) }}">
+                            <span aria-hidden="true"></span>{{ $post->category->name }}
+                        </a>
                     @endif
-                    <span>{{ $post->author_label ?: \App\Models\Setting::get('company_name', 'Urban Haven') }}</span>
-                    @if($post->publicationState?->published_at)
-                        <time datetime="{{ $post->publicationState->published_at->toAtomString() }}">{{ $post->publicationState->published_at->timezone(config('urbanhaven.display_timezone'))->format('j M Y') }}</time>
+                    <h1>{{ $post->title }}</h1>
+                    @if($post->excerpt)
+                        <p class="uh-blog-deck">{{ $post->excerpt }}</p>
                     @endif
-                </p>
+                    <div class="uh-blog-byline">
+                        <span class="uh-blog-author-mark" aria-hidden="true">{{ mb_substr($authorName, 0, 1) }}</span>
+                        <span class="uh-blog-author"><strong>{{ __('By :author', ['author' => $authorName]) }}</strong><small>{{ __('Urban Haven Research Desk') }}</small></span>
+                        <span class="uh-blog-byline-divider" aria-hidden="true"></span>
+                        @if($publishedAt)
+                            <time datetime="{{ $publishedAt->toAtomString() }}">{{ $publishedAt->timezone(config('urbanhaven.display_timezone'))->format('j M Y') }}</time>
+                        @endif
+                        <span class="uh-blog-read-time"><x-icon name="eye" class="size-4" />{{ trans_choice(':count min read|:count min read', $readingMinutes, ['count' => $readingMinutes]) }}</span>
+                    </div>
+                </div>
+                <div class="uh-blog-share-wrap">
+                    <x-share-menu :url="route('articles.show', $post->slug)" :title="$post->title" button-class="uh-blog-share" />
+                </div>
             </div>
         </header>
 
-        @if($cover)
-            <figure class="uh-container">
-                <div class="uh-article-cover">
-                    <img src="{{ $cover->url(1920) }}" srcset="{{ $cover->srcset() }}" sizes="(min-width: 1280px) 1200px, 100vw"
-                         alt="{{ $cover->alt(app()->getLocale()) }}" fetchpriority="high" decoding="async">
-                </div>
-            </figure>
-        @endif
+        <div class="uh-blog-content uh-container">
+            <div class="uh-blog-body">
+                <div class="uh-prose uh-prose-lead">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $post->body) !!}</div>
+            </div>
 
-        <div class="uh-container-narrow uh-section-tight">
-            <div class="uh-prose uh-prose-lead">{!! \Stevebauman\Purify\Facades\Purify::clean((string) $post->body) !!}</div>
+            <aside class="uh-blog-sidebar" aria-label="{{ __('More from Urban Haven') }}">
+                @if($related->isNotEmpty())
+                    <section class="uh-blog-sidebar-card" aria-labelledby="related-title">
+                        <div class="uh-blog-sidebar-heading">
+                            <h2 id="related-title">{{ __('Related articles') }}</h2>
+                            <a href="{{ route('articles.index') }}" aria-label="{{ __('Browse all articles') }}"><x-icon name="arrow-right" class="size-4" /></a>
+                        </div>
+                        <ul class="uh-blog-related">
+                            @foreach($related as $item)
+                                @php($relatedImage = $item->featuredImage())
+                                <li>
+                                    <a href="{{ route('articles.show', $item->slug) }}">
+                                        @if($relatedImage)
+                                            <img src="{{ $relatedImage->url(240) }}" alt="" loading="lazy" decoding="async">
+                                        @else
+                                            <span class="uh-blog-related-placeholder" aria-hidden="true"><x-icon name="document" class="size-5" /></span>
+                                        @endif
+                                        <span><strong>{{ $item->title }}</strong>@if($item->publicationState?->published_at)<small>{{ $item->publicationState->published_at->timezone(config('urbanhaven.display_timezone'))->format('j M Y') }}</small>@endif</span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endif
 
-            <aside class="uh-next">
-                <p class="uh-h3">{{ __('Looking for a property?') }}</p>
-                <div class="uh-next-links">
-                    <x-ui.pill-link variant="light" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
-                    <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')">{{ __('Talk to our team') }}</x-ui.pill-link>
-                </div>
+                <section class="uh-blog-promo">
+                    <h2>{{ __('Looking for a property?') }}</h2>
+                    <p>{{ __('Discover homes and areas across Dhaka with Urban Haven.') }}</p>
+                    <a href="{{ route('properties.index') }}">{{ __('Browse properties') }} <x-icon name="arrow-right" class="size-4" /></a>
+                </section>
             </aside>
         </div>
     </article>
-
-    @if($related->isNotEmpty())
-        <section class="uh-band-paper" aria-labelledby="related-title">
-            <div class="uh-container uh-section-tight">
-                <h2 id="related-title" class="uh-h2">{{ __('Related articles') }}</h2>
-                <ul class="uh-related">
-                    @foreach($related as $item)
-                        <li>
-                            <a href="{{ route('articles.show', $item->slug) }}">{{ $item->title }}</a>
-                            @if($item->excerpt)
-                                <p>{{ $item->excerpt }}</p>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </section>
-    @endif
 @endsection

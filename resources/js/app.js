@@ -48,6 +48,176 @@ const syncAdminSheets = (name) => {
 const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const restoreAdminMobileTable = (table) => {
+    const mobileCards = table.__uhAdminMobileCards;
+    if (!mobileCards) {
+        return;
+    }
+
+    mobileCards.rows.forEach(({ cells }) => {
+        cells.forEach(({ cell, content }) => {
+            while (content.firstChild) {
+                cell.appendChild(content.firstChild);
+            }
+        });
+    });
+
+    mobileCards.source.removeAttribute('data-mobile-table-source');
+    mobileCards.source.removeAttribute('aria-hidden');
+    mobileCards.cards.remove();
+    delete table.__uhAdminMobileCards;
+};
+
+const buildAdminMobileTableCards = (table) => {
+    if (table.__uhAdminMobileCards) {
+        return;
+    }
+
+    const source = table.closest('.uh-table-scroll');
+    const headingRow = table.tHead?.rows?.[0];
+    if (!source || source.closest('.hidden') || !headingRow) {
+        return;
+    }
+
+    const labels = Array.from(headingRow.cells, (heading) =>
+        heading.textContent.replace(/\s+/g, ' ').trim(),
+    );
+    const cards = document.createElement('div');
+    cards.className = 'uh-admin-mobile-table-cards';
+    const rows = [];
+
+    Array.from(table.tBodies).forEach((body) => {
+        Array.from(body.rows).forEach((row) => {
+            const cells = Array.from(row.cells);
+            const isActionCell = (cell, index) =>
+                cell.classList.contains('uh-admin-row-actions')
+                || Boolean(cell.querySelector('.uh-admin-row-actions'))
+                || /^(actions?)$/i.test(labels[index] ?? '');
+            const actionIndexes = new Set(cells.flatMap((cell, index) => isActionCell(cell, index) ? [index] : []));
+            const priceIndex = cells.findIndex((cell, index) =>
+                !actionIndexes.has(index) && /price|amount|cost/i.test(labels[index] ?? ''),
+            );
+            const hasText = (cell) => cell.textContent.replace(/\s+/g, ' ').trim().length > 0;
+            let primaryIndex = cells.findIndex((cell, index) =>
+                !actionIndexes.has(index) && index !== priceIndex && hasText(cell),
+            );
+            if (primaryIndex < 0) {
+                primaryIndex = cells.findIndex((cell, index) => !actionIndexes.has(index) && index !== priceIndex);
+            }
+
+            const visualIndex = cells.findIndex((cell, index) =>
+                index !== primaryIndex
+                && !actionIndexes.has(index)
+                && index !== priceIndex
+                && !hasText(cell)
+                && Boolean(cell.querySelector('img, svg')),
+            );
+            const card = document.createElement('article');
+            card.className = 'uh-admin-property-card uh-admin-table-card';
+            if (row.classList.contains('uh-admin-clickrow')) {
+                card.classList.add('uh-admin-clickrow');
+            }
+            for (const attribute of Array.from(row.attributes)) {
+                if (attribute.name.startsWith('data-') || attribute.name.startsWith('aria-') || attribute.name.startsWith('x-show') || attribute.name.startsWith('x-transition')) {
+                    card.setAttribute(attribute.name, attribute.value);
+                }
+            }
+
+            const cellTargets = new Map();
+            const rememberTarget = (index, target) => {
+                if (index < 0) {
+                    return;
+                }
+                cellTargets.set(index, target);
+            };
+            const moveCellContent = (index, target) => {
+                if (index < 0) {
+                    return;
+                }
+                const cell = cells[index];
+                while (cell.firstChild) {
+                    target.appendChild(cell.firstChild);
+                }
+                rememberTarget(index, target);
+                if (cell.dir) {
+                    target.dir = cell.dir;
+                }
+            };
+
+            const heading = document.createElement('div');
+            heading.className = 'uh-admin-property-card-heading uh-admin-table-card-heading';
+            if (visualIndex >= 0) {
+                const visual = document.createElement('span');
+                visual.className = 'uh-admin-table-card-visual';
+                moveCellContent(visualIndex, visual);
+                heading.appendChild(visual);
+            }
+            const primary = document.createElement('div');
+            primary.className = 'uh-admin-table-card-primary';
+            moveCellContent(primaryIndex, primary);
+            heading.appendChild(primary);
+            if (priceIndex >= 0) {
+                const price = document.createElement('span');
+                price.className = 'uh-admin-property-price uh-numeric';
+                moveCellContent(priceIndex, price);
+                heading.appendChild(price);
+            }
+            card.appendChild(heading);
+
+            const meta = document.createElement('dl');
+            meta.className = 'uh-admin-property-card-meta';
+            cells.forEach((cell, index) => {
+                if (index === primaryIndex || index === visualIndex || index === priceIndex || actionIndexes.has(index)) {
+                    return;
+                }
+
+                const field = document.createElement('div');
+                const label = document.createElement('dt');
+                label.textContent = labels[index] || 'Details';
+                const value = document.createElement('dd');
+                moveCellContent(index, value);
+                field.append(label, value);
+                meta.appendChild(field);
+            });
+            if (meta.childElementCount > 0) {
+                card.appendChild(meta);
+            }
+
+            const actionIndexesInRow = Array.from(actionIndexes);
+            if (actionIndexesInRow.length > 0) {
+                const actions = document.createElement('div');
+                actions.className = 'uh-admin-table-card-actions';
+                actionIndexesInRow.forEach((index) => moveCellContent(index, actions));
+                card.appendChild(actions);
+            }
+
+            cards.appendChild(card);
+            rows.push({ row, cells: Array.from(cellTargets, ([index, content]) => ({ cell: cells[index], content })) });
+        });
+    });
+
+    source.dataset.mobileTableSource = 'true';
+    source.setAttribute('aria-hidden', 'true');
+    source.after(cards);
+    table.__uhAdminMobileCards = { source, cards, rows };
+    window.Alpine?.initTree(cards);
+};
+
+const syncAdminMobileTables = (isMobile = window.matchMedia('(max-width: 767px)').matches) => {
+    document.querySelectorAll('body.uh-admin .uh-table-scroll .uh-table').forEach((table) => {
+        if (isMobile) {
+            buildAdminMobileTableCards(table);
+        } else {
+            restoreAdminMobileTable(table);
+        }
+    });
+};
+
+const adminMobileTableQuery = window.matchMedia('(max-width: 767px)');
+if (document.body?.classList.contains('uh-admin')) {
+    adminMobileTableQuery.addEventListener('change', (event) => syncAdminMobileTables(event.matches));
+}
+
 const escapeHtml = (value) =>
     String(value ?? '')
         .replaceAll('&', '&amp;')
@@ -124,6 +294,7 @@ Alpine.data('uhCoverSlides', (count = 0, seconds = 6) => ({
 Alpine.data('uhGallery', (count = 0) => ({
     count,
     active: 0,
+    mediaView: 'photos',
     lightbox: false,
     _opener: null,
     select(index) {
@@ -160,6 +331,8 @@ Alpine.data('uhGallery', (count = 0) => ({
  */
 Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     filtersOpen: false,
+    filterCardOpen: true,
+    lastFilterScrollY: 0,
     submitting: false,
     more: hasAdvanced,
     layout: 'grid',
@@ -168,6 +341,17 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
     slide: 0,
     requestController: null,
     init() {
+        this.lastFilterScrollY = window.scrollY;
+        this.filterCardOpen = true;
+
+        const syncFilterCardToScrollPosition = () => {
+            this.lastFilterScrollY = window.scrollY;
+            this.filterCardOpen = window.scrollY <= 2;
+        };
+
+        window.requestAnimationFrame(syncFilterCardToScrollPosition);
+        window.addEventListener('pageshow', syncFilterCardToScrollPosition);
+
         try {
             const stored = localStorage.getItem('uh-browse-layout');
             if (stored === 'grid' || stored === 'list') {
@@ -243,6 +427,17 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         } catch {
             // Private browsing can block storage; the choice still applies this visit.
         }
+    },
+    handleFilterCardScroll() {
+        const currentScrollY = window.scrollY;
+
+        if (currentScrollY <= 2) {
+            this.filterCardOpen = true;
+        } else if (currentScrollY > this.lastFilterScrollY + 4) {
+            this.filterCardOpen = false;
+        }
+
+        this.lastFilterScrollY = currentScrollY;
     },
     toggleMapMode() {
         this.mapMode = this.mapMode === 'full' ? 'split' : 'full';
@@ -460,6 +655,76 @@ Alpine.data('uhSectionTabs', () => ({
             const strip = link?.parentElement;
             if (link && strip && strip.scrollWidth > strip.clientWidth) {
                 strip.scrollTo({ left: link.offsetLeft - 16, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+            }
+        });
+    },
+}));
+
+/**
+ * Admin form section tabs track the admin content pane, which scrolls separately from the window.
+ */
+Alpine.data('uhAdminFormSteps', () => ({
+    current: null,
+    sections: [],
+    scroller: null,
+    ticking: false,
+    onScroll: null,
+    onClick: null,
+    init() {
+        this.scroller = this.$el.closest('.dd-content');
+        this.sections = [...this.$el.querySelectorAll('a[href^="#step-"]')]
+            .map((link) => document.getElementById(link.getAttribute('href').slice(1)))
+            .filter((section, index, sections) => section && sections.indexOf(section) === index);
+        this.current = this.sections[0]?.id ?? null;
+        this.onScroll = () => {
+            if (this.ticking) {
+                return;
+            }
+            this.ticking = true;
+            requestAnimationFrame(() => {
+                this.ticking = false;
+                this.update();
+            });
+        };
+        this.onClick = (event) => {
+            const link = event.target.closest('a[href^="#step-"]');
+            if (!link) {
+                return;
+            }
+            this.current = link.getAttribute('href').slice(1);
+            this.reveal(link);
+        };
+        this.scroller?.addEventListener('scroll', this.onScroll, { passive: true });
+        this.$el.addEventListener('click', this.onClick);
+        this.update();
+    },
+    destroy() {
+        this.scroller?.removeEventListener('scroll', this.onScroll);
+        this.$el.removeEventListener('click', this.onClick);
+    },
+    update() {
+        if (!this.sections.length || !this.scroller) {
+            return;
+        }
+
+        const line = this.$el.getBoundingClientRect().bottom + 96;
+        const passed = this.sections.filter((section) => section.getBoundingClientRect().top <= line);
+        const atEnd = this.scroller.scrollTop + this.scroller.clientHeight >= this.scroller.scrollHeight - 4;
+        const next = atEnd ? this.sections.at(-1) : (passed.at(-1) ?? this.sections[0]);
+
+        if (next && next.id !== this.current) {
+            this.current = next.id;
+            this.reveal();
+        }
+    },
+    reveal(link = null) {
+        this.$nextTick(() => {
+            const activeLink = link ?? this.$el.querySelector(`a[href="#${this.current}"]`);
+            if (activeLink && activeLink.parentElement.scrollWidth > activeLink.parentElement.clientWidth) {
+                activeLink.parentElement.scrollTo({
+                    left: activeLink.offsetLeft - 16,
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                });
             }
         });
     },
@@ -2741,6 +3006,9 @@ const bootUnsavedGuards = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (document.body.classList.contains('uh-admin')) {
+        syncAdminMobileTables();
+    }
     bootAdminSelects();
     bootPendingMediaUploads();
     bootUnsavedGuards();

@@ -9,12 +9,18 @@
                 <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.menus.index') }}">{{ __('Manage menus') }}</a>
             @endif
             @if($canCreatePages)
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">
+                <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.cms.create') }}">
                     <x-icon name="plus" class="size-4" /> {{ __('New page') }}
                 </a>
             @endif
         </x-slot:actions>
     </x-ui.page-header>
+
+    @if($canCreatePages)
+        <a class="uh-admin-add-fab" href="{{ route('admin.cms.create') }}" aria-label="New page" title="New page">
+            <x-icon name="plus" class="size-5" />
+        </a>
+    @endif
 
     <div class="dd-urls-page" x-data="{
         q: '',
@@ -24,6 +30,9 @@
         showMenuModal: false,
         menu: { label: '', url: '', location: @js(array_key_first($menuLocations)), parent_id: '' },
         menuParents: @js($menuParents),
+        revealTab(tab) {
+            tab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        },
         openMenu(label, url) {
             this.menu = { label, url, location: @js(array_key_first($menuLocations)), parent_id: '' };
             this.showMenuModal = true;
@@ -74,10 +83,11 @@
                 <span class="sr-only">Filter addresses</span>
                 <input type="search" x-model="q" placeholder="Filter by name or address…">
             </label>
-            <div class="dd-urls-tabs" role="tablist">
-                <button type="button" :class="group === 'all' && 'is-active'" @click="group = 'all'">All</button>
+            <div class="dd-urls-tabs" role="tablist"
+                 x-init="$nextTick(() => { const active = $el.querySelector('.is-active'); active?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); })">
+                <button type="button" :class="group === 'all' && 'is-active'" @click="const tab = $event.currentTarget; group = 'all'; $nextTick(() => revealTab(tab))">All</button>
                 @foreach($groups as $name => $rows)
-                    <button type="button" :class="group === @js($name) && 'is-active'" @click="group = @js($name)">{{ $name }} <span>{{ count($rows) }}</span></button>
+                    <button type="button" :class="group === @js($name) && 'is-active'" @click="const tab = $event.currentTarget; group = @js($name); $nextTick(() => revealTab(tab))">{{ $name }} <span>{{ count($rows) }}</span></button>
                 @endforeach
             </div>
         </div>

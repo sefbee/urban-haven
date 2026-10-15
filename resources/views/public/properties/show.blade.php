@@ -3,9 +3,9 @@
 @php
     $media = $property->galleryImages();
     $contactImage = $property->featuredImage();
+    $projectImage = $property->project?->featuredImage();
     $floorPlans = $property->floorPlans();
     $brochures = $property->brochures();
-    $amenities = $property->amenities();
     $units = $property->units;
     $isPlot = $property->fieldProfile() === \App\Models\PropertyType::PROFILE_PLOT;
     $isRent = $property->listing_type === 'rent';
@@ -36,13 +36,6 @@
         $property->availability === 'reserved' => __('Reserved by another buyer. You can still enquire in case it does not go ahead.'),
         default => __('Open for enquiries and site visits.'),
     };
-    $quickFacts = array_values(array_filter([
-        $isPlot || $property->bedrooms === null ? null : ['icon' => 'bed', 'text' => trans_choice(':count bedroom|:count bedrooms', $property->bedrooms, ['count' => $property->bedrooms])],
-        $isPlot || $property->bathrooms === null ? null : ['icon' => 'bath', 'text' => trans_choice(':count bathroom|:count bathrooms', $property->bathrooms, ['count' => $property->bathrooms])],
-        $area ? ['icon' => 'area', 'text' => $area] : null,
-        $property->propertyType ? ['icon' => 'building', 'text' => $property->propertyType->label] : null,
-        $property->parking_spaces ? ['icon' => 'car', 'text' => trans_choice(':count parking|:count parking', $property->parking_spaces, ['count' => $property->parking_spaces])] : null,
-    ]));
     $overview = array_values(array_filter([
         ['icon' => 'building', 'label' => __('Property type'), 'value' => $property->propertyType?->label],
         ['icon' => 'area', 'label' => __('Size'), 'value' => $area],
@@ -59,6 +52,7 @@
     ], fn ($fact) => $fact !== null && filled($fact['value'])));
     $hasDescription = filled($property->description) || $anchors;
     $thumbs = $media->slice(1, 3)->values();
+    $mobileThumbs = $media->slice(1)->values();
     $hiddenPhotos = max(0, $media->count() - 1 - $thumbs->count());
     $tabs = array_filter([
         'overview' => __('Overview'),
@@ -70,7 +64,7 @@
 @endphp
 
 @section('content')
-    <article class="uh-pd pb-24 lg:pb-0" x-data="uhGallery({{ $media->count() }})" x-init="$store.saved.viewed({{ $property->id }})">
+    <article class="uh-pd uh-pd-property pb-24 lg:pb-0" x-data="uhGallery({{ $media->count() }})" x-init="$store.saved.viewed({{ $property->id }})">
         <div class="uh-container">
             @if($isUnavailable)
                 <x-ui.alert tone="warn" class="mt-6">
@@ -92,29 +86,36 @@
                             {{ $publicAddress ?: $place }}
                         </p>
                     @endif
-                    @if($quickFacts)
-                        <ul class="uh-pd-quick" aria-label="{{ __('Key facts') }}">
-                            @foreach($quickFacts as $fact)
-                                <li>
-                                    <x-icon :name="$fact['icon']" class="size-[1.125rem]" />
-                                    <span class="uh-numeric">{{ $fact['text'] }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
+                    @if($property->bedrooms || $property->bathrooms || $area)
+                        <div class="uh-pd-desktop-details">
+                            <ul class="uh-pd-quick" aria-label="{{ __('Property features') }}">
+                                @if($property->bedrooms)
+                                    <li><x-icon name="bed" class="size-4" /><span>{{ $property->bedrooms }} {{ __('Bedrooms') }}</span></li>
+                                @endif
+                                @if($property->bathrooms)
+                                    <li><x-icon name="bath" class="size-4" /><span>{{ $property->bathrooms }} {{ __('Bathrooms') }}</span></li>
+                                @endif
+                                @if($area)
+                                    <li><x-icon name="area" class="size-4" /><span>{{ $area }}</span></li>
+                                @endif
+                            </ul>
+                        </div>
                     @endif
                 </div>
 
                 <div class="uh-pd-head-side">
-                    <p class="uh-pd-price uh-numeric">{{ $headlinePrice }}</p>
-                    @if($headlinePrice !== $exactPrice)
-                        <p class="uh-pd-price-exact uh-numeric">{{ $exactPrice }}</p>
-                    @endif
+                    <div class="uh-pd-price-block">
+                        <p class="uh-pd-price uh-numeric">{{ $headlinePrice }}</p>
+                        @if($headlinePrice !== $exactPrice)
+                            <p class="uh-pd-price-exact uh-numeric">{{ $exactPrice }}</p>
+                        @endif
+                    </div>
                     @if($updatedAt)
                         <p class="uh-pd-updated">
                             {{ __('Last updated') }} <time datetime="{{ $updatedAt->toDateString() }}">{{ $updatedAt->format('j M Y') }}</time>
                         </p>
                     @endif
-                    <div class="uh-pd-actions">
+                    <div class="uh-pd-actions uh-pd-actions-desktop">
                         <x-save-button :property="$property" variant="icon" />
                         <x-save-button :property="$property" list="compare" variant="icon" />
                         <x-share-menu :url="$shareUrl" :title="$property->title" />
@@ -138,14 +139,28 @@
             <div class="uh-pd-layout">
                 <x-media-stage class="uh-pd-stage" :title="$property->title" :photo-count="$media->count()"
                                :video="$videoEmbed" :coordinates="$coordinates">
+                    <x-slot:actions>
+                        <div class="uh-pd-stage-highlights" role="group" aria-label="{{ __('Property highlights') }}">
+                            @if($property->is_featured)
+                                <span class="uh-listing-row-badge is-featured">{{ __('Featured') }}</span>
+                            @endif
+                            @if($property->propertyType?->label)
+                                <span class="uh-listing-row-badge is-type">{{ $property->propertyType->label }}</span>
+                            @endif
+                            <span class="uh-listing-row-badge is-purpose">{{ $isRent ? __('Rent') : __('Sale') }}</span>
+                            @if($property->availability !== 'available')
+                                <span class="uh-listing-row-badge is-purpose">{{ $availabilityLabel }}</span>
+                            @endif
+                        </div>
+                    </x-slot:actions>
                     <div class="uh-pd-gallery-wrap">
                         <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2, 'has-three' => $thumbs->count() === 3]) aria-label="{{ __('Photographs') }}">
                             @if($media->isNotEmpty())
                                 <button type="button" class="uh-pd-shot is-main"
                                         style="view-transition-name: uh-property-{{ $property->id }}"
-                                        @click="open(0)"
-                                        aria-label="{{ __('Open image :number at full size', ['number' => 1]) }}">
-                                    <img src="{{ $media->first()->url(1280) }}"
+                                        @click="open(active)"
+                                        :aria-label="'{{ __('Open image') }} ' + (active + 1) + ' {{ __('at full size') }}'">
+                                    <img x-ref="mainImage" src="{{ $media->first()->url(1280) }}"
                                          srcset="{{ $media->first()->url(768) }} 768w, {{ $media->first()->url(1280) }} 1280w, {{ $media->first()->url(1920) }} 1920w"
                                          sizes="(min-width: 1100px) 60vw, 100vw"
                                          alt="{{ $media->first()->alt(app()->getLocale()) }}"
@@ -154,7 +169,7 @@
                                 @foreach($thumbs as $index => $image)
                                     <button type="button" class="uh-pd-shot"
                                             @click="open({{ $index + 1 }})"
-                                            aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
+                                            aria-label="{{ __('Show image :number', ['number' => $index + 2]) }}">
                                         <img src="{{ $image->url(768) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
                                         @if($loop->last && $hiddenPhotos > 0)
                                             <span class="uh-pd-shot-more">+ {{ $hiddenPhotos }} {{ __('Photos') }}</span>
@@ -168,6 +183,22 @@
                                 </div>
                             @endif
                         </section>
+                        @if($mobileThumbs->isNotEmpty())
+                            <div class="uh-pd-mobile-thumbnails" aria-label="{{ __('More photographs') }}">
+                                @foreach($mobileThumbs as $index => $image)
+                                    <button type="button" class="uh-pd-mobile-thumbnail"
+                                            @click="select({{ $index + 1 }}); $refs.mainImage.srcset = $el.dataset.mainSrcset; $refs.mainImage.src = $el.dataset.mainSrc; $refs.mainImage.alt = $el.dataset.mainAlt"
+                                            :class="{ 'is-selected': active === {{ $index + 1 }} }"
+                                            :aria-pressed="(active === {{ $index + 1 }}).toString()"
+                                            data-main-src="{{ $image->url(1280) }}"
+                                            data-main-srcset="{{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w, {{ $image->url(1920) }} 1920w"
+                                            data-main-alt="{{ $image->alt(app()->getLocale()) }}"
+                                            aria-label="{{ __('Open image :number at full size', ['number' => $index + 2]) }}">
+                                        <img src="{{ $image->url(320) }}" alt="{{ $image->alt(app()->getLocale()) }}" loading="lazy" decoding="async">
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
 
                     </div>
                 </x-media-stage>
@@ -198,8 +229,13 @@
                         <section class="uh-pd-card" aria-labelledby="development-heading">
                             <h2 id="development-heading" class="uh-pd-card-title">{{ __('Part of a development') }}</h2>
                             <a class="uh-pd-project" href="{{ route('projects.show', $property->project->slug) }}">
-                                <span class="uh-pd-overview-icon"><x-icon name="building" class="size-5" /></span>
-                                <span>
+                                @if($projectImage)
+                                    <img class="uh-pd-project-image" src="{{ $projectImage->url(320) }}"
+                                         alt="" aria-hidden="true" loading="lazy" decoding="async">
+                                @else
+                                    <span class="uh-pd-overview-icon"><x-icon name="building" class="size-5" /></span>
+                                @endif
+                                <span class="uh-pd-project-copy">
                                     <span class="uh-project-meta">{{ \App\Models\Project::STAGE_LABELS[$property->project->development_stage] ?? ucfirst($property->project->development_stage) }}</span>
                                     <span class="uh-pd-project-name">{{ $property->project->name }}</span>
                                 </span>
@@ -243,9 +279,7 @@
                             <ul class="uh-pd-amenities">
                                 @foreach($amenities as $amenity)
                                     <li>
-                                        @if($amenity->icon_class)
-                                            <i class="{{ $amenity->icon_class }}" aria-hidden="true"></i>
-                                        @elseif($amenity->iconUrl())
+                                        @if($amenity->iconUrl())
                                             <img src="{{ $amenity->iconUrl() }}" alt="" loading="lazy" decoding="async">
                                         @else
                                             <x-icon name="sparkle" class="size-6" />
@@ -487,53 +521,51 @@
         </div>
 
         @if($similar->isNotEmpty())
-            <section class="uh-pd-similar" x-data="uhRail" aria-labelledby="similar-title">
-                <div class="uh-container uh-section-tight">
-                    <header class="uh-rail-head">
+            <section class="uh-section uh-pd-similar uh-highlighted-property-section uh-trending-section"
+                     x-data="uhBrowse()" @open-preview="openPreview($event.detail)"
+                     @keydown.escape.window="onEscape()"
+                     @keydown.left.window="preview && previousSlide()"
+                     @keydown.right.window="preview && nextSlide()"
+                     aria-labelledby="similar-title">
+                <div class="uh-container">
+                    <header class="uh-trending-head">
                         <h2 id="similar-title" class="uh-h2">{{ $isUnavailable ? __('Available alternatives') : __('Similar properties') }}</h2>
-                        <div class="flex gap-1">
-                            <button type="button" class="uh-icon-action" @click="prev()" :disabled="!canPrev" aria-label="{{ __('Previous homes') }}">
-                                <x-icon name="chevron-left" class="size-5" />
-                            </button>
-                            <button type="button" class="uh-icon-action" @click="next()" :disabled="!canNext" aria-label="{{ __('Next homes') }}">
-                                <x-icon name="chevron-right" class="size-5" />
-                            </button>
-                        </div>
                     </header>
-                    <div x-ref="scroller" class="uh-rail flex snap-x snap-mandatory overflow-x-auto pb-2 [scrollbar-width:none]" tabindex="0" aria-label="{{ __('Similar properties') }}">
+                    <div class="uh-housing-rail" x-data="uhRail()">
+                        <button type="button" class="uh-housing-arrow is-prev" x-show="canPrev" x-cloak
+                                @click="prev()" aria-label="{{ __('Previous homes') }}">
+                            <x-icon name="chevron-left" class="size-4" />
+                        </button>
+                        <div class="uh-housing-track" x-ref="scroller" tabindex="0" aria-label="{{ __('Similar properties') }}">
                         @foreach($similar as $item)
-                            <div class="uh-rail-card shrink-0 snap-start">
-                                @include('public.partials.property-card', ['property' => $item])
+                            <div class="uh-housing-item" data-reveal style="--uh-i: {{ $loop->index % 4 }}">
+                                @include('public.partials.property-card', [
+                                    'property' => $item,
+                                    'revealIndex' => $loop->index % 4,
+                                    'quickView' => true,
+                                    'highlight' => true,
+                                ])
                             </div>
                         @endforeach
+                        </div>
+                        <button type="button" class="uh-housing-arrow is-next" x-show="canNext" x-cloak
+                                @click="next()" aria-label="{{ __('Next homes') }}">
+                            <x-icon name="chevron-right" class="size-4" />
+                        </button>
                     </div>
                 </div>
+                @include('public.partials.property-preview')
             </section>
         @endif
 
-        <div class="uh-dock lg:hidden">
-            @if($callHref)
-                <a class="uh-btn-secondary flex-1 max-sm:px-0 max-sm:justify-center" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('Call') }}" title="{{ __('Call') }}">
-                    <x-icon name="phone" class="size-5 sm:size-4" />
-                    <span class="hidden sm:inline">{{ __('Call') }}</span>
-                </a>
-            @endif
+        <div class="uh-dock uh-pd-dock lg:hidden" role="group" aria-label="{{ __('Property actions') }}">
+            <x-save-button :property="$property" variant="icon" />
+            <x-save-button :property="$property" list="compare" variant="icon" />
+            <x-share-menu :url="$shareUrl" :title="$property->title" />
             @if(filled($whatsapp))
-                <a class="uh-btn-secondary flex-1 max-sm:px-0 max-sm:justify-center" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
-                    <x-icon name="whatsapp" class="size-5 sm:size-4" />
-                    <span class="hidden sm:inline">{{ __('WhatsApp') }}</span>
+                <a class="uh-pd-dock-whatsapp" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
+                    <x-icon name="whatsapp" class="size-4" />
                 </a>
-            @endif
-            @if($isUnavailable)
-                <x-ui.pill-link variant="light" class="flex-1 max-sm:px-0 max-sm:justify-center" href="#contact" aria-label="{{ __('Similar homes') }}" title="{{ __('Similar homes') }}">
-                    <x-icon name="home" class="size-5 sm:size-4" />
-                    <span class="hidden sm:inline">{{ __('Similar homes') }}</span>
-                </x-ui.pill-link>
-            @else
-                <button type="button" class="uh-btn-primary flex-1 max-sm:px-0 max-sm:justify-center" x-data @click="$dispatch('uh:open-visit')" aria-label="{{ __('Book a visit') }}" title="{{ __('Book a visit') }}">
-                    <x-icon name="calendar" class="size-5 sm:size-4" />
-                    <span class="hidden sm:inline">{{ __('Book a visit') }}</span>
-                </button>
             @endif
         </div>
 

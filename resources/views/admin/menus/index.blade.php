@@ -18,6 +18,10 @@
         @endcan
     </x-ui.admin-related>
 
+    <a class="uh-admin-add-fab" href="#menu-add-link" aria-label="Add a menu link" title="Add a menu link">
+        <x-icon name="plus" class="size-5" />
+    </a>
+
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="space-y-6">
             @foreach($locations as $location => $label)
@@ -51,7 +55,7 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('admin.menus.store') }}" class="uh-panel space-y-3 lg:sticky lg:top-20"
+        <form id="menu-add-link" method="POST" action="{{ route('admin.menus.store') }}" class="uh-panel space-y-3 lg:sticky lg:top-20"
               x-data="{ location: @js(old('location', $prefillLocation)), parents: @js($parentOptions) }">
             @csrf
             <h2 class="uh-h4">Add a link</h2>

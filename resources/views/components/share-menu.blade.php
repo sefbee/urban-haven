@@ -17,7 +17,11 @@
             :aria-label="open ? @js(__('Close share options')) : @js(__('Share'))"
             :aria-expanded="open.toString()"
             aria-haspopup="dialog" title="{{ __('Share') }}">
-        <x-icon name="share" :class="$iconClass" />
+        @if($slot->isNotEmpty())
+            {{ $slot }}
+        @else
+            <x-icon name="share" :class="$iconClass" />
+        @endif
     </button>
 
     <div class="uh-share-popover" x-show="open" x-cloak x-transition.opacity @click.stop @click.outside="open = false"

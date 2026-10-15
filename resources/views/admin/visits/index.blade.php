@@ -64,7 +64,7 @@
                                 <td>
                                     @php($allowed = \App\Models\SiteVisitRequest::TRANSITIONS[$visit->status] ?? [])
                                     @if($allowed !== [])
-                                        <form method="POST" action="{{ route('admin.visits.status', $visit) }}" class="min-w-56 space-y-2"
+                                        <form method="POST" action="{{ route('admin.visits.status', $visit) }}" class="uh-admin-visit-update min-w-56 space-y-2"
                                               x-data="{ status: @js($allowed[0]) }"
                                               @submit.prevent="
                                                 const irreversible = ['completed', 'no_show', 'cancelled'];

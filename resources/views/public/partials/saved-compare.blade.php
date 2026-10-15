@@ -246,7 +246,7 @@
 
 <div x-data="{ addModalOpen: false, showTradeoffs: false }">
     <!-- Top Header: Title & Subtitle matching design -->
-    <div class="mb-6">
+    <div class="uh-compare-intro mb-6">
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[var(--uh-ink)] tracking-tight">
             {{ __('Compare properties') }}
         </h1>
@@ -256,7 +256,7 @@
     </div>
 
     <!-- Top Property Pills Bar -->
-    <div class="flex flex-wrap items-center gap-3 pb-6 border-b border-[var(--uh-line)]">
+    <div class="uh-compare-picks flex flex-wrap items-center gap-3 pb-6 border-b border-[var(--uh-line)]">
         @foreach($properties as $property)
             @php
                 $thumb = $property->featuredImage();
@@ -296,6 +296,14 @@
                 <span>{{ __('Add property') }}</span>
             </button>
         @endif
+        <div class="uh-compare-actions ml-auto flex items-center gap-2">
+            <button type="button" @click="$store.saved.clear('compare')" class="inline-flex items-center gap-2 rounded-xl border border-[var(--uh-line)] px-3 py-2.5 text-xs font-semibold text-[var(--uh-ink)] hover:bg-[var(--uh-paper-2)] cursor-pointer">
+                <x-icon name="trash" class="size-4" /> {{ __('Clear all') }}
+            </button>
+            <x-share-menu :url="url()->current()" :title="__('Compare properties')" button-class="uh-compare-share-button inline-flex items-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)]" >
+                <span>{{ __('Share comparison') }}</span>
+            </x-share-menu>
+        </div>
     </div>
 
     <!-- Smart Tradeoff Insight Highlight (Creative Touch) -->
@@ -345,7 +353,105 @@
     @endif
 
     <!-- Comparison Table Container -->
-    <div class="mt-8 border border-[var(--uh-line)] rounded-2xl bg-[var(--uh-paper)] shadow-xs overflow-hidden">
+    <div class="uh-compare-mobile mt-5">
+        <div class="uh-compare-mobile-properties">
+            @foreach($properties as $property)
+                @php
+                    $image = $property->featuredImage();
+                    $place = collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', ');
+                    $priceFormatted = $formatPrice($property);
+                @endphp
+                <article class="uh-compare-mobile-card">
+                    <div class="uh-compare-mobile-photo">
+                        @if($image)
+                            <img src="{{ $image->url(480) }}" alt="{{ $property->title }}" loading="lazy">
+                        @else
+                            <x-icon name="image" class="size-7 text-[var(--uh-muted)]" />
+                        @endif
+                        <span>{{ $property->listing_type === 'rent' ? __('For Rent') : __('For Sale') }}</span>
+                        <button type="button" @click="$store.saved.toggle('shortlist', {{ $property->id }})" aria-label="{{ __('Save to shortlist') }}">
+                            <x-icon name="heart" class="size-4" />
+                        </button>
+                    </div>
+                    <a href="{{ route('properties.show', $property->slug) }}" class="uh-compare-mobile-title">{{ $property->title }}</a>
+                    <p class="uh-compare-mobile-place"><x-icon name="pin" class="size-3.5" /> {{ $place ?: '—' }}</p>
+                    <strong class="uh-compare-mobile-price">{{ $priceFormatted }}</strong>
+                </article>
+            @endforeach
+            @if($properties->count() === 1)
+                <button type="button" @click="addModalOpen = true" class="uh-compare-mobile-add"><x-icon name="plus" class="size-4" /> {{ __('Add property') }}</button>
+            @endif
+        </div>
+
+        @foreach($groups as $group)
+            <section class="uh-compare-mobile-group" x-data="{ expanded: true }">
+                <button type="button" class="uh-compare-mobile-group-heading" @click="expanded = !expanded" :aria-expanded="expanded.toString()">
+                    <span><x-icon :name="$group['icon']" class="size-4 text-[var(--color-accent)]" /> {{ $group['title'] }}</span>
+                    <x-icon name="chevron-down" class="size-4 transition-transform" ::class="{ 'rotate-180': expanded }" />
+                </button>
+                <div x-show="expanded" x-transition.opacity>
+                    @foreach($group['keys'] as $key)
+                        <div class="uh-compare-mobile-row">
+                            <div class="uh-compare-mobile-label">
+                                @if(isset($labels[$key]['icon'])) <x-icon :name="$labels[$key]['icon']" class="size-3.5" /> @endif
+                                {{ $labels[$key]['name'] ?? $key }}
+                            </div>
+                            <div class="uh-compare-mobile-values">
+                                @foreach($properties as $property)
+                                    <span>
+                                        @switch($key)
+                                            @case('price') {{ $formatPrice($property) }} @break
+                                            @case('price_per_sqft') {{ $formatRate($property) }} @break
+                                            @case('area') {{ $property->area_value ? number_format((float) $property->area_value) . ' ' . ($property->area_unit ?? 'sq ft') : '—' }} @break
+                                            @case('bedrooms') {{ $property->bedrooms ?? '—' }} @break
+                                            @case('bathrooms') {{ $property->bathrooms ?? '—' }} @break
+                                            @case('type') {{ $property->propertyType?->label ?? '—' }} @break
+                                            @case('is_furnished') {{ $property->is_furnished ? __('Furnished') : ($property->availability === 'available' ? __('Ready to move') : __('Unfurnished')) }} @break
+                                            @case('floor_number') {{ $property->floor_number ? __('Floor :num', ['num' => $property->floor_number]) : '—' }} @break
+                                            @case('balconies') {{ $property->balconies ?? '—' }} @break
+                                            @case('parking_spaces') {{ $property->parking_spaces ?? '—' }} @break
+                                            @case('facing') {{ $property->facing ? ucfirst($property->facing) : '—' }} @break
+                                            @case('city') {{ $property->locationArea?->city ?? '—' }} @break
+                                            @case('area_name') {{ $property->locationArea?->name ?? '—' }} @break
+                                            @case('address') {{ $property->address ?? '—' }} @break
+                                            @case('road_width_ft') {{ $property->road_width_ft ? $property->road_width_ft . ' ft' : '—' }} @break
+                                            @case('listing_type') {{ $property->listing_type === 'rent' ? __('For Rent') : __('For Sale') }} @break
+                                            @case('availability') {{ $property->availability ? ucfirst($property->availability) : '—' }} @break
+                                            @case('reference') {{ $property->reference ?: ($property->slug ? '#'.$property->slug : '—') }} @break
+                                            @default {{ $property->{$key} ?? '—' }}
+                                        @endswitch
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                    <button type="button" class="uh-compare-mobile-more" @click="expanded = false">{{ __('Show fewer details') }} <x-icon name="fa-chevron-up" class="size-3.5" /></button>
+                </div>
+            </section>
+        @endforeach
+        @if($allAmenities->isNotEmpty())
+            <section class="uh-compare-mobile-group">
+                <div class="uh-compare-mobile-group-heading"><span><x-icon name="sparkle" class="size-4 text-[var(--color-accent)]" /> {{ __('Features & amenities') }}</span></div>
+                @foreach($allAmenities as $amenity)
+                    <div class="uh-compare-mobile-row">
+                        <div class="uh-compare-mobile-label">{{ $amenity->label }}</div>
+                        <div class="uh-compare-mobile-values">
+                            @foreach($properties as $property)
+                                <span>{{ in_array($amenity->id, (array) ($property->amenity_ids ?? []), true) ? __('Included') : '—' }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </section>
+        @endif
+        <div class="uh-compare-mobile-share">
+            <x-share-menu :url="url()->current()" :title="__('Compare properties')" button-class="uh-compare-share-button">
+                <x-icon name="share" class="size-4" /> {{ __('Share comparison') }}
+            </x-share-menu>
+        </div>
+    </div>
+
+    <div class="uh-compare-desktop mt-8 border border-[var(--uh-line)] rounded-2xl bg-[var(--uh-paper)] shadow-xs overflow-hidden">
         <div class="uh-compare-table-scroll overflow-x-auto">
             <table class="uh-compare-table w-full text-left border-collapse min-w-[700px]">
                 <!-- Header Row: "At a glance" + Property Cards -->

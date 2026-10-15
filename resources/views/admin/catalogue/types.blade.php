@@ -10,12 +10,16 @@
         <x-ui.page-header compact title="Property types">
             <x-slot:eyebrow>Content library</x-slot:eyebrow>
             <x-slot:actions>
-                <button type="button" class="uh-btn-primary uh-btn-sm dd-type-add-button" @click="open('create')">
+                <button type="button" class="uh-btn-primary uh-btn-sm dd-type-add-button uh-admin-add-action" @click="open('create')">
                     <x-icon name="plus" class="size-4" />
                     Add sub-type
                 </button>
             </x-slot:actions>
         </x-ui.page-header>
+
+        <button type="button" class="uh-admin-add-fab" aria-label="Add sub-type" title="Add sub-type" @click="open('create')">
+            <x-icon name="plus" class="size-5" />
+        </button>
 
         @include('admin.catalogue._related')
 

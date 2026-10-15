@@ -1387,6 +1387,10 @@ body.uh-admin .uh-pagehead-actions {
     gap: 0.5rem;
 }
 
+.uh-admin-add-fab {
+    display: none;
+}
+
 body.uh-admin .uh-eyebrow {
     color: var(--admin-faint);
     font-weight: 500;
@@ -1746,6 +1750,10 @@ body.uh-admin .uh-drawer {
     border: 1px solid var(--admin-line);
     border-radius: var(--admin-radius-lg);
     background: var(--admin-surface);
+}
+
+.uh-settings-tab-short {
+    display: none;
 }
 
 .uh-admin-toolbar .uh-field {
@@ -2782,7 +2790,6 @@ body.uh-auth {
         padding-inline: 0.85rem;
     }
 }
-
 
 /* =============================================================================
    DealDeck Admin Panel — pixel-close clone
@@ -4261,6 +4268,20 @@ a.dd-pipeline-link:hover {
 .dd-hs-move {
     display: inline-flex;
     gap: 0.25rem;
+}
+
+.dd-hs-move-btn {
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--dd-line);
+    border-radius: 0.55rem;
+    background: #f8faff;
+    color: var(--dd-ink);
+}
+
+.dd-hs-move-btn:hover:not(:disabled) {
+    border-color: #cbd5f4;
+    background: #eef2ff;
 }
 
 .dd-hs-move .uh-admin-icon-btn:disabled,
@@ -6695,14 +6716,26 @@ body.uh-admin .dd-content iframe {
     }
 
     body.uh-admin .dd-steps {
-        position: static;
-        top: auto;
-        z-index: auto;
+        position: sticky;
+        top: 0;
+        z-index: 40;
         max-width: 100%;
         overflow-x: auto;
         overscroll-behavior-inline: contain;
         scrollbar-width: thin;
         white-space: nowrap;
+        background: rgb(255 255 255 / 0.96);
+        backdrop-filter: blur(10px);
+    }
+
+    body.uh-admin .dd-steps a.is-active {
+        background: var(--dd-blue);
+        color: #fff;
+    }
+
+    body.uh-admin .dd-steps a.is-active::before {
+        background: rgb(255 255 255 / 0.18);
+        color: #fff;
     }
 
     body.uh-admin .uh-admin-compose,
@@ -6837,7 +6870,13 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 
 @media (max-width: 639px) {
     .dd-urls-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
         align-items: stretch;
+        margin-top: 0.5rem;
+        padding-block: 0.4rem;
+        background: var(--dd-canvas);
     }
 
     .dd-urls-search,
@@ -6858,6 +6897,136 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 
 /* Mobile workspace refinements shared by admin screens. */
 @media (max-width: 767px) {
+    body.uh-admin .dd-content > .dd-pageseo {
+        padding: 0;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo {
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.65rem;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-list {
+        position: static;
+        z-index: auto;
+        display: grid;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.3rem;
+        padding: 0.35rem;
+        overflow: visible;
+        border-radius: 0.85rem;
+        background: var(--dd-canvas);
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        min-height: 2.35rem;
+        padding: 0.35rem 0.5rem;
+        justify-content: flex-start;
+        gap: 0.35rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.65rem;
+        background: #fff;
+        text-align: left;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item > span:first-child > span:last-child {
+        display: none;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item > span:first-child {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item > span:first-child > span:first-child {
+        display: -webkit-box;
+        overflow: hidden;
+        white-space: normal;
+        line-height: 1.2;
+        overflow-wrap: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item .dd-seo-state {
+        display: none;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item.is-active {
+        border-color: var(--admin-accent);
+        background: var(--admin-accent);
+        color: #fff;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item.is-active .dd-seo-state {
+        color: rgb(255 255 255 / 0.8);
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-item.is-active .dd-seo-state::before {
+        background: rgb(255 255 255 / 0.75);
+    }
+
+    body.uh-admin .dd-content .dd-pageseo > div,
+    body.uh-admin .dd-content .dd-pageseo form,
+    body.uh-admin .dd-content .dd-pageseo .dd-seo,
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-fields,
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-fields > *,
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-fields .uh-field {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-fields :is(input, textarea, .dd-seo-permalink) {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-noindex {
+        display: grid;
+        grid-template-columns: 1rem minmax(0, 1fr);
+        align-items: start;
+        gap: 0.55rem;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-noindex input[type='checkbox'] {
+        margin-top: 0.2rem;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo .dd-seo-noindex span {
+        min-width: 0;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-actions {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    body.uh-admin .dd-content .dd-pageseo-actions > :is(a, button) {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+
     body.uh-admin,
     body.uh-admin .dd-app-shell,
     body.uh-admin .dd-shell {
@@ -6894,6 +7063,10 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 
     body.uh-admin .dd-header-end {
         margin-left: auto;
+    }
+
+    body.uh-admin .dd-header .dd-sidebar-toggle {
+        z-index: 39;
     }
 
     body.uh-admin .dd-header-icon-btn,
@@ -6961,6 +7134,27 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
         flex: 1 1 0%;
     }
 
+    body.uh-admin .dd-content .dd-seo-permalink:not(.is-static) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        overflow: hidden;
+    }
+
+    body.uh-admin .dd-content .dd-seo-permalink:not(.is-static) .dd-seo-permalink-base {
+        grid-column: 1 / -1;
+        max-width: 100%;
+        min-height: 1.75rem;
+        padding: 0.2rem 0.65rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--dd-line);
+        font-size: 0.75rem;
+    }
+
+    body.uh-admin .dd-content .dd-seo-permalink:not(.is-static) .dd-seo-permalink-input {
+        width: 100%;
+        min-height: 2.75rem;
+    }
+
     body.uh-admin .dd-content :is(.dd-table-wrap, .uh-table-scroll, .overflow-x-auto) table {
         min-width: max-content;
     }
@@ -6986,5 +7180,881 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 
     body.uh-admin .dd-page-card {
         padding: 0.75rem;
+    }
+}
+
+/* Admin mobile refinements: keep dense workflows readable without changing desktop. */
+@media (max-width: 1023px) {
+    body.uh-admin .dd-content fieldset {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    body.uh-admin .dd-content .dd-seo-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.uh-admin .dd-content .dd-seo-fields > *,
+    body.uh-admin .dd-content .dd-seo-permalink,
+    body.uh-admin .dd-content .dd-seo-fields .uh-field {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    body.uh-admin .dd-content .uh-admin-add-action {
+        display: none;
+    }
+
+    body.uh-admin .uh-admin-add-fab {
+        position: fixed;
+        right: max(1rem, env(safe-area-inset-right));
+        bottom: max(1rem, env(safe-area-inset-bottom));
+        z-index: 70;
+        display: grid;
+        width: 3.25rem;
+        height: 3.25rem;
+        place-items: center;
+        border: 1px solid rgb(255 255 255 / 0.75);
+        border-radius: 50%;
+        background: var(--dd-blue);
+        color: #fff;
+        box-shadow: 0 8px 22px rgb(37 99 235 / 0.32), 0 2px 6px rgb(15 23 42 / 0.18);
+    }
+
+    body.uh-admin .uh-admin-add-fab:active {
+        transform: scale(0.96);
+    }
+
+    body.uh-admin #menu-add-link {
+        scroll-margin-top: 5rem;
+    }
+
+    body.uh-admin,
+    body.uh-admin .dd-app-shell,
+    body.uh-admin .dd-shell,
+    body.uh-admin .dd-content,
+    body.uh-admin .dd-page-canvas,
+    body.uh-admin .dd-page-card {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    body.uh-admin .dd-page-card {
+        overflow-wrap: anywhere;
+    }
+
+    body.uh-admin .dd-content :is(input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):not([type='file']), select, textarea, [contenteditable='true']) {
+        box-sizing: border-box;
+        max-width: 100%;
+        min-width: 0;
+        color: var(--dd-ink);
+        caret-color: var(--admin-accent);
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    body.uh-admin .dd-content :is(input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):not([type='file']), select, textarea) {
+        min-height: 2.75rem;
+        background-color: #fff;
+    }
+
+    body.uh-admin .dd-content textarea {
+        min-height: 8rem;
+        padding-block: 0.7rem;
+        overflow-wrap: anywhere;
+    }
+
+    body.uh-admin .dd-content :is(input, textarea)::placeholder {
+        color: #64748b;
+        opacity: 1;
+    }
+
+    body.uh-admin .dd-content :is(input, select, textarea, [contenteditable='true']):focus-visible {
+        outline-color: var(--admin-accent);
+    }
+
+    body.uh-admin .dd-content .select2-container {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content .select2-container--default .select2-selection--single {
+        display: flex;
+        min-height: 2.75rem;
+        align-items: center;
+    }
+
+    body.uh-admin .dd-content .select2-container--default .select2-selection--single .select2-selection__rendered {
+        position: relative;
+        display: block;
+        width: 0;
+        flex: 1 1 0%;
+        min-width: 0;
+        padding-block: 0.5rem;
+        padding-right: 2.25rem;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.uh-admin .dd-content .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute;
+        top: 50%;
+        right: 0.4rem;
+        display: inline-flex;
+        width: 1.5rem;
+        height: 1.5rem;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        transform: translateY(-50%);
+        border-radius: 999px;
+        background: #f1f5f9;
+        line-height: 1;
+    }
+
+    body.uh-admin .dd-content .select2-container--default .select2-selection--single .select2-selection__arrow {
+        position: relative;
+        flex: 0 0 2rem;
+        top: 0;
+        height: 100%;
+    }
+
+    body.uh-admin .dd-content .select2-dropdown {
+        max-width: calc(100vw - 1rem);
+    }
+
+    body.uh-admin .dd-content .select2-search--dropdown .select2-search__field {
+        min-height: 2.75rem;
+        font-size: 1rem;
+    }
+
+    body.uh-admin .select2-search--dropdown .select2-search__field {
+        min-height: 2.75rem;
+        font-size: 1rem;
+    }
+
+    body.uh-admin .dd-content .uh-rte {
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content .uh-rte-toolbar {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.25rem;
+        padding: 0.45rem;
+    }
+
+    body.uh-admin .dd-content .uh-rte-sep {
+        display: none;
+    }
+
+    body.uh-admin .dd-content .uh-rte-btn {
+        width: 100%;
+        min-width: 0;
+        height: 2.75rem;
+        min-height: 2.75rem;
+        padding-inline: 0.25rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.45rem;
+        background: #fff;
+    }
+
+    body.uh-admin .dd-content .uh-rte-btn.is-on {
+        border-color: var(--dd-blue);
+        background: var(--dd-blue);
+    }
+
+    body.uh-admin .dd-content .uh-rte-body {
+        max-height: 55vh;
+        min-height: 12rem !important;
+        padding: 0.85rem;
+        background: #fff;
+        color: #1e293b;
+        font-size: 1rem;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
+    }
+
+    body.uh-admin .dd-content .uh-rte-body.is-empty::before {
+        top: 0.85rem;
+        left: 0.85rem;
+        right: 0.85rem;
+        color: #64748b;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    body.uh-admin .dd-content .uh-admin-compose {
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content .uh-admin-stack {
+        min-width: 0;
+        overflow: visible;
+    }
+
+    body.uh-admin .dd-content .uh-admin-stack > .uh-panel {
+        min-width: 0;
+        padding: 1rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-dock {
+        position: static;
+        bottom: auto;
+        margin-top: 1rem;
+        padding: 0.6rem;
+        pointer-events: auto;
+    }
+
+    body.uh-admin .dd-content .uh-admin-dock > :is(button, a) {
+        min-height: 2.75rem;
+        flex: 1 1 8rem;
+        justify-content: center;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr));
+        gap: 0.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-card-bar {
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-card-bar button[aria-label^='Move'] {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-remove {
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-left: 0;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-card > label[title='Select image'] {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-details {
+        padding: 0.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-media-trigger {
+        width: 100%;
+        min-height: 2.75rem;
+    }
+
+    body.uh-admin .dd-sidebar-brand {
+        min-height: 4rem;
+    }
+
+    body.uh-admin .dd-sidebar-close {
+        display: grid !important;
+        width: 2.75rem;
+        height: 2.75rem;
+        flex: 0 0 2.75rem;
+        place-items: center;
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 50%;
+        color: #fff;
+    }
+
+    body.uh-admin .dd-sidebar-close:hover {
+        background: rgb(255 255 255 / 0.1);
+    }
+}
+
+.uh-admin-property-cards {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.uh-admin-property-card {
+    display: grid;
+    min-width: 0;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--dd-line);
+    border-radius: var(--dd-radius-sm);
+    background: #fff;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 0.035);
+}
+
+.uh-admin-property-card-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.uh-admin-property-card-heading > div > a {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 650;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.uh-admin-property-card-heading p {
+    margin-top: 0.25rem;
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.uh-admin-property-price {
+    flex: 0 0 auto;
+    max-width: 44%;
+    color: var(--dd-ink);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    text-align: right;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.uh-admin-property-card-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 0.8rem;
+    padding-block: 0.75rem;
+    border-block: 1px solid var(--dd-line);
+}
+
+.uh-admin-property-card-meta > div {
+    display: grid;
+    min-width: 0;
+    gap: 0.25rem;
+}
+
+.uh-admin-property-card-meta dt {
+    color: var(--dd-muted);
+    font-size: 0.6875rem;
+    font-weight: 550;
+}
+
+.uh-admin-property-card-meta dd {
+    min-width: 0;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+    body.uh-admin .dd-content .uh-pagehead-actions {
+        align-items: stretch;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions .uh-admin-search {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+
+    body.uh-admin .dd-content .uh-admin-search .uh-input {
+        width: 100%;
+        min-width: 0;
+        font-size: 1rem;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions > .uh-btn-primary {
+        min-height: 2.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-property-card {
+        padding: 0.85rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card {
+        padding: 0.85rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .uh-admin-property-cards {
+        display: none;
+    }
+}
+
+/* Mobile-only admin system: shared page spacing, actions and readable data cards. */
+@media (max-width: 767px) {
+    body.uh-admin .dd-header {
+        border-bottom: 1px solid var(--dd-line);
+        background: #fff;
+        box-shadow: 0 2px 8px rgb(15 23 42 / 0.04);
+    }
+
+    body.uh-admin .dd-sidebar {
+        width: min(var(--dd-sidebar), calc(100vw - 2rem));
+        background: #0f172a;
+        border-right: 1px solid #1e293b;
+    }
+
+    body.uh-admin .dd-nav {
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.uh-admin .dd-nav-link {
+        min-height: 2.75rem;
+    }
+
+    body.uh-admin .dd-page-canvas {
+        padding: 0.65rem 0 calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    body.uh-admin .dd-page-card {
+        min-height: 0;
+        padding: 0.75rem;
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: 0 2px 10px rgb(15 23 42 / 0.035);
+    }
+
+    body.uh-admin .dd-content .uh-pagehead {
+        align-items: flex-start;
+        gap: 0.65rem;
+        margin-bottom: 0.65rem;
+        padding: 0.75rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.9rem;
+        background: radial-gradient(110% 160% at 100% 0%, rgb(76 110 245 / 0.07), transparent 55%), #fff;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-main {
+        width: 100%;
+        flex: 1 1 100%;
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-icon {
+        width: 2.35rem;
+        height: 2.35rem;
+        flex: 0 0 2.35rem;
+        border-radius: 0.7rem;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-copy .uh-h1,
+    body.uh-admin .dd-content .uh-pagehead-copy .uh-h2 {
+        font-size: clamp(1.15rem, 4.8vw, 1.35rem);
+        line-height: 1.2;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-desc {
+        margin-top: 0.2rem;
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions {
+        display: grid;
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.45rem;
+        padding: 0;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions > * {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions .uh-admin-search,
+    body.uh-admin .dd-content .uh-pagehead-actions .uh-admin-search .uh-input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions > :is(.uh-btn, .uh-btn-primary, .uh-btn-outline, .uh-btn-ghost) {
+        justify-content: center;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead-actions > .uh-btn-primary {
+        border-color: #111827;
+        background: #111827;
+        color: #fff;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead:has(+ .uh-admin-related) {
+        margin-bottom: 0;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
+    }
+
+    body.uh-admin .dd-content .uh-pagehead + .uh-admin-related {
+        display: grid;
+        align-items: start;
+        gap: 0.4rem;
+        margin-bottom: 0.75rem;
+        padding: 0.65rem 0.75rem 0.75rem;
+        border: 1px solid var(--dd-line);
+        border-top: 0;
+        border-radius: 0 0 0.9rem 0.9rem;
+        background: #f8f9fd;
+    }
+
+    body.uh-admin .uh-pagehead {
+        gap: 0.55rem;
+        margin-bottom: 0.65rem;
+    }
+
+    body.uh-admin .uh-pagehead-copy .uh-h1,
+    body.uh-admin .uh-pagehead-copy .uh-h2 {
+        font-size: clamp(1.3rem, 5vw, 1.55rem);
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+        overflow-wrap: anywhere;
+    }
+
+    body.uh-admin .uh-pagehead-desc {
+        font-size: 0.8125rem;
+        line-height: 1.45;
+    }
+
+    body.uh-admin .dd-content :is(.uh-panel, .uh-panel-flush, .dd-card, .dd-stat-card, .dd-status-card, .uh-admin-toolbar) {
+        border-radius: 0.9rem !important;
+    }
+
+    body.uh-admin .dd-content form .grid[class*='grid-cols-'] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    body.uh-admin .dd-content .uh-admin-toolbar {
+        align-items: stretch;
+        gap: 0.75rem;
+        padding: 0.8rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-toolbar .uh-field {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+
+    body.uh-admin .dd-content .uh-admin-toolbar-actions {
+        width: 100%;
+    }
+
+    body.uh-admin .dd-content .uh-admin-toolbar-actions > :is(button, a) {
+        min-height: 2.75rem;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    body.uh-admin .dd-content .uh-admin-more {
+        min-width: 0;
+        margin-top: 0.1rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-more > summary {
+        display: flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.7rem;
+        background: #fff;
+        color: var(--dd-ink);
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    body.uh-admin .dd-content .uh-admin-more[open] > summary {
+        margin-bottom: 0.65rem;
+        border-color: var(--dd-line);
+    }
+
+    body.uh-admin .dd-content .uh-admin-popover {
+        width: min(20rem, calc(100vw - 1.25rem)) !important;
+        max-width: calc(100vw - 1.25rem);
+        max-height: calc(100dvh - 5rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    body.uh-admin .dd-content :is(.uh-btn, .uh-btn-primary, .uh-btn-outline, .uh-btn-ghost, .uh-btn-danger, .uh-btn-gold, .uh-btn-emerald, .uh-btn-sm, .uh-btn-lg, .uh-btn-block, .dd-btn-primary, .dd-hero-btn, .uh-icon-btn, .uh-admin-icon-btn, .dd-header-icon-btn, .dd-user-btn, .uh-pill-link, button[type='submit'], .uh-admin-toolbar-actions button, .uh-admin-toolbar-actions a, .uh-admin-row-actions a, .uh-admin-row-actions button, .dd-steps a, .uh-admin-tabs a, .uh-admin-related a, .uh-pagination-btn) {
+        min-height: 2.75rem;
+        border-radius: 0.7rem !important;
+    }
+
+    body.uh-admin .dd-content .uh-admin-related {
+        gap: 0.4rem;
+        margin: 0 0 0.8rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-related a {
+        min-height: 2.5rem;
+        padding-inline: 0.75rem;
+        border: 1px solid var(--dd-line);
+        background: #fff;
+    }
+
+    body.uh-admin .dd-content .uh-admin-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.uh-admin .dd-content .uh-settings-tabs {
+        position: static;
+        top: auto;
+        z-index: auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.3rem;
+        padding: 0.35rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.9rem;
+        background: var(--dd-canvas);
+        overflow: visible;
+    }
+
+    body.uh-admin .dd-content .uh-admin-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    body.uh-admin .dd-content .uh-admin-tabs a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    body.uh-admin .dd-content .uh-settings-tabs a {
+        min-width: 0;
+        min-height: 2.25rem;
+        justify-content: flex-start;
+        padding-inline: 0.55rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.55rem;
+        background: #fff;
+        font-size: 0.7rem;
+        letter-spacing: 0;
+        white-space: normal;
+    }
+
+    body.uh-admin .dd-content .uh-settings-tab-full {
+        display: inline;
+    }
+
+    body.uh-admin .dd-content .uh-settings-tab-short {
+        display: none;
+    }
+
+    body.uh-admin .dd-content .uh-settings-tabs a.is-active {
+        border-color: var(--dd-ink);
+        background: var(--dd-ink);
+        color: #fff;
+    }
+
+    body.uh-admin .dd-content .dd-hs-actions {
+        flex-wrap: nowrap;
+        gap: 0.3rem;
+    }
+
+    body.uh-admin .dd-content .dd-hs-actions > :is(a, form) {
+        flex: 0 0 auto;
+    }
+
+    body.uh-admin .dd-content .dd-hs-actions .uh-btn-sm {
+        min-height: 2.05rem !important;
+        padding-inline: 0.55rem;
+        font-size: 0.7rem;
+    }
+
+    body.uh-admin .dd-content .dd-hs-move {
+        flex: 0 0 auto;
+        gap: 0.15rem;
+        margin-left: auto;
+    }
+
+    body.uh-admin .dd-content .dd-hs-move-btn {
+        width: 1.8rem;
+        height: 1.8rem;
+        min-height: 1.8rem;
+        flex: 0 0 1.8rem;
+        border-radius: 0.55rem !important;
+    }
+
+    body.uh-admin .dd-content .dd-form-footer {
+        gap: 0.55rem;
+        margin-top: 1rem;
+        padding-top: 0.8rem;
+    }
+
+    body.uh-admin .dd-content .dd-form-footer > :is(button, a) {
+        min-height: 2.75rem;
+        flex: 1 1 8rem;
+        justify-content: center;
+    }
+
+    body.uh-admin .dd-content .uh-table-scroll[data-mobile-table-source] {
+        display: none !important;
+    }
+
+    body.uh-admin .dd-content .uh-panel-flush:has(.uh-admin-mobile-table-cards) {
+        overflow: visible !important;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    body.uh-admin .dd-content .uh-admin-mobile-table-cards {
+        display: grid;
+        width: 100%;
+        min-width: 0;
+        gap: 0.75rem;
+        margin-block: 0.75rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card {
+        gap: 0.85rem;
+        padding: 1rem;
+    }
+
+    body.uh-admin .dd-content section:has(.dd-types-table) > div:first-child {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    body.uh-admin .dd-content section:has(.dd-types-table) > div:first-child > :is(h2, button) {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.uh-admin .dd-content section:has(.dd-types-table) > div:first-child > button {
+        justify-content: center;
+    }
+
+    body.uh-admin .dd-content .uh-admin-property-card-meta > div:has(.uh-admin-visit-update) {
+        grid-column: 1 / -1;
+    }
+
+    body.uh-admin .dd-content .uh-admin-visit-update,
+    body.uh-admin .dd-content .uh-admin-visit-update :is(input, select, textarea) {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-heading {
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-primary {
+        display: grid;
+        min-width: 0;
+        flex: 1 1 auto;
+        gap: 0.2rem;
+        color: var(--dd-ink);
+        font-size: 0.875rem;
+        font-weight: 650;
+        line-height: 1.35;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-primary > :is(a, button) {
+        min-width: 0;
+        color: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-primary > :is(span, p) {
+        color: var(--dd-muted);
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.4;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-primary .uh-badge {
+        width: fit-content;
+        font-size: 0.6875rem;
+        font-weight: 600;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-visual {
+        display: grid;
+        width: 2.5rem;
+        height: 2.5rem;
+        flex: 0 0 2.5rem;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 0.65rem;
+        background: #f1f5f9;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-visual :is(img, svg) {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-actions {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-actions > :is(a, button, form, .uh-admin-row-actions) {
+        min-width: 0;
+        flex: 1 1 6.5rem;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-actions :is(a, button) {
+        width: 100%;
+        min-height: 2.75rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 0.65rem;
+        background: #fff;
+        justify-content: center;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-actions form {
+        display: flex;
+        min-width: 0;
+        margin: 0;
+    }
+
+    body.uh-admin .dd-content .uh-admin-table-card-actions .uh-admin-row-actions {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap !important;
+        gap: 0.35rem;
+    }
+}
+
+@media (max-width: 639px) {
+    body.uh-admin .dd-content .uh-admin-table-card {
+        padding: 0.85rem;
+    }
+}
+
+@media (max-width: 359px) {
+    body.uh-admin .dd-content .uh-rte-toolbar {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }

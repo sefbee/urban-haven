@@ -132,7 +132,7 @@
 
         <div>
             <input type="hidden" name="{{ $name('seo_noindex') }}" value="0" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)>
-            <label class="uh-check">
+            <label class="uh-check dd-seo-noindex">
                 <input type="checkbox" name="{{ $name('seo_noindex') }}" value="1" @checked($old('seo_noindex', $seo['noindex'] ?? false)) @if($formId) form="{{ $formId }}" @endif @disabled($disabled)>
                 <span>Hide this page from search engines (noindex)</span>
             </label>
