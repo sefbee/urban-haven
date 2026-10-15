@@ -4743,7 +4743,7 @@ a.dd-pipeline-link:hover {
 /* ---------- Form steps: numbered sections and a jump bar ---------- */
 .dd-steps {
     position: sticky;
-    top: calc(var(--dd-header-h) + 0.5rem);
+    top: 0;
     z-index: 20;
     display: flex;
     gap: 0.25rem;
@@ -4757,6 +4757,12 @@ a.dd-pipeline-link:hover {
     backdrop-filter: blur(8px);
     scrollbar-width: none;
     counter-reset: dd-jump;
+}
+
+@media (min-width: 1100px) {
+    .dd-steps-split {
+        width: calc(100% - 22.65rem);
+    }
 }
 
 .dd-steps a {
@@ -8056,5 +8062,254 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 @media (max-width: 359px) {
     body.uh-admin .dd-content .uh-rte-toolbar {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Dashboard presentation for phones; desktop dashboard rules stay untouched. */
+@media (max-width: 767px) {
+    body.uh-admin .dd-content:has(.dd-dashboard) {
+        padding: 0.55rem 0.55rem 1.25rem;
+        background: #f4f7fc;
+    }
+
+    body.uh-admin .dd-page-canvas:has(.dd-dashboard) {
+        padding: 0;
+    }
+
+    body.uh-admin .dd-page-card:has(.dd-dashboard) {
+        padding: 0.65rem;
+        border: 0;
+        border-radius: 1.15rem;
+        background: linear-gradient(180deg, #fff 0%, #f7f9fd 100%);
+        box-shadow: 0 8px 28px rgb(35 57 96 / 0.08);
+    }
+
+    body.uh-admin .dd-dashboard {
+        gap: 0.8rem;
+    }
+
+    body.uh-admin .dd-hero {
+        min-height: 13rem;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 1.15rem;
+        padding: 1.15rem 1rem 0.9rem;
+        border-radius: 1rem !important;
+        background:
+            radial-gradient(ellipse at 83% 7%, rgb(111 130 255 / 0.65), transparent 38%),
+            radial-gradient(ellipse at 78% 100%, rgb(116 65 255 / 0.6), transparent 40%),
+            linear-gradient(135deg, #111c43 0%, #142a62 50%, #101a3d 100%);
+        box-shadow: 0 14px 28px rgb(24 47 103 / 0.2);
+    }
+
+    body.uh-admin .dd-hero::before {
+        top: -13rem;
+        right: -8rem;
+        width: 22rem;
+        height: 22rem;
+        background: rgb(148 163 255 / 0.11);
+    }
+
+    body.uh-admin .dd-hero::after {
+        right: 1rem;
+        bottom: -8rem;
+        width: 16rem;
+        height: 16rem;
+        background: rgb(255 255 255 / 0.07);
+    }
+
+    body.uh-admin .dd-hero-copy {
+        position: relative;
+        z-index: 1;
+    }
+
+    body.uh-admin .dd-hero-date {
+        color: rgb(235 240 255 / 0.78);
+        font-size: 0.72rem;
+        letter-spacing: 0.01em;
+    }
+
+    body.uh-admin .dd-hero-title {
+        max-width: 19rem;
+        margin-top: 0.55rem;
+        font-size: clamp(1.45rem, 7vw, 1.85rem);
+        line-height: 1.12;
+    }
+
+    body.uh-admin .dd-hero-summary {
+        max-width: 17rem;
+        margin-top: 0.55rem;
+        color: rgb(243 246 255 / 0.87);
+        font-size: 0.8rem;
+        line-height: 1.45;
+    }
+
+    body.uh-admin .dd-hero-actions {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        gap: 0.4rem;
+        margin-top: auto;
+    }
+
+    body.uh-admin .dd-hero-btn {
+        min-width: 0;
+        height: 2.65rem;
+        justify-content: center;
+        gap: 0.3rem;
+        padding-inline: 0.4rem;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        border-radius: 0.7rem !important;
+        background: rgb(255 255 255 / 0.12);
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    body.uh-admin .dd-hero-btn.is-solid {
+        background: #fff;
+        color: #274ed3;
+    }
+
+    body.uh-admin .dd-stat-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-card {
+        position: relative;
+        display: grid;
+        min-height: 5rem;
+        grid-template-columns: 2.4rem minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-content: center;
+        align-items: center;
+        gap: 0 0.55rem;
+        padding: 0.7rem;
+        border: 1px solid #e9edf5;
+        border-radius: 0.85rem !important;
+        box-shadow: 0 3px 12px rgb(35 57 96 / 0.04);
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-top {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        align-self: center;
+        margin: 0;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-icon {
+        width: 2.35rem;
+        height: 2.35rem;
+        border-radius: 0.75rem;
+        background: #edf3ff;
+        color: #3478f6;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-value {
+        grid-column: 2;
+        align-self: end;
+        font-size: 1.35rem;
+        line-height: 1.05;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-label {
+        grid-column: 2;
+        align-self: start;
+        margin-top: 0.15rem;
+        color: #59677f;
+        font-size: 0.68rem;
+        line-height: 1.25;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-sub {
+        display: none;
+    }
+
+    body.uh-admin .dd-dashboard .dd-stat-card .dd-delta {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        padding: 0.12rem 0.35rem;
+        font-size: 0.58rem;
+    }
+
+    body.uh-admin .dd-split,
+    body.uh-admin .dd-stack {
+        gap: 0.7rem;
+    }
+
+    body.uh-admin .dd-card {
+        padding: 0.9rem;
+        border: 1px solid #e9edf5;
+        border-radius: 0.9rem !important;
+        box-shadow: 0 4px 14px rgb(35 57 96 / 0.035);
+    }
+
+    body.uh-admin .dd-card-head {
+        gap: 0.55rem;
+        margin-bottom: 0.7rem;
+    }
+
+    body.uh-admin .dd-card-title {
+        font-size: 0.9rem;
+    }
+
+    body.uh-admin .dd-card-subtitle {
+        font-size: 0.7rem;
+        line-height: 1.35;
+    }
+
+    body.uh-admin .dd-chart-wrap {
+        margin-inline: -0.35rem;
+        overflow: hidden;
+    }
+
+    body.uh-admin .dd-bar-chart {
+        width: 100%;
+        max-height: 12rem;
+    }
+
+    body.uh-admin .dd-pipeline-list {
+        gap: 0.48rem;
+    }
+
+    body.uh-admin .dd-pipeline-row {
+        gap: 0.2rem 0.5rem;
+    }
+
+    body.uh-admin .dd-pipeline-link,
+    body.uh-admin .dd-pipeline-count {
+        font-size: 0.73rem;
+    }
+
+    body.uh-admin .dd-pipeline-bar-wrap {
+        height: 0.34rem;
+    }
+
+    body.uh-admin .dd-mini-stats {
+        gap: 0.35rem;
+    }
+
+    body.uh-admin .dd-mini-stat {
+        padding: 0.55rem;
+        border-radius: 0.7rem;
+    }
+
+    body.uh-admin .dd-mini-stat-value {
+        font-size: 1.1rem;
+    }
+
+    body.uh-admin .dd-mini-stat-label {
+        font-size: 0.63rem;
+    }
+
+    body.uh-admin .dd-table-card .dd-card-head {
+        align-items: center;
+    }
+
+    body.uh-admin .dd-dashboard .dd-table-card .dd-card-head .dd-btn-outline {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.68rem;
     }
 }

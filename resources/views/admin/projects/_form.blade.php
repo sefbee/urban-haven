@@ -15,7 +15,7 @@
     </x-slot:actions>
 </x-ui.page-header>
 
-<nav class="dd-steps" x-data="uhAdminFormSteps" aria-label="Form sections">
+<nav @class(['dd-steps', 'dd-steps-split' => (bool) $model]) x-data="uhAdminFormSteps" aria-label="Form sections">
     @foreach($steps as $anchor => $label)
         <a href="#step-{{ $anchor }}" :class="{ 'is-active': current === 'step-{{ $anchor }}' }">{{ $label }}</a>
     @endforeach
