@@ -125,7 +125,8 @@
                                     'index' => $index,
                                     'total' => $properties->count(),
                                     'listingLayout' => true,
-                                    'gridLayout' => true,
+                                    'featuredContent' => true,
+                                    'showListingMeta' => false,
                                 ])
                             @endforeach
                         </div>

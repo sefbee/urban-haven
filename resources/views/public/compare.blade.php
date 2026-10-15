@@ -29,8 +29,8 @@
                         {{ __('Tap Compare on any property card or page. You can compare up to 4 homes side by side to see key tradeoffs, pricing, and specs.') }}
                     </p>
                     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-                        <x-ui.pill-link variant="primary" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
-                        <x-ui.pill-link variant="light" :href="route('shortlist')">{{ __('Open your shortlist') }}</x-ui.pill-link>
+                        <x-ui.pill-link variant="primary" mobile-icon="search" :href="route('properties.index')">{{ __('Explore properties') }}</x-ui.pill-link>
+                        <x-ui.pill-link variant="light" mobile-icon="heart" :href="route('shortlist')">{{ __('Open your shortlist') }}</x-ui.pill-link>
                     </div>
                 </div>
             </div>

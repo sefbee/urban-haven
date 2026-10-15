@@ -73,7 +73,7 @@
                                placeholder="{{ __('Search area or property') }}"
                                x-model="query" @focus="show('location')" @click="show('location')" @input="typed()"
                                @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter="pickActive($event)">
-                        <x-icon name="chevron-down" class="uh-search-chevron" @mousedown.prevent @click="toggleLocation()" />
+                        <x-icon name="chevron-down" class="uh-search-chevron" @mousedown.prevent="$event.preventDefault()" @click="toggleLocation()" />
                     </div>
                     <input type="hidden" name="location_area_id" :value="area" :disabled="! area">
                     <input type="hidden" name="property_type_ids[]" :value="locationType" :disabled="locationType === '' || pickedTypes.includes(locationType)">

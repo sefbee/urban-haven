@@ -1183,6 +1183,11 @@ Alpine.data('uhThemeEditor', (initialTheme = {}) => ({
         this.success = '';
         this.errors = {};
     },
+    restoreUnsavedChanges() {
+        window.dispatchEvent(new CustomEvent('uh:save-reset', {
+            detail: { formId: this.$root.id },
+        }));
+    },
     resetGroup(group) {
         Object.keys(this.theme.advanced[group]).forEach((key) => {
             this.theme.advanced[group][key] = '';
@@ -1249,12 +1254,14 @@ Alpine.data('uhThemeEditor', (initialTheme = {}) => ({
             if (!response.ok) {
                 this.errors = payload.errors || {};
                 this.error = payload.message || 'Could not save colors. Check the fields and try again.';
+                this.restoreUnsavedChanges();
                 return;
             }
 
             window.location.reload();
         } catch {
             this.error = 'Could not save colors. Check your connection and try again.';
+            this.restoreUnsavedChanges();
         } finally {
             this.saving = false;
         }
@@ -2694,13 +2701,20 @@ const bootUnsavedGuards = () => {
         };
         form.addEventListener('input', mark);
         form.addEventListener('change', mark);
-        form.addEventListener('submit', (event) => {
-            setTimeout(() => {
-                if (! event.defaultPrevented) {
-                    dirty.clear();
-                }
-            }, 0);
+        form.addEventListener('submit', () => {
+            // Submitting is an explicit save attempt. Clear this form before the browser
+            // starts a native navigation or an Alpine handler starts an async save.
+            dirty.delete(form);
         });
+    });
+
+    window.addEventListener('uh:save-reset', (event) => {
+        const form = event.detail?.formId
+            ? document.getElementById(event.detail.formId)
+            : null;
+        if (form?.matches('form[data-unsaved-guard]')) {
+            dirty.add(form);
+        }
     });
 
     window.addEventListener('beforeunload', (event) => {

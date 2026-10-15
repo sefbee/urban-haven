@@ -7,7 +7,7 @@
     $heroCopy = collect($aboutSections['hero'] ?? [])->contains(fn ($value): bool => filled($value));
 @endphp
 
-<div class="uh-container font-sans antialiased bg-[var(--color-page-background)] pb-16">
+<div class="uh-container uh-about-page font-sans antialiased bg-[var(--color-page-background)] pb-16">
     @foreach($aboutSections as $section => $data)
         @switch($section)
             @case('hero')
@@ -147,8 +147,8 @@
             @case('purpose')
                 {{-- Purpose / Mission Vision --}}
                 @if(collect($data)->contains(fn ($value): bool => filled($value)))
-                <section class="py-20 lg:py-28 bg-[var(--color-card-surface)]">
-                    <div class="uh-container-narrow text-center mb-16">
+                <section class="uh-about-purpose-section py-20 lg:py-28 bg-[var(--color-card-surface)]">
+                    <div class="uh-container-narrow uh-about-section-heading text-center mb-16">
                         @if(!empty($data['eyebrow']))
                             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $data['eyebrow'] }}</p>
                         @endif
@@ -156,9 +156,9 @@
                     </div>
                     
                     <div class="uh-container">
-                        <div class="grid md:grid-cols-2 gap-6 lg:gap-10">
+                        <div class="uh-about-purpose-grid grid md:grid-cols-2 gap-6 lg:gap-10">
                             {{-- Mission --}}
-                            @if(filled($data['mission_title'] ?? null) || filled($data['mission_text'] ?? null))<div class="bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
+                            @if(filled($data['mission_title'] ?? null) || filled($data['mission_text'] ?? null))<div class="uh-about-purpose-card bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
                                 <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent)]">
                                     <x-icon name="compass" class="size-7" />
                                 </div>
@@ -171,7 +171,7 @@
                             </div>@endif
                             
                             {{-- Vision --}}
-                            @if(filled($data['vision_title'] ?? null) || filled($data['vision_text'] ?? null))<div class="bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
+                            @if(filled($data['vision_title'] ?? null) || filled($data['vision_text'] ?? null))<div class="uh-about-purpose-card bg-[var(--color-card-surface)] border border-[var(--color-divider)] p-8 lg:p-10 flex gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-colors">
                                 <div class="shrink-0 w-16 h-16 rounded-full border-2 border-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent)]">
                                     <x-icon name="building" class="size-7" />
                                 </div>
@@ -191,8 +191,8 @@
             @case('values')
                 {{-- Values --}}
                 @if(collect($data)->only(['eyebrow', 'title', 'intro', 'value_one_title', 'value_one_text', 'value_two_title', 'value_two_text', 'value_three_title', 'value_three_text', 'value_four_title', 'value_four_text'])->contains(fn ($value): bool => filled($value)))
-                <section class="py-20 bg-[var(--color-card-surface)]">
-                    <div class="uh-container-narrow text-center mb-16">
+                <section class="uh-about-values-section py-20 bg-[var(--color-card-surface)]">
+                    <div class="uh-container-narrow uh-about-section-heading text-center mb-16">
                         @if(!empty($data['eyebrow']))
                             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $data['eyebrow'] }}</p>
                         @endif
@@ -203,7 +203,7 @@
                     </div>
                     
                     <div class="uh-container">
-                        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="uh-about-values-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             @php
                                 $values = [
                     [$data['value_one_icon'] ?? '', $data['value_one_title'] ?? '', $data['value_one_text'] ?? ''],
@@ -214,7 +214,7 @@
                             @endphp
                             @foreach($values as [$icon, $title, $description])
                             @if(filled($title) || filled($description))
-                                    <div class="border border-[var(--color-divider)] p-8 text-center hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.1)] transition-all bg-[var(--color-card-surface)]">
+                                    <div class="uh-about-value-card border border-[var(--color-divider)] p-8 text-center hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.1)] transition-all bg-[var(--color-card-surface)]">
                                         <div class="mx-auto w-14 h-14 bg-[var(--color-dominant)] rounded-full flex items-center justify-center text-[var(--color-accent)] mb-6 border border-[color-mix(in_srgb,var(--color-accent)_20%,transparent)]">
                                             @if(filled($icon))<x-icon :name="$icon" class="size-5" />@endif
                                         </div>
@@ -276,8 +276,8 @@
             @case('approach')
                 {{-- Process Steps --}}
                 @if(collect($data)->contains(fn ($value): bool => filled($value)))
-                <section class="py-20 lg:py-28 bg-[var(--color-dominant)]">
-                    <div class="uh-container-narrow text-center mb-16">
+                <section class="uh-about-approach-section py-20 lg:py-28 bg-[var(--color-dominant)]">
+                    <div class="uh-container-narrow uh-about-section-heading text-center mb-16">
                         @if(!empty($data['eyebrow']))
                             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $data['eyebrow'] }}</p>
                         @endif
@@ -288,7 +288,7 @@
                         <div class="relative">
                             <div class="hidden md:block absolute top-6 left-[12%] right-[12%] h-[1px] bg-[color-mix(in_srgb,var(--color-accent)_30%,transparent)]"></div>
                             
-                            <div class="grid md:grid-cols-4 gap-10 md:gap-6 relative">
+                            <div class="uh-about-steps grid md:grid-cols-4 gap-10 md:gap-6 relative">
                                 @php
                                     $steps = [
                                         ['01', $data['approach_one_title'] ?? '', $data['approach_one_text'] ?? ''],
@@ -299,7 +299,7 @@
                                 @endphp
                                 @foreach($steps as [$num, $title, $desc])
                                     @if(!empty($title))
-                                        <div class="text-center relative">
+                                        <div class="uh-about-step text-center relative">
                                             <div class="w-12 h-12 rounded-full bg-[var(--color-card-surface)] border border-[var(--color-accent)] text-[var(--color-accent)] flex items-center justify-center font-display text-lg mx-auto mb-6 relative z-10 shadow-[0_0_0_8px_var(--color-dominant)]">
                                                 {{ $num }}
                                             </div>

@@ -57,26 +57,32 @@
     @if($showQuickView || $showDetails || $showFavoriteAction)
         <div class="uh-card-next">
             @if($showQuickView)
-                <button type="button" @class([$iconActions ? 'uh-icon-action' : 'uh-btn-text'])
+                <button type="button" @class([
+                            $iconActions ? 'uh-icon-action' : 'uh-btn-text max-sm:w-9 max-sm:p-0 max-sm:justify-center'
+                        ])
+                        @if(!$iconActions) aria-label="{{ __('Quick view') }}" title="{{ __('Quick view') }}" @endif
                         @if($iconActions) aria-label="{{ __('Quick view') }}" title="{{ __('Quick view') }}" @endif
                         @click="$dispatch('open-preview', payload)">
                     @if($iconActions)
                         <x-icon name="expand" class="size-4" />
                     @else
-                        {{ __('Quick view') }}
+                        <x-icon name="expand" class="size-4 sm:hidden" />
+                        <span class="hidden sm:inline">{{ __('Quick view') }}</span>
                     @endif
                 </button>
             @endif
             @if($showDetails)
-                <a class="{{ $iconActions ? 'uh-icon-action' : $detailsClass }}" href="{{ $url }}"
+                <a class="{{ $iconActions ? 'uh-icon-action' : $detailsClass . ' max-sm:w-9 max-sm:h-9 max-sm:p-0 max-sm:justify-center' }}" href="{{ $url }}"
+                   @if(!$iconActions && !$detailsIconOnly) aria-label="{{ $detailsLabel }}" title="{{ $detailsLabel }}" @endif
                    @if($iconActions || $detailsIconOnly) aria-label="{{ $detailsLabel }}" title="{{ $detailsLabel }}" @endif>
                     @if($iconActions)
                         <x-icon name="arrow-right" class="size-4" />
                     @elseif($detailsIconOnly)
                         <x-icon name="external" class="size-4" />
                     @else
-                        {{ $detailsLabel }}
-                        <x-icon name="arrow-right" class="size-3.5" />
+                        <x-icon name="arrow-right" class="size-4 sm:hidden" />
+                        <span class="hidden sm:inline">{{ $detailsLabel }}</span>
+                        <x-icon name="arrow-right" class="size-3.5 hidden sm:inline-block" />
                     @endif
                 </a>
             @endif

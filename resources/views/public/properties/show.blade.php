@@ -513,20 +513,26 @@
 
         <div class="uh-dock lg:hidden">
             @if($callHref)
-                <a class="uh-btn-secondary flex-1" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
-                    {{ __('Call') }}
+                <a class="uh-btn-secondary flex-1 max-sm:px-0 max-sm:justify-center" href="{{ $callHref }}" data-track="phone_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('Call') }}" title="{{ __('Call') }}">
+                    <x-icon name="phone" class="size-5 sm:size-4" />
+                    <span class="hidden sm:inline">{{ __('Call') }}</span>
                 </a>
             @endif
             @if(filled($whatsapp))
-                <a class="uh-btn-secondary flex-1" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar">
-                    {{ __('WhatsApp') }}
+                <a class="uh-btn-secondary flex-1 max-sm:px-0 max-sm:justify-center" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
+                    <x-icon name="whatsapp" class="size-5 sm:size-4" />
+                    <span class="hidden sm:inline">{{ __('WhatsApp') }}</span>
                 </a>
             @endif
             @if($isUnavailable)
-                <x-ui.pill-link variant="light" class="flex-1" href="#contact">{{ __('Similar homes') }}</x-ui.pill-link>
+                <x-ui.pill-link variant="light" class="flex-1 max-sm:px-0 max-sm:justify-center" href="#contact" aria-label="{{ __('Similar homes') }}" title="{{ __('Similar homes') }}">
+                    <x-icon name="home" class="size-5 sm:size-4" />
+                    <span class="hidden sm:inline">{{ __('Similar homes') }}</span>
+                </x-ui.pill-link>
             @else
-                <button type="button" class="uh-btn-primary flex-1" x-data @click="$dispatch('uh:open-visit')">
-                    {{ __('Book a visit') }}
+                <button type="button" class="uh-btn-primary flex-1 max-sm:px-0 max-sm:justify-center" x-data @click="$dispatch('uh:open-visit')" aria-label="{{ __('Book a visit') }}" title="{{ __('Book a visit') }}">
+                    <x-icon name="calendar" class="size-5 sm:size-4" />
+                    <span class="hidden sm:inline">{{ __('Book a visit') }}</span>
                 </button>
             @endif
         </div>

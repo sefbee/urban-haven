@@ -23,12 +23,12 @@
        @click.stop @keydown.escape.stop="closeFilters()"
        @keydown.tab.prevent="filtersOpen && $trapFocus($el, $event)">
     
-    <div class="flex items-center justify-between px-6 py-5 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] flex-shrink-0">
-        <div class="flex items-center gap-4">
-            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm text-teal-500">
+    <div class="uh-filter-drawer-header flex items-center justify-between px-6 py-5 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] flex-shrink-0">
+        <div class="uh-filter-drawer-heading flex items-center gap-4">
+            <span class="uh-filter-drawer-mark flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm text-teal-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
             </span>
-            <div>
+            <div class="uh-filter-drawer-copy">
                 <p class="text-[0.65rem] font-bold uppercase tracking-wider text-teal-600 mb-0.5">{{ __('Refine your search') }}</p>
                 <h2 id="more-filters-title" class="text-xl font-bold text-slate-900">{{ __('More Filters') }}</h2>
                 <p class="text-xs text-slate-500 mt-1">{{ __('Find your perfect property with the right filters') }}</p>

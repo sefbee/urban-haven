@@ -7,7 +7,10 @@
     $mapUrl = filled($configuredMapUrl)
         ? $configuredMapUrl
         : (filled($address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address) : null);
-    $mapEmbedUrl = filled($address) ? 'https://maps.google.com/maps?q='.urlencode($address).'&output=embed' : null;
+    $mapLocation = filled($address) ? $address : 'Dhaka, Bangladesh';
+    $mapEmbedUrl = filled($address)
+        ? 'https://www.google.com/maps?q='.urlencode($address).'&output=embed'
+        : (filled($configuredMapUrl) ? $configuredMapUrl : 'https://www.google.com/maps?q='.urlencode($mapLocation).'&output=embed');
     $contactImage = $page->galleryImages()->first();
     $channels = $contactSections['channels'] ?? [];
     $enquiry = $contactSections['enquiry'] ?? [];
@@ -17,10 +20,10 @@
     $cta = $contactSections['cta'] ?? [];
 @endphp
 
-<main class="uh-container overflow-hidden rounded-3xl bg-white pb-0">
+<main class="uh-container uh-contact-page overflow-hidden bg-white pb-0">
     {{-- Hero Section --}}
     @if(isset($contactSections['hero']))
-    <div class="group flex flex-col lg:flex-row min-h-[550px] 2xl:min-h-[650px] overflow-hidden">
+    <div class="uh-contact-hero group flex flex-col lg:flex-row min-h-[550px] 2xl:min-h-[650px] overflow-hidden">
         <div class="w-full lg:w-1/2 bg-[var(--color-dominant)] flex items-center justify-center p-8 sm:p-12 lg:p-16 xl:p-24 relative z-10">
             {{-- Subtle background decoration --}}
             <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
@@ -51,7 +54,7 @@
 
     {{-- How Can We Help Section --}}
     @if(isset($contactSections['channels']) && (filled($phone) || filled($email) || filled($address)))
-    <section class="py-24 px-4 sm:px-6 lg:px-8 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
+    <section class="uh-contact-channels py-24 px-4 sm:px-6 lg:px-8 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
         <div class="max-w-7xl mx-auto relative z-10">
             @if(filled($channels['title'] ?? null) || filled($channels['intro'] ?? null))
                 <div class="text-center max-w-2xl mx-auto">
@@ -61,10 +64,10 @@
                 </div>
             @endif
             
-            <div class="mt-16 grid gap-6 md:grid-cols-3 max-w-[1050px] mx-auto">
+            <div class="uh-contact-channel-grid mt-16 grid gap-6 md:grid-cols-3 max-w-[1050px] mx-auto">
                 {{-- Call Us --}}
                 @if(filled($phone))
-                <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
+                <div class="uh-contact-channel-card group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="phone" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
@@ -76,7 +79,7 @@
                 
                 {{-- Email Us (elevated) --}}
                 @if(filled($email))
-                <div class="group rounded-2xl border border-[var(--color-divider)] border-t-[3px] border-t-[var(--color-accent)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] hover:-translate-y-4 relative transform md:-translate-y-2 text-center flex flex-col items-center z-10">
+                <div class="uh-contact-channel-card group rounded-2xl border border-[var(--color-divider)] border-t-[3px] border-t-[var(--color-accent)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] hover:-translate-y-4 relative transform md:-translate-y-2 text-center flex flex-col items-center z-10">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="mail" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
@@ -88,7 +91,7 @@
                 
                 {{-- Visit Our Office --}}
                 @if(filled($address))
-                <div class="group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
+                <div class="uh-contact-channel-card group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="pin" class="size-5 transition-transform duration-500 group-hover:scale-110" />
                     </div>
@@ -103,7 +106,7 @@
     @endif
 
     {{-- Form & Sidebar Section --}}
-    <section class="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 bg-white" id="page-form-heading">
+    <section class="uh-contact-enquiry max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 bg-white" id="page-form-heading">
         <div class="grid gap-12 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_450px] lg:gap-16 xl:gap-24">
             
             {{-- Form --}}
@@ -123,7 +126,7 @@
             </div>
 
             {{-- Sidebar --}}
-            <div class="bg-[var(--color-secondary)] flex flex-col rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(13,17,16,0.2)] group relative border border-white/5">
+            <div class="uh-contact-office bg-[var(--color-secondary)] flex flex-col rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(13,17,16,0.2)] group relative border border-white/5">
                 {{-- Decorative gradient background --}}
                 <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[var(--color-accent)]/10 via-night to-night pointer-events-none"></div>
 
@@ -202,9 +205,9 @@
     </section>
 
     {{-- Map Section --}}
-    @if(isset($contactSections['map']) && (filled($address) || filled($map['title'] ?? null)))
-    <section class="group relative h-[500px] w-full bg-[var(--color-dominant)] overflow-hidden">
-        @if(filled($mapEmbedUrl))<iframe src="{{ $mapEmbedUrl }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000 grayscale opacity-80 mix-blend-multiply group-hover:grayscale-0 group-hover:opacity-100 group-hover:mix-blend-normal"></iframe>@endif
+    @if(isset($contactSections['map']) && (filled($address) || filled($configuredMapUrl) || filled($map['title'] ?? null)))
+    <section class="uh-contact-map group relative h-[500px] w-full bg-[var(--color-dominant)] overflow-hidden">
+        <iframe src="{{ $mapEmbedUrl }}" title="{{ __('Map showing :location', ['location' => $mapLocation]) }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="eager" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000"></iframe>
         
         <div class="absolute inset-0 pointer-events-none transition-colors duration-1000 group-hover:bg-[var(--color-secondary)]/5">
             <div class="max-w-7xl mx-auto h-full relative px-4 sm:px-6 lg:px-8">
@@ -229,7 +232,7 @@
 
     {{-- Bottom CTA Section --}}
     @if(isset($contactSections['cta']) && (filled($cta['title'] ?? null) || filled($cta['intro'] ?? null) || (filled($cta['primary_cta'] ?? null) && filled($cta['primary_url'] ?? null)) || (filled($cta['secondary_cta'] ?? null) && filled($cta['secondary_url'] ?? null))))
-    <section class="bg-[var(--color-secondary)] py-24 lg:py-32 relative overflow-hidden group">
+    <section class="uh-contact-cta bg-[var(--color-secondary)] py-24 lg:py-32 relative overflow-hidden group">
         {{-- Animated Gold line art pattern at background --}}
         <div class="absolute bottom-0 right-0 opacity-30 pointer-events-none transform transition-transform duration-[3000ms] ease-out group-hover:scale-105 group-hover:-translate-y-4">
             <svg width="400" height="250" viewBox="0 0 400 250" fill="none" xmlns="http://www.w3.org/2000/svg">

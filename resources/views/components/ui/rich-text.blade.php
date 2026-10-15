@@ -50,7 +50,7 @@
                 @else
                     <button type="button" class="uh-rte-btn" title="{{ $tool['label'] }}" aria-label="{{ $tool['label'] }}"
                             :class="{ 'is-on': active.includes('{{ $tool['command'] }}') }"
-                            @mousedown.prevent @click="run('{{ $tool['command'] }}')">
+                            @mousedown.prevent="$event.preventDefault()" @click="run('{{ $tool['command'] }}')">
                         @isset($tool['icon'])
                             <x-icon :name="$tool['icon']" class="size-3.5" />
                         @else

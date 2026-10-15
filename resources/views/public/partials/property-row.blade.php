@@ -3,6 +3,8 @@
         ? __('Price on request')
         : \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis);
     $whatsapp = $property->whatsappEnquiryUrl();
+    $phoneHref = \App\Support\PhoneNumber::telHref(\App\Models\Setting::get('phone'));
+    $contactEmail = \App\Models\Setting::get('email');
     $preview = \App\Support\PropertyPreview::for($property);
     $place = collect([$property->address ?: $property->locationArea?->name, $property->locationArea?->city])
         ->filter()
@@ -29,6 +31,7 @@
 
         <span class="uh-listing-tools">
             <x-save-button :property="$property" class="uh-card-shortlist-action" />
+            <x-save-button :property="$property" list="compare" class="uh-card-compare-action" />
             <button type="button" class="uh-icon-action" @click="$dispatch('open-preview', payload)"
                     aria-label="{{ __('Quick view') }}" title="{{ __('Quick view') }}">
                 <x-icon name="expand" class="size-4" />
@@ -89,6 +92,24 @@
                         <x-icon name="whatsapp" class="size-5" />
                     </a>
                 @endif
+                @if($phoneHref && ! $property->isUnavailable())
+                    <a class="uh-listing-row-phone" href="{{ $phoneHref }}"
+                       aria-label="{{ __('Call') }}" title="{{ __('Call') }}"
+                       data-track="phone_click" data-track-location="list"
+                       data-track-property-id="{{ $property->id }}">
+                        <x-icon name="phone" class="size-4" />
+                    </a>
+                @endif
+                @if($contactEmail && ! $property->isUnavailable())
+                    <a class="uh-listing-row-email" href="mailto:{{ $contactEmail }}"
+                       aria-label="{{ __('Email') }}" title="{{ __('Email') }}"
+                       data-track="email_click" data-track-location="list"
+                       data-track-property-id="{{ $property->id }}">
+                        <x-icon name="mail" class="size-4" />
+                    </a>
+                @endif
+                <x-share-menu :url="$url" :title="$property->title"
+                              button-class="uh-listing-row-share uh-icon-action" icon-class="size-4" />
             </div>
         </footer>
     </div>

@@ -318,11 +318,15 @@
 
         <div class="uh-dock lg:hidden">
             @if($whatsappUrl)
-                <a class="uh-btn-secondary flex-1" href="{{ $whatsappUrl }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="project_mobile_bar">
-                    <x-icon name="whatsapp" class="size-4" />{{ __('WhatsApp') }}
+                <a class="uh-btn-secondary flex-1 max-sm:px-0 max-sm:justify-center" href="{{ $whatsappUrl }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="project_mobile_bar" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
+                    <x-icon name="whatsapp" class="size-5 sm:size-4" />
+                    <span class="hidden sm:inline">{{ __('WhatsApp') }}</span>
                 </a>
             @endif
-            <button type="button" class="uh-btn-primary flex-1" x-data @click="$dispatch('uh:open-enquire')">{{ __('Ask about this project') }}</button>
+            <button type="button" class="uh-btn-primary flex-1 max-sm:px-0 max-sm:justify-center" x-data @click="$dispatch('uh:open-enquire')" aria-label="{{ __('Ask about this project') }}" title="{{ __('Ask about this project') }}">
+                <x-icon name="mail" class="size-5 sm:size-4" />
+                <span class="hidden sm:inline">{{ __('Ask about this project') }}</span>
+            </button>
         </div>
     </article>
 @endsection

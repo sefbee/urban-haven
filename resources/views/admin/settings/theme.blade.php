@@ -6,7 +6,7 @@
     ];
 @endphp
 
-<form method="POST" action="{{ route('api.admin.settings.theme') }}"
+<form id="admin-theme-settings" method="POST" action="{{ route('api.admin.settings.theme') }}"
       class="space-y-6" x-data="uhThemeEditor(@js($themeColors))" @submit.prevent="save" data-unsaved-guard>
     @csrf
 

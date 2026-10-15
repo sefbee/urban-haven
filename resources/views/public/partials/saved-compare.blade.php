@@ -244,7 +244,7 @@
     };
 @endphp
 
-<div x-data="{ differencesOnly: false, addModalOpen: false, showTradeoffs: false }">
+<div x-data="{ addModalOpen: false, showTradeoffs: false }">
     <!-- Top Header: Title & Subtitle matching design -->
     <div class="mb-6">
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[var(--uh-ink)] tracking-tight">
@@ -346,13 +346,13 @@
 
     <!-- Comparison Table Container -->
     <div class="mt-8 border border-[var(--uh-line)] rounded-2xl bg-[var(--uh-paper)] shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px]">
+        <div class="uh-compare-table-scroll overflow-x-auto">
+            <table class="uh-compare-table w-full text-left border-collapse min-w-[700px]">
                 <!-- Header Row: "At a glance" + Property Cards -->
                 <thead>
                     <tr class="border-b border-[var(--uh-line)]">
                         <!-- Left Column: "At a glance" -->
-                        <th scope="col" class="w-64 min-w-[240px] max-w-[260px] p-6 align-top border-r border-[var(--uh-line)] bg-[var(--uh-paper-2)]/30">
+                        <th scope="col" class="uh-compare-corner w-64 min-w-[240px] max-w-[260px] p-6 align-top border-r border-[var(--uh-line)] bg-[var(--uh-paper-2)]/30">
                             <h2 class="text-xl sm:text-2xl font-serif font-bold text-[var(--uh-ink)] leading-tight">
                                 {{ __('At a glance') }}
                             </h2>
@@ -360,14 +360,6 @@
                                 {{ __('Key details at a glance before diving into the full comparison.') }}
                             </p>
 
-                            <!-- Differences Only Toggle -->
-                            <div class="mt-6 pt-6 border-t border-[var(--uh-line)]">
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-[var(--uh-ink)] select-none">
-                                    <input type="checkbox" x-model="differencesOnly" class="sr-only peer">
-                                    <div class="w-9 h-5 bg-[var(--uh-line-strong)] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-[var(--uh-line)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-accent)] relative"></div>
-                                    <span>{{ __('Show differences only') }}</span>
-                                </label>
-                            </div>
                         </th>
 
                         <!-- Property Hero Cards (Columns) -->
@@ -377,7 +369,7 @@
                                 $place = collect([$property->locationArea?->name, $property->locationArea?->city])->filter()->implode(', ');
                                 $priceFormatted = $formatPrice($property);
                             @endphp
-                            <th scope="col" class="min-w-[280px] p-5 sm:p-6 align-top border-r border-[var(--uh-line)] last:border-r-0">
+                            <th scope="col" class="uh-compare-property min-w-[280px] p-5 sm:p-6 align-top border-r border-[var(--uh-line)] last:border-r-0">
                                 <!-- Photo Card -->
                                 <div class="relative rounded-2xl overflow-hidden aspect-[16/10] bg-[var(--uh-paper-2)] border border-[var(--uh-line)] group shadow-2xs">
                                     @if($image)
@@ -428,7 +420,7 @@
                         @endforeach
 
                         @if($properties->count() === 1)
-                            <th scope="col" class="min-w-[280px] p-5 sm:p-6 align-top">
+                            <th scope="col" class="uh-compare-property min-w-[280px] p-5 sm:p-6 align-top">
                                 <button type="button" 
                                         @click="addModalOpen = true"
                                         class="w-full h-full min-h-[220px] rounded-2xl border-2 border-dashed border-[var(--uh-line-strong)] p-6 flex flex-col items-center justify-center text-center bg-[var(--uh-paper-2)]/30 hover:bg-[var(--color-accent)]/5 hover:border-[var(--color-accent)]/60 transition-all cursor-pointer group">
@@ -458,8 +450,7 @@
 
                         <!-- Rows for this group -->
                         @foreach($group['keys'] as $key)
-                            @php $same = $sameRow($key); @endphp
-                            <tr @if($same) x-show="!differencesOnly" @endif class="hover:bg-[var(--uh-paper-2)]/40 transition-colors">
+                            <tr class="hover:bg-[var(--uh-paper-2)]/40 transition-colors">
                                 <!-- Feature Name / Icon Column -->
                                 <th scope="row" class="px-6 py-3.5 text-xs sm:text-sm font-medium text-[var(--uh-muted)] border-r border-[var(--uh-line)] align-middle bg-[var(--uh-paper-2)]/20">
                                     <div class="flex items-center gap-2.5">
@@ -572,11 +563,7 @@
                             </th>
                         </tr>
                         @foreach($allAmenities as $amenity)
-                            @php
-                                $amenityInProps = $properties->map(fn ($p) => in_array($amenity->id, (array) ($p->amenity_ids ?? []), true));
-                                $allSame = $amenityInProps->unique()->count() <= 1;
-                            @endphp
-                            <tr @if($allSame) x-show="!differencesOnly" @endif class="hover:bg-[var(--uh-paper-2)]/40 transition-colors">
+                            <tr class="hover:bg-[var(--uh-paper-2)]/40 transition-colors">
                                 <th scope="row" class="px-6 py-3 text-xs sm:text-sm font-medium text-[var(--uh-muted)] border-r border-[var(--uh-line)] align-middle bg-[var(--uh-paper-2)]/20">
                                     <div class="flex items-center gap-2.5">
                                         <x-icon name="check-circle" class="size-4 text-[var(--color-accent)]/70 flex-shrink-0" />
