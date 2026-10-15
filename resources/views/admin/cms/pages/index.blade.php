@@ -9,18 +9,20 @@
                 <x-icon name="grid" class="size-4" />
                 Edit home page
             </a>
-            <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.cms.create') }}">
-                <x-icon name="plus" class="size-4" />
-                New page
-            </a>
+            @can('create', \App\Models\CmsPage::class)
+                <a class="uh-btn-primary uh-btn-sm uh-admin-add-action" href="{{ route('admin.cms.create') }}">
+                    <x-icon name="plus" class="size-4" />
+                    New page
+                </a>
+            @endcan
         </x-slot:actions>
     </x-ui.page-header>
 
-    @if($canCreatePages)
+    @can('create', \App\Models\CmsPage::class)
         <a class="uh-admin-add-fab" href="{{ route('admin.cms.create') }}" aria-label="New page" title="New page">
             <x-icon name="plus" class="size-5" />
         </a>
-    @endif
+    @endcan
 
     <x-ui.admin-related label="Also on the site">
         <a href="{{ route('admin.posts.index') }}">Articles</a>
@@ -72,7 +74,9 @@
         @else
             <x-ui.empty icon="document" title="No pages yet"
                         description="Create pages like “About us” or “Privacy policy” to publish alongside your listings.">
-                <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">New page</a>
+                @can('create', \App\Models\CmsPage::class)
+                    <a class="uh-btn-primary uh-btn-sm" href="{{ route('admin.cms.create') }}">New page</a>
+                @endcan
             </x-ui.empty>
         @endif
     </section>
