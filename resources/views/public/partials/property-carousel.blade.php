@@ -18,7 +18,7 @@
             <img src="{{ $image->url(768) }}"
                  srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
                  sizes="{{ $photoSizes }}"
-                 alt=""
+                 alt="{{ $image->alt(app()->getLocale()) ?: $property->title }}"
                  @if($index > 0 || ! $eagerFirst) loading="lazy" @endif
                  decoding="async">
         </a>

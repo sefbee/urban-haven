@@ -62,7 +62,7 @@
                             <a class="flex items-center gap-4 group" href="{{ route('properties.show', $property->slug) }}" data-reveal style="--uh-i: {{ $loop->index }}">
                                 <span class="block w-28 aspect-video flex-shrink-0 relative overflow-hidden rounded shadow-sm bg-gray-100">
                                     @if($image = $property->featuredImage())
-                                        <img src="{{ $image->url(480) }}" alt="" loading="lazy" decoding="async" class="object-cover w-full h-full transition duration-300 group-hover:scale-105">
+                                        <img src="{{ $image->url(480) }}" alt="{{ $property->title ?? $sectionContent['title'] ?? 'Property image' }}" loading="lazy" decoding="async" class="object-cover w-full h-full transition duration-300 group-hover:scale-105">
                                     @else
                                         <span class="uh-media-placeholder w-full h-full flex items-center justify-center text-[0.6rem]">{{ __('Video') }}</span>
                                     @endif

@@ -99,19 +99,11 @@
                     <span class="dd-seo-permalink-base" dir="ltr">{{ $baseUrl }}</span>
             <input id="{{ $idPrefix }}-slug" name="{{ $slugName }}" class="dd-seo-permalink-input" dir="ltr" maxlength="120" x-model="slug" @if($formId) form="{{ $formId }}" @endif @disabled($disabled)
                            @input="slugEdited()" @blur="slug = slugify(slug)" placeholder="generated-from-the-title" autocomplete="off" spellcheck="false">
-                    <button type="button" class="dd-seo-permalink-btn" @click="regenerate()" title="Generate from the title" @disabled($disabled)>
-                        <x-icon name="refresh" class="size-3.5" />
-                        <span class="sr-only">Generate from the title</span>
-                    </button>
                 </div>
                 @error($slugName)<p class="uh-error">{{ $message }}</p>@enderror
             @else
                 <div class="dd-seo-permalink is-static">
                     <span class="dd-seo-permalink-base" dir="ltr" x-text="previewUrl"></span>
-                    <button type="button" class="dd-seo-permalink-btn" @click="copy()" :title="copied ? 'Copied' : 'Copy URL'">
-                        <x-icon name="copy" class="size-3.5" />
-                        <span class="sr-only">Copy URL</span>
-                    </button>
                 </div>
             @endif
         </div>

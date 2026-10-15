@@ -88,7 +88,7 @@
             <link rel="icon" href="{{ $favicon }}">
             <link rel="apple-touch-icon" href="{{ $favicon }}">
         @endif
-        <title>{{ ($seo['title'] ?? config('app.name')) === config('app.name') ? config('app.name') : ($seo['title'].' — '.config('app.name')) }}</title>
+        <title>{{ $seo['title'] ?? config('app.name') }}</title>
         @include('partials.seo-meta')
         <script>
             window.dataLayer = window.dataLayer || [];

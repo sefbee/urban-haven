@@ -79,7 +79,6 @@
              x-text="copyError ? @js(__('Could not copy the URL. Select and copy it from the address column.')) : @js(__('URL copied to clipboard'))"></div>
         <div class="dd-urls-toolbar">
             <label class="dd-urls-search">
-                <x-icon name="search" class="size-4 text-[var(--color-muted)]" />
                 <span class="sr-only">Filter addresses</span>
                 <input type="search" x-model="q" placeholder="Filter by name or address…">
             </label>

@@ -20,7 +20,7 @@
                         @if($area->image_path)
                             <a href="{{ $area->hasLandingPage() ? route('locations.show', $area->slug) : route('properties.index', ['location_area_id' => $area->id]) }}"
                                class="uh-type-tile" style="height: 100%; min-height: 5.25rem; border-radius: 1.5rem;">
-                                <img class="uh-type-tile-image" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($area->image_path) }}" alt="" style="object-fit: cover;">
+                                <img class="uh-type-tile-image" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($area->image_path) }}" alt="{{ $area->name }}" style="object-fit: cover;">
                                 <span class="uh-type-tile-shade" aria-hidden="true"></span>
                                 <span class="uh-type-tile-name flex flex-col gap-0.5">
                                     <span>{{ $area->name }}</span>

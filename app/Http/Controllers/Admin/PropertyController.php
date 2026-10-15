@@ -70,7 +70,6 @@ class PropertyController extends Controller
                 'price_mode' => Property::PRICE_FIXED,
                 'area_unit' => 'sqft',
             ])),
-            'saveLabel' => 'Save draft',
         ]);
     }
 
@@ -101,7 +100,6 @@ class PropertyController extends Controller
             ...$this->formData($property),
             'checklist' => $inventory->publishChecklist($property),
             'canEdit' => $user->can('update', $property),
-            'saveLabel' => $user->hasPermission('property.publish') ? 'Save changes' : 'Save draft',
         ]);
     }
 

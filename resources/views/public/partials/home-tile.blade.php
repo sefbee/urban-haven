@@ -13,7 +13,7 @@
             <img src="{{ $image->url(768) }}"
                  srcset="{{ $image->url(480) }} 480w, {{ $image->url(768) }} 768w, {{ $image->url(1280) }} 1280w"
                  sizes="(min-width: 1024px) 360px, 100vw"
-                 alt="" loading="lazy" decoding="async">
+                 alt="{{ $item->title }}" loading="lazy" decoding="async">
         @endif
     </a>
     <p class="uh-listing-price">{{ $headline }}</p>

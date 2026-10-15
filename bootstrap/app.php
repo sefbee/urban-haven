@@ -6,6 +6,7 @@ use App\Http\Middleware\CaptureFirstTouchAttribution;
 use App\Http\Middleware\EnsureMfaIsSatisfied;
 use App\Http\Middleware\EnsureStaffIsActive;
 use App\Http\Middleware\ResolveRedirects;
+use App\Http\Middleware\RedirectToWww;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Support\JsonError;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             CaptureFirstTouchAttribution::class,
             ResolveRedirects::class,
+            RedirectToWww::class,
         ]);
 
         $middleware->alias([

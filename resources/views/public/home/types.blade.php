@@ -68,7 +68,7 @@
                                 @php($cover = $type->coverSource?->featuredImage())
                                 @if($cover)
                                     <img class="uh-type-tile-image" src="{{ $cover->url(480) }}"
-                                         srcset="{{ $cover->srcset() }}" sizes="168px" alt="" loading="lazy" decoding="async">
+                                         srcset="{{ $cover->srcset() }}" sizes="168px" alt="{{ $type->label }}" loading="lazy" decoding="async">
                                 @else
                                     <span class="uh-type-tile-fallback" aria-hidden="true">
                                         <x-icon :name="$typeIcons[$type->key] ?? 'building'" class="size-10" />

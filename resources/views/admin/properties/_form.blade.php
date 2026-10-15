@@ -1,7 +1,7 @@
 @php
     $exists = $property->exists;
     $canEdit ??= true;
-    $saveLabel ??= 'Save changes';
+    $saveLabel ??= $exists ? 'Save changes' : 'Save property';
     $checklist ??= [];
     $selectedAmenities = array_map('intval', (array) old('amenity_ids', $property->amenity_ids ?? []));
     $profiles = $types->mapWithKeys(fn ($type) => [$type->id => $type->field_profile])->all();

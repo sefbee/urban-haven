@@ -8,7 +8,6 @@
     </x-ui.page-header>
 
     <form method="GET" action="{{ route('admin.search') }}" class="dd-search-hero" role="search">
-        <x-icon name="search" class="dd-search-hero-icon" />
         <label for="search-page-q" class="sr-only">Search term</label>
         <input id="search-page-q" type="search" name="q" value="{{ $term }}" placeholder="Name, reference, phone, email or title" maxlength="120" autofocus autocomplete="off">
         <button type="submit" class="uh-btn-primary">Search</button>

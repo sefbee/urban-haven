@@ -15,7 +15,7 @@
                     <img src="{{ $heroImage->url(1920) }}"
                          srcset="{{ $heroImage->url(768) }} 768w, {{ $heroImage->url(1280) }} 1280w, {{ $heroImage->url(1920) }} 1920w"
                          sizes="100vw"
-                         alt="{{ $loop->first ? ($heroImage->alt(app()->getLocale()) ?: '') : '' }}"
+                         alt="{{ $heroImage->alt(app()->getLocale()) ?: $heroTitle }}"
                          @if($loop->first) fetchpriority="high" @else loading="lazy" @endif decoding="async">
                 </span>
             @endforeach

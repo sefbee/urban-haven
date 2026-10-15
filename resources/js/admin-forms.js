@@ -35,7 +35,6 @@ export const registerAdminForms = (Alpine) => {
         autoSlug: Boolean(config.autoSlug),
         sourceTitle: '',
         sourceContent: '',
-        copied: false,
         siteName: config.siteName ?? '',
         init() {
             const form = this.$root.closest('form');
@@ -63,16 +62,6 @@ export const registerAdminForms = (Alpine) => {
         slugify,
         slugEdited() {
             this.autoSlug = this.slug === '';
-        },
-        regenerate() {
-            this.slug = slugify(this.sourceTitle || config.fallbackTitle || '');
-            this.autoSlug = true;
-        },
-        copy() {
-            navigator.clipboard?.writeText(this.previewUrl).then(() => {
-                this.copied = true;
-                setTimeout(() => { this.copied = false; }, 1500);
-            });
         },
         get autoTitle() {
             return plain(config.fallbackTitle || this.sourceTitle || '');

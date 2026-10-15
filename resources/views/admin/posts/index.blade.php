@@ -7,7 +7,6 @@
         <x-slot:actions>
             <form method="GET" class="uh-admin-search" role="search">
                 <label class="sr-only" for="post-search">Search articles</label>
-                <x-icon name="search" />
                 <input id="post-search" class="uh-input min-h-9 py-1.5 text-sm" type="search" name="q" value="{{ request('q') }}" placeholder="Title">
                 <button type="submit" class="sr-only">Search</button>
             </form>

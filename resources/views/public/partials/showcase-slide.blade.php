@@ -59,7 +59,7 @@
                 <img src="{{ $photo->url(1280) }}"
                      srcset="{{ $photo->url(768) }} 768w, {{ $photo->url(1280) }} 1280w"
                      sizes="(min-width: 1024px) 40rem, 80vw"
-                     alt="" @if($index > 1 || $photoIndex > 0) loading="lazy" @endif decoding="async" draggable="false"
+                     alt="{{ $property->title }}" @if($index > 1 || $photoIndex > 0) loading="lazy" @endif decoding="async" draggable="false"
                      @if($listingLayout) @class(['is-on' => $photoIndex === 0]) @else :class="{ 'is-on': photoOn({{ $index }}, {{ $photoIndex }}, {{ $photoTotal }}) }" @endif>
             @empty
                 <span class="uh-media-placeholder">{{ $property->locationArea?->name ?? __('Urban Haven') }}</span>
