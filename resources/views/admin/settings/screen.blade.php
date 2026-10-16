@@ -10,6 +10,7 @@
         'analytics' => ['Analytics', 'admin.settings.analytics'],
         'seo' => ['SEO', 'admin.settings.seo'],
         'copy' => ['Website copy', 'admin.settings.copy'],
+        'footer' => ['Footer', 'admin.settings.footer'],
     ];
     $hasImages = collect($definitions)->flatten(1)->contains(fn ($definition) => ($definition['input'] ?? null) === 'image');
 @endphp
@@ -31,10 +32,18 @@
                     'analytics' => 'Stats',
                     'seo' => 'SEO',
                     'copy' => 'Copy',
+                    'footer' => 'Footer',
                 }) }}</span>
             </a>
         @endforeach
     </x-ui.admin-tabs>
+
+    @if($screen === 'footer')
+        <x-ui.admin-related label="Footer content" class="mb-5">
+            <a href="{{ route('admin.menus.index', ['location' => 'footer']) }}">Manage footer navigation links</a>
+            <a href="{{ route('admin.settings.contact') }}">Manage contact details and social accounts</a>
+        </x-ui.admin-related>
+    @endif
 
     @if($screen === 'analytics')
         <section class="dd-status-grid mb-5" aria-label="Tracking status">
@@ -91,6 +100,7 @@
                 </button>
             </div>
         </form>
+
     @endif
 
     @if($screen === 'contact')
@@ -154,6 +164,42 @@
                         Save social profiles
                     </button>
                 </div>
+            </div>
+        </form>
+
+        <form method="POST" action="{{ route('admin.settings.footer-contacts') }}" class="uh-panel mt-6" x-data="uhForm" @submit="submit" data-unsaved-guard aria-labelledby="footer-contacts-heading">
+            @csrf
+            @method('PUT')
+            @php
+                $contacts = collect(old('contacts', $footerContacts))->map(fn ($contact) => [
+                    'label' => $contact['label'] ?? '',
+                    'value' => $contact['value'] ?? '',
+                    'type' => $contact['type'] ?? 'phone',
+                    'icon' => $contact['icon'] ?? 'phone',
+                    'active' => filter_var($contact['active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                ])->values()->all();
+            @endphp
+            <div x-data="{ contacts: @js($contacts), max: 8 }">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div><h2 id="footer-contacts-heading" class="uh-h4">Additional footer contacts</h2><p class="mt-1 text-sm text-[var(--color-muted)]">Optional contact methods shown alongside the main contact details.</p></div>
+                    <button type="button" class="uh-btn-outline uh-btn-sm" @click="contacts.push({ label: '', value: '', type: 'phone', icon: 'phone', active: true })" x-show="contacts.length < max"><x-icon name="plus" class="size-4" /> Add contact</button>
+                </div>
+                <ol class="dd-repeater mt-4">
+                    <template x-for="(contact, index) in contacts" :key="index">
+                        <li class="dd-social-row">
+                            <input class="uh-input" type="text" :name="`contacts[${index}][label]`" x-model="contact.label" maxlength="60" placeholder="Label" required aria-label="Contact label">
+                            <input class="uh-input" type="text" :name="`contacts[${index}][value]`" x-model="contact.value" maxlength="255" placeholder="Number, email or HTTPS link" required aria-label="Contact value">
+                            <select class="uh-select" data-native-select :name="`contacts[${index}][type]`" x-model="contact.type" aria-label="Contact type"><option value="phone">Phone</option><option value="email">Email</option><option value="url">Website</option></select>
+                            <select class="uh-select" data-native-select :name="`contacts[${index}][icon]`" x-model="contact.icon" aria-label="Contact icon">@foreach($footerContactIcons as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                            <input type="hidden" :name="`contacts[${index}][active]`" :value="contact.active ? 1 : 0">
+                            <label class="dd-switch"><input type="checkbox" x-model="contact.active"><span class="dd-switch-track" aria-hidden="true"></span><span class="sr-only">Show contact method</span></label>
+                            <span class="flex"><button type="button" class="uh-admin-icon-btn" :disabled="index === 0" @click="contacts.splice(index - 1, 0, contacts.splice(index, 1)[0])" aria-label="Move up"><x-icon name="chevron-down" class="size-4 rotate-180" /></button><button type="button" class="uh-admin-icon-btn" :disabled="index === contacts.length - 1" @click="contacts.splice(index + 1, 0, contacts.splice(index, 1)[0])" aria-label="Move down"><x-icon name="chevron-down" class="size-4" /></button></span>
+                            <button type="button" class="uh-admin-icon-btn text-[var(--dd-red)]" @click="contacts.splice(index, 1)" aria-label="Remove contact"><x-icon name="trash" class="size-4" /></button>
+                        </li>
+                    </template>
+                </ol>
+                @if($errors->has('contacts') || $errors->has('contacts.*'))<p class="uh-error mt-2">{{ $errors->first('contacts') ?: collect($errors->get('contacts.*'))->flatten()->first() }}</p>@endif
+                <div class="dd-form-footer"><button type="submit" class="uh-btn-primary" :disabled="submitting">Save additional contacts</button></div>
             </div>
         </form>
     @endif

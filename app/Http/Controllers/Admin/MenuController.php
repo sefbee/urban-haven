@@ -139,15 +139,19 @@ class MenuController extends Controller
                 Rule::notIn(array_filter([$item?->id])),
             ],
             'label' => ['required', 'string', 'max:60'],
-            'url' => ['required', 'string', 'max:255', 'regex:#^(/(?!/)[^\s]*|https://[^\s]+)$#'],
+            'url' => ['required', 'string', 'max:255', 'regex:~^(#|/(?!/)[^\s]*|https://[^\s]+)$~'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:999'],
             'is_visible' => ['nullable', 'boolean'],
             'opens_new_tab' => ['nullable', 'boolean'],
         ], [
-            'url.regex' => 'Use an internal path starting with / or a full https:// address.',
+            'url.regex' => 'Use an internal path starting with /, a full https:// address, or # for a top-level group heading.',
             'parent_id.exists' => 'Choose a top-level link from the same menu.',
             'parent_id.not_in' => 'A link cannot sit under itself.',
         ], ['parent_id' => 'parent link']);
+
+        if (($validated['url'] ?? null) === '#' && filled($validated['parent_id'] ?? null)) {
+            throw ValidationException::withMessages(['url' => 'A non-clickable heading must be a top-level menu item.']);
+        }
 
         if ($item && filled($validated['parent_id'] ?? null) && $item->children()->exists()) {
             throw ValidationException::withMessages(['parent_id' => 'Move or remove this link’s own sub-links first; menus are two levels deep.']);

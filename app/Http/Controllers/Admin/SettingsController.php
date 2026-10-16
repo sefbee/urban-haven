@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
 
@@ -42,6 +43,8 @@ class SettingsController extends Controller
         return $this->screen('contact', [
             'socialProfiles' => SocialProfiles::all(),
             'socialPlatforms' => SocialProfiles::PLATFORMS,
+            'footerContacts' => (array) Setting::get('footer_contacts', []),
+            'footerContactIcons' => ['phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'mail' => 'Email', 'pin' => 'Location', 'globe' => 'Website'],
             'mailConfigured' => HealthStatus::mailConfigured(),
         ]);
     }
@@ -64,6 +67,11 @@ class SettingsController extends Controller
     public function copy(): View
     {
         return $this->screen('copy');
+    }
+
+    public function footer(): View
+    {
+        return $this->screen('footer');
     }
 
     public function update(Request $request, AuditLogger $auditLogger): RedirectResponse
@@ -254,6 +262,53 @@ class SettingsController extends Controller
         TaggedCache::flush(['homepage', 'sitemap']);
 
         return back()->with('status', 'Social profiles saved.');
+    }
+
+    public function updateFooterContacts(Request $request, AuditLogger $auditLogger): RedirectResponse
+    {
+        abort_unless($this->userCanManage(), 403);
+
+        $validated = $request->validate([
+            'contacts' => ['nullable', 'array', 'max:8'],
+            'contacts.*.label' => ['required', 'string', 'max:60'],
+            'contacts.*.value' => ['required', 'string', 'max:255'],
+            'contacts.*.type' => ['required', Rule::in(['phone', 'email', 'url'])],
+            'contacts.*.icon' => ['required', Rule::in(['phone', 'whatsapp', 'mail', 'pin', 'globe'])],
+            'contacts.*.active' => ['nullable', 'boolean'],
+        ]);
+
+        $contacts = array_values(array_map(function (array $contact): array {
+            $value = trim($contact['value']);
+
+            if ($contact['type'] === 'email' && ! filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                throw ValidationException::withMessages(['contacts' => 'Enter a valid email address for each email contact.']);
+            }
+
+            if ($contact['type'] === 'url' && ! preg_match('#^https://[^\s]+$#', $value)) {
+                throw ValidationException::withMessages(['contacts' => 'Website contacts must use a full HTTPS URL.']);
+            }
+
+            if ($contact['type'] === 'phone') {
+                if (! PhoneNumber::isValid($value)) {
+                    throw ValidationException::withMessages(['contacts' => 'Enter a valid phone number for each phone contact.']);
+                }
+
+                $value = PhoneNumber::normalize($value);
+            }
+
+            return [
+                'label' => trim($contact['label']),
+                'value' => $value,
+                'type' => $contact['type'],
+                'icon' => $contact['icon'],
+                'active' => filter_var($contact['active'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            ];
+        }, $validated['contacts'] ?? []));
+
+        Setting::set('footer_contacts', $contacts, 'contact', 'json');
+        $auditLogger->record($request->user()->id, 'settings.updated', Setting::class, null, null, ['keys' => ['footer_contacts']], $request->ip());
+
+        return back()->with('status', 'Additional footer contacts saved.');
     }
 
     public function testEmail(Request $request): RedirectResponse

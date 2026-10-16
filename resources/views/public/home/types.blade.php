@@ -30,7 +30,7 @@
     <div class="uh-container">
         @if(filled($sectionContent['title']) || filled($sectionContent['link_label']))
             <header class="uh-type-section-head" data-reveal>
-                <h2 id="types-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                <h2 id="types-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['category' => $firstCategory]) }}" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">{{ $sectionContent['link_label'] ?: __('Explore') }}</a>
             </header>
         @endif

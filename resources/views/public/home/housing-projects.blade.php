@@ -8,7 +8,7 @@
         @if(filled($sectionContent['title']) || filled($sectionContent['link_label']))
             <header class="uh-trending-head" data-reveal>
                 @if(filled($sectionContent['title']))
-                    <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                    <h2 id="housing-projects-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 @endif
                 <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL]) }}">{{ $sectionContent['link_label'] ?: __('Explore') }}</a>
                 @if(filled($sectionContent['link_label']))

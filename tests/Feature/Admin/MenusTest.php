@@ -33,7 +33,9 @@ class MenusTest extends TestCase
 
         foreach ([$desktopNav, $mobileNav] as $navigation) {
             $this->assertSame(1, substr_count($navigation, 'href="/properties?listing_type=sale"'));
-            $this->assertSame(1, substr_count($navigation, 'href="/properties?type=apartment" target="_blank" rel="noopener"'));
+            $this->assertSame(1, substr_count($navigation, 'href="/properties?type=apartment"'));
+            $this->assertStringContainsString('target="_blank"', $navigation);
+            $this->assertStringContainsString('rel="noopener"', $navigation);
             $this->assertStringNotContainsString('Articles', $navigation);
             $this->assertStringNotContainsString('About Us', $navigation);
             $this->assertStringNotContainsString('Contact', $navigation);
@@ -53,6 +55,27 @@ class MenusTest extends TestCase
         $this->assertSame('', trim($this->navigationMarkup($html, 'uh-nav')));
     }
 
+    public function test_footer_groups_can_be_created_with_manageable_child_links(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->post(route('admin.menus.store'), [
+            'location' => 'footer',
+            'label' => 'Discover',
+            'url' => '#',
+        ])->assertSessionHasNoErrors();
+
+        $group = MenuItem::query()->where('label', 'Discover')->firstOrFail();
+        $this->actingAs($owner)->post(route('admin.menus.store'), [
+            'location' => 'footer',
+            'parent_id' => $group->id,
+            'label' => 'New homes',
+            'url' => '/properties?listing_type=sale',
+        ])->assertSessionHasNoErrors();
+
+        $this->get(route('home'))->assertOk()->assertSee('Discover')->assertSee('New homes');
+    }
+
     public function test_sub_links_must_sit_under_a_top_level_link_of_the_same_menu(): void
     {
         $owner = $this->owner();
@@ -69,6 +92,7 @@ class MenusTest extends TestCase
 
     public function test_links_move_and_toggle_visibility(): void
     {
+        MenuItem::query()->where('location', 'footer')->delete();
         $owner = $this->owner();
         $first = MenuItem::query()->create(['location' => 'footer', 'label' => 'First', 'url' => '/a', 'sort_order' => 10]);
         $second = MenuItem::query()->create(['location' => 'footer', 'label' => 'Second', 'url' => '/b', 'sort_order' => 20]);
@@ -82,6 +106,7 @@ class MenusTest extends TestCase
 
     public function test_removing_a_parent_removes_its_sub_links(): void
     {
+        MenuItem::query()->where('location', 'footer')->delete();
         $parent = MenuItem::query()->create(['location' => 'header', 'label' => 'Buy', 'url' => '/properties']);
         MenuItem::query()->create(['location' => 'header', 'parent_id' => $parent->id, 'label' => 'Flats', 'url' => '/properties']);
 

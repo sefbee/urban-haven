@@ -29,7 +29,18 @@
     $favicon = $brandUrl(\App\Models\Setting::get('brand_favicon'));
     $footerNote = \App\Models\Setting::get('footer_note') ?: __('Every listing on this site is published by our own team, not a marketplace of unknown sellers.');
     $footerCopyright = \App\Models\Setting::get('footer_copyright');
+    $footerDescription = \App\Models\Setting::get('footer_description') ?: $footerNote;
+    $footerCtaLabel = \App\Models\Setting::get('footer_cta_label') ?: __('Explore properties');
+    $footerCtaUrl = \App\Models\Setting::get('footer_cta_url') ?: route('properties.index');
+    $footerMenuGroups = \App\Models\MenuItem::treeFor('footer');
+    $footerBackground = \App\Models\Setting::get('footer_background', '#0d1110');
+    $footerAccent = \App\Models\Setting::get('footer_accent', '#f3c88c');
+    $footerLegalText = \App\Models\Setting::get('footer_legal_text');
+    $footerCookieLink = (bool) \App\Models\Setting::get('footer_cookie_link', true);
+    $footerStaffLink = (bool) \App\Models\Setting::get('footer_staff_link', true);
+    $footerNewsletterEnabled = (bool) \App\Models\Setting::get('footer_newsletter_enabled', false);
     $socialProfiles = \App\Support\SocialProfiles::active();
+    $footerExtraContacts = array_values(array_filter((array) \App\Models\Setting::get('footer_contacts', []), fn ($contact) => is_array($contact) && ($contact['active'] ?? false)));
 
     $themeVariables = \App\Support\ThemeColors::cssVariables();
     $themeDominant = $themeVariables['--color-dominant'];
@@ -62,17 +73,7 @@
         return $link;
     })->all();
 
-    $fixedFooterLinks = array_values(array_filter([
-        ['label' => __('About Us'), 'url' => route('cms.show', 'about')],
-        ['label' => __('Articles'), 'url' => route('articles.index')],
-        ['label' => __('FAQ'), 'url' => route('faq')],
-        ['label' => __('Tools'), 'url' => route('tools')],
-        ['label' => __('Contact'), 'url' => route('cms.show', 'contact')],
-        $privacyUrl ? ['label' => __('Privacy'), 'url' => $privacyUrl] : null,
-    ]));
-    $footerMenu = \App\Models\MenuItem::forLocation('footer');
-    $customFooterLinks = $footerMenu->map(fn ($item) => ['label' => __($item->label), 'url' => $item->url]);
-    $footerLinks = collect($fixedFooterLinks)->concat($customFooterLinks)->unique('url')->values()->all();
+    $footerLegalText = $footerLegalText ?: $footerCopyright;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $locale) }}">
@@ -311,12 +312,11 @@
             @yield('content')
         </main>
 
-        <footer class="uh-site-foot">
+        <footer class="uh-site-foot uh-site-foot-premium" style="--uh-footer-bg: {{ $footerBackground }}; --uh-footer-accent: {{ $footerAccent }}">
             <div class="uh-foot-glow" aria-hidden="true"></div>
-
             <div class="uh-container relative z-10">
-                <div class="uh-foot-top">
-                    <div>
+                <div class="uh-foot-premium-grid">
+                    <section class="uh-foot-brand-column">
                         <a href="{{ route('home') }}" class="uh-brand">
                             @if($logoFooter)
                                 <img class="uh-brand-logo-img" src="{{ $logoFooter }}" alt="{{ $companyName }}">
@@ -324,73 +324,38 @@
                                 <span class="uh-wordmark">{{ $companyName }}</span>
                             @endif
                         </a>
-                        <p class="uh-foot-line">{{ __($footerNote) }}</p>
-                    </div>
-                    <div class="uh-foot-cta">
-                        <x-ui.pill-link variant="light" :mobile-label="true" :href="route('properties.index')">
-                            {{ __('Explore properties') }}
-                        </x-ui.pill-link>
-                    </div>
-                </div>
-
-                <div class="uh-foot-columns">
-                    <nav aria-label="{{ __('Explore') }}">
-                        <p class="uh-foot-heading">{{ __('Explore') }}</p>
-                        <ul class="uh-foot-list">
-                            @if(in_array('sale', $purposes, true))
-                                <li><a href="{{ route('properties.index') }}">{{ __('Properties for sale') }}</a></li>
-                            @endif
-                            @if(in_array('rent', $purposes, true))
-                                <li><a href="{{ route('properties.index') }}">{{ __('Properties for rent') }}</a></li>
-                            @endif
-                            <li><a href="{{ route('map') }}">{{ __('Map') }}</a></li>
-                            <li><a href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
-                            <li><a href="{{ route('compare') }}">{{ __('Compare') }}</a></li>
-                        </ul>
-                    </nav>
-
-                    <div>
-                        <p class="uh-foot-heading">{{ __('Contact') }}</p>
-                        <ul class="uh-foot-list">
-                            @if(filled($contactPhone))
-                                <li>
-                                    <a class="uh-foot-phone-link" href="{{ \App\Support\PhoneNumber::telHref($contactPhone) }}" data-track="phone_click" data-track-location="footer">
-                                        <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($whatsappHref)
-                                <li><a class="uh-foot-whatsapp-link" href="{{ $whatsappHref }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-location="footer">{{ __('WhatsApp') }}</a></li>
-                            @endif
-                            @if(filled($contactEmail))
-                                <li><a class="break-all" href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></li>
-                            @endif
-                            @if(filled($contactAddress))
-                                <li class="uh-foot-address">{{ $contactAddress }}</li>
-                            @endif
-                        </ul>
-                        @if($socialProfiles)
-                            <ul class="uh-foot-social">
-                                @foreach($socialProfiles as $social)
-                                    <li>
-                                        <a href="{{ $social['url'] }}" rel="noopener me" @if($social['new_tab']) target="_blank" @endif>{{ $social['label'] ?: (\App\Support\SocialProfiles::PLATFORMS[$social['platform']] ?? \Illuminate\Support\Str::of(parse_url($social['url'], PHP_URL_HOST))->replace('www.', '')) }}</a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                        @if(filled($footerDescription))<p class="uh-foot-line">{{ $footerDescription }}</p>@endif
+                        @if(filled(\App\Models\Setting::get('footer_tagline')))<p class="uh-foot-tagline">{{ \App\Models\Setting::get('footer_tagline') }}</p>@endif
+                        @if(filled($footerCtaLabel))
+                            <a class="uh-foot-cta-link" href="{{ $footerCtaUrl }}" @if(str_starts_with($footerCtaUrl, 'https://') && ! str_starts_with($footerCtaUrl, url('/'))) rel="noopener" target="_blank" @endif>
+                                <span>{{ $footerCtaLabel }}</span><span aria-hidden="true">→</span>
+                            </a>
                         @endif
+                    </section>
+
+                    <div class="uh-foot-columns uh-foot-premium-columns">
+                        @foreach($footerMenuGroups as $group)
+                            <nav aria-label="{{ __($group->label) }}">
+                                <p class="uh-foot-heading">{{ __($group->label) }}</p>
+                                <ul class="uh-foot-list">
+                                    @foreach($group->children as $item)
+                                        <li><a href="{{ $item->url }}" @if($item->opens_new_tab) rel="noopener" target="_blank" @endif>{{ __($item->label) }}</a></li>
+                                    @endforeach
+                                    @if($group->children->isEmpty() && $group->url !== '#')
+                                        <li><a href="{{ $group->url }}" @if($group->opens_new_tab) rel="noopener" target="_blank" @endif>{{ __($group->label) }}</a></li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        @endforeach
                     </div>
                 </div>
 
                 <div class="uh-foot-legal">
-                    <p>© {{ date('Y') }} {{ $companyName }}{{ filled($footerCopyright) ? '. '.$footerCopyright : '' }}</p>
+                    <p>© {{ \App\Models\Setting::get('footer_year_dynamic', true) ? date('Y') : (\App\Models\Setting::get('footer_copyright_year') ?: date('Y')) }} {{ $companyName }}{{ filled($footerLegalText) ? '. '.$footerLegalText : '' }}</p>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                        @if($privacyUrl)
-                            <a href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
-                        @endif
-                        @if($hasAnalytics && $consentBanner)
-                            <button type="button" x-data @click="$dispatch('uh:consent-open')">{{ __('Cookie settings') }}</button>
-                        @endif
-                        <a href="{{ route('admin.login') }}" rel="nofollow">{{ __('Staff sign in') }}</a>
+                        @if($privacyUrl)<a href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>@endif
+                        @if($footerCookieLink && $hasAnalytics && $consentBanner)<button type="button" x-data @click="$dispatch('uh:consent-open')">{{ __('Cookie settings') }}</button>@endif
+                        @if($footerStaffLink)<a href="{{ route('admin.login') }}" rel="nofollow">{{ __('Staff sign in') }}</a>@endif
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@
             <header class="uh-trending-head" data-reveal>
                 <a class="uh-home-mobile-section-action" href="{{ route('properties.index') }}">{{ $sectionContent['link_label'] ?: __('Explore') }}</a>
                 @if(filled($sectionContent['title']))
-                    <h2 id="trending-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                    <h2 id="trending-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 @endif
                 @if(filled($sectionContent['link_label']))
                     <x-ui.pill-link class="uh-home-desktop-section-action" variant="light" :href="route('properties.index')">{{ $sectionContent['link_label'] }}</x-ui.pill-link>

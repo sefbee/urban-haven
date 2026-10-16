@@ -8,8 +8,8 @@
         <header class="uh-home-articles-head mb-7 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end" data-reveal>
             <div class="max-w-4xl">
                 <p class="mb-1.5 text-xs font-bold uppercase tracking-[0.25em] text-blue-900">{{ __('Our Insights') }}</p>
-                <h2 id="articles-title" class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{{ $articlesTitle }}</h2>
-                <p class="mt-2 text-base leading-relaxed text-slate-600 sm:text-lg">{{ $articlesSubtitle }}</p>
+                <h2 id="articles-title" class="uh-h2 uh-home-section-title">{{ $articlesTitle }}</h2>
+                <p class="mt-2 uh-lede">{{ $articlesSubtitle }}</p>
             </div>
             <a class="uh-home-mobile-section-action" href="{{ route('articles.index') }}">{{ $articlesLinkLabel }}</a>
             <x-ui.pill-link class="uh-home-desktop-section-action shrink-0" :href="route('articles.index')">{{ $articlesLinkLabel }}</x-ui.pill-link>
@@ -55,7 +55,7 @@
                 <div>
                     @if(filled($sectionContent['videos_title']))
                         <header class="uh-home-video-head mb-8 flex items-center justify-between" data-reveal>
-                            <h2 id="property-tv-title" class="text-2xl font-bold text-slate-900">{{ $sectionContent['videos_title'] }}</h2>
+                            <h2 id="property-tv-title" class="uh-h3">{{ $sectionContent['videos_title'] }}</h2>
                             <a class="uh-home-mobile-section-action" href="{{ route('properties.index') }}">{{ __('View properties') }}</a>
                             <a href="{{ route('properties.index') }}" class="uh-home-desktop-section-action flex size-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition hover:bg-slate-800" aria-label="{{ __('View properties') }}">
                                 <x-icon name="arrow-up-right" class="size-4" />

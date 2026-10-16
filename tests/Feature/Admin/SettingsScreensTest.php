@@ -103,6 +103,66 @@ class SettingsScreensTest extends TestCase
         ]])->assertSessionHasErrors('profiles.0.url');
     }
 
+    public function test_footer_settings_update_public_branding_and_copy(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->put(route('admin.settings.update'), [
+            'groups' => ['footer', 'footer_legal', 'footer_appearance'],
+            'settings' => [
+                'footer_description' => 'A Dhaka property company.',
+                'footer_cta_label' => 'Browse homes',
+                'footer_cta_url' => '/properties',
+                'footer_tagline' => 'Homes for a brighter tomorrow.',
+                'footer_year_dynamic' => '0',
+                'footer_copyright_year' => '2025',
+                'footer_legal_text' => 'Registered in Bangladesh.',
+                'footer_cookie_link' => '0',
+                'footer_staff_link' => '0',
+                'footer_background' => '#101820',
+                'footer_accent' => '#f3c88c',
+            ],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('2025', (string) Setting::get('footer_copyright_year'));
+        $this->actingAs($owner)->get(route('admin.settings.footer'))->assertOk()->assertSee('Manage footer navigation links');
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('A Dhaka property company.')
+            ->assertSee('Browse homes')
+            ->assertSee('Homes for a brighter tomorrow.')
+            ->assertSee('© 2025')
+            ->assertSee('Registered in Bangladesh.')
+            ->assertDontSee('Staff sign in');
+    }
+
+    public function test_footer_cta_rejects_unsafe_destinations(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->put(route('admin.settings.update'), [
+            'groups' => ['footer'],
+            'settings' => ['footer_cta_label' => 'Go', 'footer_cta_url' => '//attacker.example'],
+        ])->assertSessionHasErrors('settings.footer_cta_url');
+    }
+
+    public function test_owner_can_manage_additional_footer_contact_methods(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->put(route('admin.settings.footer-contacts'), ['contacts' => [
+            ['label' => 'Sales desk', 'value' => '01712345678', 'type' => 'phone', 'icon' => 'phone', 'active' => '1'],
+            ['label' => 'Directions', 'value' => 'https://maps.example.test/urban-haven', 'type' => 'url', 'icon' => 'pin', 'active' => '1'],
+        ]])->assertSessionHasNoErrors();
+
+        $this->assertSame('+8801712345678', Setting::get('footer_contacts')[0]['value']);
+        $this->get(route('home'))->assertOk()->assertSee('Sales desk')->assertSee('Directions');
+
+        $this->actingAs($owner)->put(route('admin.settings.footer-contacts'), ['contacts' => [
+            ['label' => 'Directions', 'value' => 'javascript:alert(1)', 'type' => 'url', 'icon' => 'globe', 'active' => '1'],
+        ]])->assertSessionHasErrors('contacts');
+    }
+
     public function test_seo_indexing_switch_controls_robots(): void
     {
         $owner = $this->owner();
@@ -122,8 +182,10 @@ class SettingsScreensTest extends TestCase
         $this->assignRole($editor, Role::CONTENT_EDITOR);
 
         $this->actingAs($editor)->get(route('admin.settings.contact'))->assertForbidden();
+        $this->actingAs($editor)->get(route('admin.settings.footer'))->assertForbidden();
         $this->actingAs($editor)->put(route('admin.settings.update'), ['groups' => ['theme'], 'settings' => ['theme_primary' => '#000000']])->assertForbidden();
         $this->actingAs($editor)->put(route('admin.settings.social'), ['profiles' => []])->assertForbidden();
+        $this->actingAs($editor)->put(route('admin.settings.footer-contacts'), ['contacts' => []])->assertForbidden();
     }
 
     private function owner(): User

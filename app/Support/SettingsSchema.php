@@ -25,6 +25,7 @@ final class SettingsSchema
         'analytics' => ['title' => 'Analytics & tracking', 'description' => 'Google Tag Manager, Google Analytics, Google Ads and Meta Pixel, and the cookie banner that asks visitors first.', 'groups' => ['analytics', 'consent']],
         'seo' => ['title' => 'SEO defaults', 'description' => 'Default title and description, Search Console verification and whether search engines may index the site.', 'groups' => ['seo']],
         'copy' => ['title' => 'Website copy', 'description' => 'Override public website wording used across pages, controls and messages.', 'groups' => ['website_copy']],
+        'footer' => ['title' => 'Footer management', 'description' => 'Manage the public footer content, newsletter display, legal links and appearance. Footer navigation links are managed in Menu management.', 'groups' => ['footer', 'footer_newsletter', 'footer_legal', 'footer_appearance']],
     ];
 
     /**
@@ -44,6 +45,10 @@ final class SettingsSchema
         'analytics' => 'Tracking IDs',
         'seo' => 'Search engine defaults',
         'website_copy' => 'Public website phrases',
+        'footer' => 'Brand and call to action',
+        'footer_newsletter' => 'Newsletter section',
+        'footer_legal' => 'Copyright and legal',
+        'footer_appearance' => 'Footer appearance',
     ];
 
     /**
@@ -94,6 +99,22 @@ final class SettingsSchema
 
             'footer_note' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Footer statement', 'input' => 'textarea', 'rules' => ['nullable', 'string', 'max:300'], 'help' => 'The short line beside the logo in the footer.'],
             'footer_copyright' => ['group' => 'chrome', 'cast' => 'string', 'label' => 'Copyright line', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:160'], 'placeholder' => 'All rights reserved.', 'help' => 'Shown after “© year company name”.'],
+
+            'footer_description' => ['group' => 'footer', 'cast' => 'string', 'label' => 'Company description', 'input' => 'textarea', 'rules' => ['nullable', 'string', 'max:500']],
+            'footer_cta_label' => ['group' => 'footer', 'cast' => 'string', 'label' => 'Call-to-action label', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:60'], 'default' => 'Explore properties'],
+            'footer_cta_url' => ['group' => 'footer', 'cast' => 'string', 'label' => 'Call-to-action destination', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:255', 'regex:#^(/(?!/)[^\s]*|https://[^\s]+)$#'], 'help' => 'Use an internal path starting with / or an HTTPS URL. Leave blank to link to the property listings.'],
+            'footer_tagline' => ['group' => 'footer', 'cast' => 'string', 'label' => 'Supporting tagline', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:160']],
+            'footer_newsletter_enabled' => ['group' => 'footer_newsletter', 'cast' => 'bool', 'label' => 'Show newsletter section', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => false, 'help' => 'A subscription form will appear only after a genuine subscription workflow is connected.'],
+            'footer_newsletter_heading' => ['group' => 'footer_newsletter', 'cast' => 'string', 'label' => 'Section heading', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:80'], 'default' => 'News & updates'],
+            'footer_newsletter_description' => ['group' => 'footer_newsletter', 'cast' => 'string', 'label' => 'Description', 'input' => 'textarea', 'rules' => ['nullable', 'string', 'max:240']],
+            'footer_newsletter_placeholder' => ['group' => 'footer_newsletter', 'cast' => 'string', 'label' => 'Email placeholder', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:80'], 'default' => 'Your email address'],
+            'footer_year_dynamic' => ['group' => 'footer_legal', 'cast' => 'bool', 'label' => 'Use the current year automatically', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true],
+            'footer_copyright_year' => ['group' => 'footer_legal', 'cast' => 'int', 'label' => 'Fixed copyright year', 'input' => 'number', 'rules' => ['nullable', 'integer', 'min:1900', 'max:2100']],
+            'footer_legal_text' => ['group' => 'footer_legal', 'cast' => 'string', 'label' => 'Registration or legal text', 'input' => 'text', 'rules' => ['nullable', 'string', 'max:200']],
+            'footer_cookie_link' => ['group' => 'footer_legal', 'cast' => 'bool', 'label' => 'Show cookie settings link', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true],
+            'footer_staff_link' => ['group' => 'footer_legal', 'cast' => 'bool', 'label' => 'Show staff sign-in link', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true],
+            'footer_background' => ['group' => 'footer_appearance', 'cast' => 'string', 'label' => 'Footer background', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#0d1110'],
+            'footer_accent' => ['group' => 'footer_appearance', 'cast' => 'string', 'label' => 'Footer accent', 'input' => 'color', 'rules' => ['required', self::HEX_COLOUR], 'default' => '#f3c88c'],
 
             'floating_chat_enabled' => ['group' => 'floating', 'cast' => 'bool', 'label' => 'Show the floating chat button', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true],
             'floating_chat_desktop' => ['group' => 'floating', 'cast' => 'bool', 'label' => 'Show on desktop', 'input' => 'checkbox', 'rules' => ['boolean'], 'default' => true],

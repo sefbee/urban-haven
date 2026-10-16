@@ -17,7 +17,7 @@
                         <p class="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-blue-900" data-reveal>{{ $sectionContent['eyebrow'] }}</p>
                     @endif
                     @if(filled($sectionContent['title'] ?? null))
-                        <h2 id="why-title" class="mb-5 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl" data-reveal>{{ $sectionContent['title'] }}</h2>
+                        <h2 id="why-title" class="uh-h2 uh-home-section-title mb-5" data-reveal>{{ $sectionContent['title'] }}</h2>
                     @endif
 
                     @if($reasons->isNotEmpty())

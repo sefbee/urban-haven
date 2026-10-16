@@ -7,7 +7,7 @@
                     <p class="uh-home-requirements-kicker">{{ $sectionContent['eyebrow'] }}</p>
                 @endif
                 @if(filled($sectionContent['title']))
-                    <h2 id="requirements-cta-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                    <h2 id="requirements-cta-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 @endif
                 @if(filled($sectionContent['body']))
                     <p>{{ $sectionContent['body'] }}</p>

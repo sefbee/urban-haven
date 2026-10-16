@@ -123,8 +123,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('settings/analytics', [SettingsController::class, 'analytics'])->name('settings.analytics');
         Route::get('settings/seo', [SettingsController::class, 'seo'])->name('settings.seo');
         Route::get('settings/copy', [SettingsController::class, 'copy'])->name('settings.copy');
+        Route::get('settings/footer', [SettingsController::class, 'footer'])->name('settings.footer');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::put('settings/social', [SettingsController::class, 'updateSocial'])->name('settings.social');
+        Route::put('settings/footer-contacts', [SettingsController::class, 'updateFooterContacts'])->name('settings.footer-contacts');
         Route::post('settings/test-email', [SettingsController::class, 'testEmail'])->middleware('throttle:5,1')->name('settings.test-email');
         Route::get('listing-display', [SettingsController::class, 'listings'])->name('listing-display');
 

@@ -7,7 +7,7 @@
         @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['link_label']))
             <header class="uh-section-head" data-reveal>
                 @if(filled($sectionContent['title']))
-                    <h2 id="featured-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                    <h2 id="featured-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 @endif
                 @if(filled($sectionContent['subtitle']))
                     <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>

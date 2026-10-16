@@ -75,7 +75,7 @@
                 @error('parent_id')<p class="uh-error">{{ $message }}</p>@enderror
             </div>
             <x-ui.input name="label" label="Label" :value="$prefillLabel" required maxlength="60" />
-            <x-ui.input name="url" label="Link" :value="$prefillUrl" required maxlength="255" dir="ltr" placeholder="/properties?listing_type=sale" hint="An internal path starting with / or a full https:// address." />
+            <x-ui.input name="url" label="Link" :value="$prefillUrl" required maxlength="255" dir="ltr" placeholder="/properties?listing_type=sale" hint="Use an internal path, full HTTPS URL, or # for a non-clickable group heading." />
             <label class="uh-check"><input type="checkbox" name="opens_new_tab" value="1"> <span>Open in a new tab</span></label>
             <input type="hidden" name="is_visible" value="1">
             <button type="submit" class="uh-btn-primary uh-btn-sm uh-btn-block">Add link</button>

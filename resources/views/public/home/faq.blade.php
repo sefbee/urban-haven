@@ -3,7 +3,7 @@
         @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['cta_label']) || filled($sectionContent['link_label']))
             <header class="uh-home-faq-head" data-reveal>
                 @if(filled($sectionContent['title']))
-                    <h2 id="faq-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                    <h2 id="faq-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
                 @endif
                 @if(filled($sectionContent['link_label']))
                     <a class="uh-home-mobile-section-action" href="{{ route('faq') }}">{{ $sectionContent['link_label'] }}</a>

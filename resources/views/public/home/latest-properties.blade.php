@@ -8,7 +8,7 @@
         @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['link_label']) || $showTabs)
         <header class="uh-section-head" data-reveal>
             @if(filled($sectionContent['title']))
-                <h2 id="latest-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                <h2 id="latest-title" class="uh-h2 uh-home-section-title">{{ $sectionContent['title'] }}</h2>
             @endif
             <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['sort' => 'newest']) }}" x-bind:href="{{ Js::from(route('properties.index')) }} + '?sort=newest&listing_type=' + tab">{{ $sectionContent['link_label'] ?: __('View all') }}</a>
             @if(filled($sectionContent['subtitle']))
