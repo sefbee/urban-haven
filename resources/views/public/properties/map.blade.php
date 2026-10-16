@@ -112,7 +112,7 @@
                                 <span class="sr-only">{{ __('Remove filter') }}</span>
                             </a>
                         @endforeach
-                        <a class="uh-btn-text" href="{{ route('map') }}">{{ __('Clear all') }}</a>
+                        <a class="uh-btn-text" href="{{ route('map', array_filter(['view' => request()->query('view')])) }}">{{ __('Clear all') }}</a>
                     </div>
                 @endif
 
@@ -138,7 +138,7 @@
                         </div>
 
                         @if($properties->hasPages())
-                            <div class="uh-pagination-wrap">{{ $properties->onEachSide(1)->links() }}</div>
+                            <div class="uh-pagination-wrap">{{ $properties->appends(request()->query())->onEachSide(1)->links() }}</div>
                         @endif
                     @else
                         <x-ui.empty icon="map" :title="__('Nothing matches this search yet')"

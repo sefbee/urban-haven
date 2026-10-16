@@ -22,12 +22,12 @@ final class HomeSections
             'hero' => [
                 'block' => 'hero',
                 'label' => 'Hero',
-                'summary' => 'Top of the homepage: headline, property search and background photos.',
+                'summary' => 'Top of the homepage: property search and background photos.',
                 'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => ''],
-                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 120, 'default' => ''],
-                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => '', 'hint' => 'Also used as the homepage description in Google when no SEO default is set.'],
+                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'Urban Haven Properties Ltd.', 'editable' => false],
+                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 120, 'default' => 'Considered places to live in Dhaka.', 'editable' => false],
+                    'body' => ['label' => 'Supporting line', 'type' => 'textarea', 'max' => 300, 'default' => 'Search houses, apartments, and land across Dhaka at prices you can verify with our desk.', 'editable' => false],
                     'cta_label' => ['label' => 'Button text', 'type' => 'text', 'max' => 40, 'default' => ''],
                     'cta_url' => ['label' => 'Button link', 'type' => 'path', 'max' => 255, 'default' => '', 'hint' => 'A page on this website, starting with “/”.'],
                     'slide_seconds' => ['label' => 'Seconds per background photo', 'type' => 'number', 'min' => 3, 'max' => 20, 'default' => 7],
@@ -130,14 +130,20 @@ final class HomeSections
                 'label' => 'Why Urban Haven',
                 'summary' => 'A short statement about the company with reasons to choose you.',
                 'fields' => [
-                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => ''],
-                    'body' => ['label' => 'Statement', 'type' => 'textarea', 'max' => 600, 'default' => ''],
-                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => ''],
-                    'link_url' => ['label' => 'Link', 'type' => 'path', 'max' => 255, 'default' => ''],
-                    'items' => ['label' => 'Reasons', 'type' => 'repeater', 'max' => 6, 'default' => [], 'item_label' => 'reason', 'fields' => [
-                        'icon' => ['label' => 'Icon', 'type' => 'icon', 'default' => 'check-circle'],
-                        'title' => ['label' => 'Title', 'type' => 'text', 'max' => 80],
-                        'text' => ['label' => 'Short line', 'type' => 'textarea', 'max' => 200],
+                    'eyebrow' => ['label' => 'Small label', 'type' => 'text', 'max' => 60, 'default' => 'Our Advantage'],
+                    'title' => ['label' => 'Heading', 'type' => 'text', 'max' => 120, 'default' => 'Why Urban Haven?'],
+                    'body' => ['label' => 'Statement', 'type' => 'textarea', 'max' => 600, 'default' => 'One place to find verified properties in Dhaka with the details you need to decide. The same team that publishes each listing answers your calls, verifies title documentation, and walks you through the door.'],
+                    'link_label' => ['label' => 'Link text', 'type' => 'text', 'max' => 40, 'default' => 'More about us'],
+                    'link_url' => ['label' => 'Link', 'type' => 'path', 'max' => 255, 'default' => '/about'],
+                    'items' => ['label' => 'Reasons', 'type' => 'repeater', 'max' => 6, 'default' => [
+                        ['icon' => 'home', 'title' => 'Verified Listings', 'text' => 'All properties are checked and documented, so you get accurate information you can trust.'],
+                        ['icon' => 'users', 'title' => 'Expert Team', 'text' => 'Professional guidance at every step.'],
+                        ['icon' => 'document', 'title' => 'Clear Information', 'text' => 'Accurate details you can trust.'],
+                        ['icon' => 'phone', 'title' => 'Personal Support', 'text' => "We're here from first call to final step."],
+                    ], 'item_label' => 'reason', 'fields' => [
+                        'icon' => ['label' => 'Icon', 'type' => 'icon', 'default' => 'check-circle', 'required' => true],
+                        'title' => ['label' => 'Title', 'type' => 'text', 'max' => 80, 'required' => true],
+                        'text' => ['label' => 'Description', 'type' => 'textarea', 'max' => 200, 'required' => true],
                     ]],
                 ],
             ],
@@ -269,7 +275,7 @@ final class HomeSections
     }
 
     /**
-     * Published content merged over defaults, so a missing field never blanks the site.
+     * Published content merged over defaults, while explicit blanks remain intentional.
      *
      * @param  array<string, mixed>|null  $content
      * @return array<string, mixed>
@@ -277,12 +283,31 @@ final class HomeSections
     public static function resolve(string $section, ?array $content): array
     {
         $defaults = self::defaults($section);
+        $content ??= [];
 
         foreach ($defaults as $field => $default) {
             $value = $content[$field] ?? null;
-            if ($section === 'why' && $field === 'items' && is_array($value)) {
-                $value = array_values(array_filter($value, fn (mixed $item): bool => is_array($item)
-                    && (filled($item['title'] ?? null) || filled($item['text'] ?? null))));
+            if ($section === 'why') {
+                if ($field === 'items') {
+                    $items = is_array($value) ? array_filter($value, fn (mixed $item): bool => is_array($item)) : [];
+                    $items = array_map(function (array $item): array {
+                        foreach (['title', 'text'] as $textField) {
+                            $item[$textField] = is_string($item[$textField] ?? null) ? $item[$textField] : '';
+                        }
+
+                        if (! in_array($item['icon'] ?? null, self::ICONS, true)) {
+                            $item['icon'] = 'check-circle';
+                        }
+
+                        return $item;
+                    }, $items);
+                    $items = array_filter($items, fn (array $item): bool => filled($item['title']) || filled($item['text']));
+                    $defaults[$field] = array_key_exists($field, $content) ? array_values($items) : $default;
+                } elseif (array_key_exists($field, $content)) {
+                    $defaults[$field] = is_string($value) ? $value : null;
+                }
+
+                continue;
             }
 
             if ($value !== null && $value !== '' && $value !== []) {

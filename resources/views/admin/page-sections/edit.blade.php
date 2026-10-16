@@ -30,6 +30,7 @@
 
                 <div class="grid gap-5 sm:grid-cols-2">
                     @foreach($definition['fields'] as $name => $field)
+                        @continue(($field['editable'] ?? true) === false)
                         @php
                             $fieldId = 'section-'.$name;
                             $current = old('content.'.$name, $values[$name] ?? null);
@@ -60,13 +61,13 @@
                                                     <div @class(['uh-field', 'sm:col-span-2' => $child['type'] === 'textarea'])>
                                                         <label class="uh-label" :for="'{{ $name }}-' + index + '-{{ $childName }}'">{{ $child['label'] }}</label>
                                                         @if($child['type'] === 'icon')
-                                                            <select class="uh-select" data-native-select :id="'{{ $name }}-' + index + '-{{ $childName }}'" :name="'content[{{ $name }}][' + index + '][{{ $childName }}]'" x-model="item.{{ $childName }}">
+                                                            <select class="uh-select" data-native-select :id="'{{ $name }}-' + index + '-{{ $childName }}'" :name="'content[{{ $name }}][' + index + '][{{ $childName }}]'" x-model="item.{{ $childName }}" @if($child['required'] ?? false) required @endif>
                                                                 @foreach($icons as $icon)
                                                                     <option value="{{ $icon }}">{{ \Illuminate\Support\Str::headline($icon) }}</option>
                                                                 @endforeach
                                                             </select>
                                                         @elseif($child['type'] === 'textarea')
-                                                            <textarea class="uh-textarea" rows="2" maxlength="{{ $child['max'] }}" :id="'{{ $name }}-' + index + '-{{ $childName }}'" :name="'content[{{ $name }}][' + index + '][{{ $childName }}]'" x-model="item.{{ $childName }}"></textarea>
+                                                            <textarea class="uh-textarea" rows="2" maxlength="{{ $child['max'] }}" :id="'{{ $name }}-' + index + '-{{ $childName }}'" :name="'content[{{ $name }}][' + index + '][{{ $childName }}]'" x-model="item.{{ $childName }}" @if($child['required'] ?? false) required @endif></textarea>
                                                         @else
                                                             <input class="uh-input" maxlength="{{ $child['max'] }}" :id="'{{ $name }}-' + index + '-{{ $childName }}'" :name="'content[{{ $name }}][' + index + '][{{ $childName }}]'" x-model="item.{{ $childName }}" @if($child['required'] ?? false) required @endif>
                                                         @endif
@@ -76,7 +77,7 @@
                                         </li>
                                     </template>
                                 </ol>
-                                <p class="text-sm text-[var(--color-muted)]" x-show="items.length === 0">No {{ \Illuminate\Support\Str::plural($field['item_label'] ?? 'item') }} yet.</p>
+                                <p class="text-sm text-[var(--color-muted)]" x-show="items.length === 0">No {{ \Illuminate\Support\Str::plural($field['item_label'] ?? 'item') }} yet. Add one to display it on the page.</p>
                                 <button type="button" class="uh-btn-outline uh-btn-sm mt-3 self-start" @click="items.push({ ...blank })" x-show="items.length < max">
                                     <x-icon name="plus" class="size-4" /> Add {{ $field['item_label'] ?? 'item' }}
                                 </button>

@@ -60,7 +60,7 @@ class PageSectionController extends Controller
             'section' => $section,
             'definition' => $definition,
             'block' => $block,
-            'values' => $sectionsClass::resolve($section, $block->draft_content ?? $block->content),
+            'values' => $sectionsClass::resolve($section, array_replace($block->content ?? [], $block->draft_content ?? [])),
             'icons' => HomeSections::ICONS,
             'position' => $position + 1,
             'total' => count($keys),
@@ -78,8 +78,14 @@ class PageSectionController extends Controller
         $definition = $sectionsClass::definition($section);
         $block = $sectionsClass::blocks()->get($section);
 
-        $validated = $request->validate($this->rules($definition['fields']), [], $this->attributes($definition['fields']));
-        $content = $this->content($definition['fields'], $validated['content'] ?? []);
+        $editableFields = array_filter($definition['fields'], fn (array $field): bool => ($field['editable'] ?? true) !== false);
+        $validated = $request->validate($this->rules($editableFields), [], $this->attributes($editableFields));
+        $content = $this->content($editableFields, $validated['content'] ?? []);
+
+        if ($page === 'home' && $section === 'hero') {
+            $existingContent = $block->draft_content ?? $block->content ?? [];
+            $content = array_replace(array_intersect_key($existingContent, array_flip(['eyebrow', 'title', 'body'])), $content);
+        }
 
         $cms->updateBlock($block, $content, $request->user());
 
@@ -173,7 +179,7 @@ class PageSectionController extends Controller
                 $rules["content.$key"][] = 'array';
                 $rules["content.$key"][] = 'max:'.$field['max'];
                 foreach ($field['fields'] as $subKey => $subField) {
-                    $presence = ! empty($subField['required']) ? 'required_with:content.'.$key.'.*.'.$subKey : 'nullable';
+                    $presence = ! empty($subField['required']) ? 'required' : 'nullable';
                     if ($subField['type'] === 'text') {
                         $rules["content.$key.*.$subKey"] = [$presence, 'string', 'max:'.$subField['max']];
                     } elseif ($subField['type'] === 'textarea') {
@@ -220,8 +226,12 @@ class PageSectionController extends Controller
     {
         $content = [];
         foreach ($fields as $key => $field) {
-            if ($field['type'] === 'repeater' && isset($input[$key]) && is_array($input[$key])) {
-                $content[$key] = array_values(array_filter($input[$key], function (array $item) use ($field): bool {
+            if ($field['type'] === 'repeater') {
+                if (! array_key_exists($key, $input)) {
+                    continue;
+                }
+
+                $content[$key] = array_values(array_filter(is_array($input[$key]) ? $input[$key] : [], function (array $item) use ($field): bool {
                     foreach ($field['fields'] as $subKey => $subField) {
                         if (! empty($subField['required']) && blank($item[$subKey] ?? null)) {
                             return false;
@@ -230,8 +240,10 @@ class PageSectionController extends Controller
 
                     return true;
                 }));
-            } elseif (isset($input[$key])) {
-                $content[$key] = $field['type'] === 'number' ? (int) $input[$key] : $input[$key];
+            } elseif (array_key_exists($key, $input)) {
+                $content[$key] = $input[$key] === null
+                    ? null
+                    : ($field['type'] === 'number' ? (int) $input[$key] : $input[$key]);
             }
         }
 

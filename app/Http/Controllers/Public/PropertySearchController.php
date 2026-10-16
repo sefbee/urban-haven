@@ -72,7 +72,11 @@ class PropertySearchController extends Controller
             ->get();
         $amenities = Amenity::query()->active()->orderBy('label')->get();
         $indexableKeys = config('urbanhaven.seo.indexable_query_keys', ['listing_type', 'page']);
-        $hasFilters = collect($request->query())->keys()->diff($indexableKeys)->isNotEmpty();
+        $hasFilters = collect($request->query())
+            ->keys()
+            ->reject(fn (string $key): bool => $key === 'view')
+            ->diff($indexableKeys)
+            ->isNotEmpty();
         $selectedTypes = $types->whereIn('id', $filters['property_type_ids'])->values();
 
         return [
@@ -148,6 +152,8 @@ class PropertySearchController extends Controller
     private function activeFilters(array $filters, Collection $areas, Collection $types, Collection $amenities, string $routeName): array
     {
         $applied = array_filter($filters, fn ($value) => $value !== null && $value !== '' && $value !== []);
+        $viewMode = request()->query('view');
+        $viewMode = in_array($viewMode, ['grid', 'list'], true) ? $viewMode : null;
         unset($applied['page'], $applied['per_page'], $applied['sort']);
 
         $labels = [
@@ -186,7 +192,7 @@ class PropertySearchController extends Controller
                     $remaining = array_values(array_diff((array) $value, [$flag]));
                     $chips[] = [
                         'label' => $flag === 'unverified' ? __('Unverified') : __('Verified Listings'),
-                        'url' => route($routeName, array_filter(['verification' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                        'url' => route($routeName, array_filter(['verification' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode])),
                     ];
                 }
 
@@ -202,7 +208,7 @@ class PropertySearchController extends Controller
                             'semi' => __('Semi Furnished'),
                             default => __('Unfurnished'),
                         },
-                        'url' => route($routeName, array_filter(['furnishing' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                        'url' => route($routeName, array_filter(['furnishing' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode])),
                     ];
                 }
 
@@ -214,7 +220,7 @@ class PropertySearchController extends Controller
                     $remaining = array_values(array_diff((array) $value, [$amenityId]));
                     $chips[] = [
                         'label' => (string) $amenities->firstWhere('id', (int) $amenityId)?->label,
-                        'url' => route($routeName, array_filter(['amenities' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                        'url' => route($routeName, array_filter(['amenities' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode])),
                     ];
                 }
 
@@ -226,7 +232,7 @@ class PropertySearchController extends Controller
                     $remaining = array_values(array_diff(array_map('intval', (array) $value), [(int) $typeId]));
                     $chips[] = [
                         'label' => (string) $types->firstWhere('id', (int) $typeId)?->label,
-                        'url' => route($routeName, array_filter(['property_type_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                        'url' => route($routeName, array_filter(['property_type_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode])),
                     ];
                 }
 
@@ -238,7 +244,7 @@ class PropertySearchController extends Controller
                     $remaining = array_values(array_diff(array_map('intval', (array) $value), [(int) $areaId]));
                     $chips[] = [
                         'label' => (string) $areas->firstWhere('id', (int) $areaId)?->name,
-                        'url' => route($routeName, array_filter(['location_area_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null])),
+                        'url' => route($routeName, array_filter(['location_area_ids' => $remaining] + $applied + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode])),
                     ];
                 }
 
@@ -254,7 +260,7 @@ class PropertySearchController extends Controller
             $chips[] = [
                 'label' => $label,
                 'url' => route($routeName, array_filter(
-                    array_diff_key($applied, [$key => null]) + ['sort' => $filters['sort'] ?? null],
+                    array_diff_key($applied, [$key => null]) + ['sort' => $filters['sort'] ?? null, 'view' => $viewMode],
                 )),
             ];
         }

@@ -49,7 +49,7 @@
                             @endforeach
                         </ol>
                     @else
-                        <p class="mt-3 text-sm text-[var(--color-muted)]">Using the built-in links.</p>
+                        <p class="mt-3 text-sm text-[var(--color-muted)]">No links configured.</p>
                     @endif
                 </section>
             @endforeach

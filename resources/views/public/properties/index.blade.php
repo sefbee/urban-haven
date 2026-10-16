@@ -48,7 +48,7 @@
         </div>
     @endif
 
-    <div x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})" x-init="layout = 'grid'"
+    <div x-data="uhBrowse({{ $hasAdvanced ? 'true' : 'false' }})"
          @scroll.window.throttle.100ms="handleFilterCardScroll()"
          @open-preview="openPreview($event.detail)"
          @keydown.escape.window="onEscape()"
@@ -121,7 +121,7 @@
                             <span class="sr-only">{{ __('Remove filter') }}</span>
                         </a>
                     @endforeach
-                    <a class="uh-btn-text" href="{{ route('properties.index') }}">{{ __('Clear all') }}</a>
+                    <a class="uh-btn-text" href="{{ route('properties.index', array_filter(['view' => request()->query('view')])) }}">{{ __('Clear all') }}</a>
                 </div>
             @endif
 
@@ -148,7 +148,7 @@
                         </div>
 
                         @if($properties->hasPages())
-                            <div class="uh-pagination-wrap">{{ $properties->onEachSide(1)->links() }}</div>
+                            <div class="uh-pagination-wrap">{{ $properties->appends(request()->query())->onEachSide(1)->links() }}</div>
                         @endif
                     @else
                         <x-ui.empty icon="search" :title="__('Nothing matches this search yet')"

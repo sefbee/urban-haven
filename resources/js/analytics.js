@@ -28,7 +28,7 @@ export const bootAnalytics = (consent) => {
 
     if (typeof window.gtag === 'function' && (consent === 'granted' || consent === 'denied')) {
         const state = consent === 'granted' ? 'granted' : 'denied';
-        window.gtag('consent', 'update', { analytics_storage: state, ad_storage: state, ad_user_data: state, ad_personalization: state });
+        window.gtag('consent', 'default', { analytics_storage: state, ad_storage: state, ad_user_data: state, ad_personalization: state });
     }
 
     if (consent !== 'granted' || loaded) {

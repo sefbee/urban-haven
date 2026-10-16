@@ -45,7 +45,7 @@ class OperationsTest extends TestCase
         Storage::fake('local');
         $owner = $this->staff(Role::OWNER_ADMIN);
         $editor = $this->staff(Role::CONTENT_EDITOR);
-        $block = CmsBlock::query()->create(['key' => 'hero', 'label' => 'Hero', 'content' => ['title' => 'Live title'], 'is_visible' => true, 'updated_at' => now()]);
+        $block = CmsBlock::query()->create(['key' => 'hero', 'label' => 'Hero', 'content' => ['title' => 'Live title', 'slide_seconds' => 12], 'is_visible' => true, 'updated_at' => now()]);
         $upload = fn (): array => [
             'owner_type' => 'cms_block',
             'owner_id' => $block->id,
@@ -67,7 +67,7 @@ class OperationsTest extends TestCase
         $this->assertSame([$skyline->id, $river->id], CmsBlock::imagesFor('hero')->pluck('id')->all());
         $this->get(route('home'))->assertOk()
             ->assertSee('Dhaka skyline at dusk')
-            ->assertSee('uhCoverSlides(2)', false)
+            ->assertSee('uhCoverSlides(2, 12)', false)
             ->assertSee('Show photo 2 of 2');
 
         $this->actingAs($editor)->delete(route('admin.media.destroy', $river))->assertForbidden();

@@ -38,6 +38,7 @@
               @submit.prevent="search($event.target)"
               @change.debounce.250ms="search($event.target.form || $el)">
             <input x-ref="status" type="hidden" name="listing_type" value="{{ $listing }}">
+            <input type="hidden" name="view" :value="layout">
             @if(filled($filters['q'] ?? null))
                 <input type="hidden" name="q" value="{{ $filters['q'] }}">
             @endif

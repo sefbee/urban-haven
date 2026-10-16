@@ -1,20 +1,26 @@
 <section id="home-locations" class="uh-section uh-band-paper scroll-mt-20" @if(filled($sectionContent['title'])) aria-labelledby="locations-title" @else aria-label="{{ __('Explore by location') }}" @endif>
     <div class="uh-container">
         @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['link_label']))
-            <header class="uh-section-head" data-reveal>
+            <header class="uh-section-head uh-locations-head" data-reveal>
                 @if(filled($sectionContent['title']))
                     <h2 id="locations-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
                 @endif
+                <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['view' => 'map']) }}">{{ $sectionContent['link_label'] ?: __('View all') }}</a>
                 @if(filled($sectionContent['subtitle']))
                     <p class="uh-lede">{{ $sectionContent['subtitle'] }}</p>
                 @endif
                 @if(filled($sectionContent['link_label']))
-                    <x-ui.pill-link :href="route('properties.index', ['view' => 'map'])">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
+                    <x-ui.pill-link class="uh-home-desktop-section-action" :href="route('properties.index', ['view' => 'map'])">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
                 @endif
             </header>
         @endif
 
-        <ul class="uh-places">
+        <div class="uh-locations-rail" x-data="uhRail()">
+        <button type="button" class="uh-type-rail-arrow is-prev" x-show="canPrev" x-cloak
+                @click="prev()" aria-label="{{ __('Previous') }}">
+            <x-icon name="chevron-left" class="size-4" />
+        </button>
+        <ul x-ref="scroller" class="uh-places" tabindex="0" aria-label="{{ __('Explore by location') }}">
             @foreach($areas as $area)
                 <li data-reveal style="--uh-i: {{ $loop->index % 4 }}">
                         @if($area->image_path)
@@ -45,5 +51,10 @@
                 </li>
             @endforeach
         </ul>
+        <button type="button" class="uh-type-rail-arrow is-next" x-show="canNext" x-cloak
+                @click="next()" aria-label="{{ __('Next') }}">
+            <x-icon name="chevron-right" class="size-4" />
+        </button>
+        </div>
     </div>
 </section>

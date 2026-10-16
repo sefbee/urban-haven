@@ -48,21 +48,19 @@
     $isHome = request()->routeIs('home');
     $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
 
-    $fixedNavLinks = array_values(array_filter([
-        in_array('sale', $purposes, true) ? ['label' => __('Buy'), 'url' => route('properties.index', ['listing_type' => 'sale']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'sale'] : null,
-        in_array('rent', $purposes, true) ? ['label' => __('Rent'), 'url' => route('properties.index', ['listing_type' => 'rent']), 'external' => false, 'active' => request()->routeIs('properties.index') && request('listing_type') === 'rent'] : null,
-        ['label' => __('Articles'), 'url' => route('articles.index'), 'external' => false, 'active' => request()->routeIs('articles.*')],
-        ['label' => __('About Us'), 'url' => route('cms.show', 'about'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'about'],
-        ['label' => __('Contact'), 'url' => route('cms.show', 'contact'), 'external' => false, 'active' => request()->routeIs('cms.show') && request()->route('slug') === 'contact'],
-    ]));
-    $headerMenu = \App\Models\MenuItem::forLocation('header');
-    $customNavLinks = $headerMenu->map(fn ($item) => [
+    $formatMenuLink = fn (\App\Models\MenuItem $item): array => [
         'label' => $item->label,
         'url' => $item->url,
-        'external' => ! $item->isInternal(),
         'active' => $item->isInternal() && request()->getRequestUri() === $item->url,
-    ]);
-    $navLinks = collect($fixedNavLinks)->concat($customNavLinks)->unique('url')->values()->all();
+        'opens_new_tab' => $item->opens_new_tab,
+    ];
+    $navLinks = \App\Models\MenuItem::treeFor('header')->map(function (\App\Models\MenuItem $item) use ($formatMenuLink): array {
+        $link = $formatMenuLink($item);
+        $link['children'] = $item->children->map($formatMenuLink)->all();
+        $link['has_active_child'] = collect($link['children'])->contains('active', true);
+
+        return $link;
+    })->all();
 
     $fixedFooterLinks = array_values(array_filter([
         ['label' => __('About Us'), 'url' => route('cms.show', 'about')],
@@ -79,7 +77,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $locale) }}">
     <head>
-        
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -164,10 +162,34 @@
 
                 <nav class="uh-nav" aria-label="{{ __('Main navigation') }}">
                     @foreach($navLinks as $link)
-                        <a href="{{ $link['url'] }}"
-                           @if($link['external']) rel="noopener" target="_blank" @endif
-                           @if($link['active']) aria-current="page" @endif
-                           @class(['uh-nav-link', 'uh-nav-link-active' => $link['active']])>{{ $link['label'] }}</a>
+                        @if($link['children'])
+                            <div class="uh-nav-entry" x-data="{ submenuOpen: false }" @click.outside="submenuOpen = false" @keydown.escape.stop="submenuOpen = false">
+                                <div class="uh-nav-entry-row">
+                                    <a href="{{ $link['url'] }}"
+                                       @if($link['opens_new_tab']) rel="noopener" target="_blank" @endif
+                                       @if($link['active']) aria-current="page" @endif
+                                       @class(['uh-nav-link', 'uh-nav-link-active' => $link['active'] || $link['has_active_child']])>{{ $link['label'] }}</a>
+                                    <button type="button" class="uh-nav-submenu-toggle"
+                                            @click="submenuOpen = !submenuOpen" :aria-expanded="submenuOpen.toString()"
+                                            aria-haspopup="true" aria-label="{{ __('Open :label submenu', ['label' => $link['label']]) }}">
+                                        <x-icon name="chevron-down" class="size-3.5" />
+                                    </button>
+                                </div>
+                                <div x-cloak x-show="submenuOpen" x-transition.origin.top.left class="uh-nav-submenu" role="group" aria-label="{{ $link['label'] }}">
+                                    @foreach($link['children'] as $child)
+                                        <a href="{{ $child['url'] }}"
+                                           @if($child['opens_new_tab']) rel="noopener" target="_blank" @endif
+                                           @if($child['active']) aria-current="page" @endif
+                                           @class(['uh-nav-submenu-link', 'is-active' => $child['active']])>{{ $child['label'] }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ $link['url'] }}"
+                               @if($link['opens_new_tab']) rel="noopener" target="_blank" @endif
+                               @if($link['active']) aria-current="page" @endif
+                               @class(['uh-nav-link', 'uh-nav-link-active' => $link['active']])>{{ $link['label'] }}</a>
+                        @endif
                     @endforeach
                 </nav>
 
@@ -252,8 +274,32 @@
 
                 <nav class="uh-menu-list" aria-label="{{ __('Mobile navigation') }}">
                     @foreach($navLinks as $link)
-                        <a href="{{ $link['url'] }}" @if($link['external']) rel="noopener" target="_blank" @endif
-                           @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
+                        @if($link['children'])
+                            <div class="uh-menu-entry" x-data="{ submenuOpen: false }">
+                                <div class="uh-menu-entry-row">
+                                    <a href="{{ $link['url'] }}"
+                                       @if($link['opens_new_tab']) rel="noopener" target="_blank" @endif
+                                       @if($link['active']) aria-current="page" @endif
+                                       @class(['is-parent-active' => $link['has_active_child']])>{{ $link['label'] }}</a>
+                                    <button type="button" class="uh-menu-submenu-toggle"
+                                            @click="submenuOpen = !submenuOpen" :aria-expanded="submenuOpen.toString()"
+                                            aria-controls="mobile-submenu-{{ $loop->index }}"
+                                            aria-label="{{ __('Open :label submenu', ['label' => $link['label']]) }}">
+                                        <x-icon name="chevron-down" class="size-5" />
+                                    </button>
+                                </div>
+                                <div id="mobile-submenu-{{ $loop->index }}" x-cloak x-show="submenuOpen" x-transition class="uh-menu-sublist">
+                                    @foreach($link['children'] as $child)
+                                        <a href="{{ $child['url'] }}"
+                                           @if($child['opens_new_tab']) rel="noopener" target="_blank" @endif
+                                           @if($child['active']) aria-current="page" @endif>{{ $child['label'] }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ $link['url'] }}" @if($link['opens_new_tab']) rel="noopener" target="_blank" @endif
+                               @if($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
+                        @endif
                     @endforeach
                     <a href="{{ route('compare') }}" x-data>
                         {{ __('Compare') }}
@@ -326,23 +372,14 @@
                         <p class="uh-foot-heading">{{ __('Explore') }}</p>
                         <ul class="uh-foot-list">
                             @if(in_array('sale', $purposes, true))
-                                <li><a href="{{ route('properties.index', ['listing_type' => 'sale']) }}">{{ __('Properties for sale') }}</a></li>
+                                <li><a href="{{ route('properties.index') }}">{{ __('Properties for sale') }}</a></li>
                             @endif
                             @if(in_array('rent', $purposes, true))
-                                <li><a href="{{ route('properties.index', ['listing_type' => 'rent']) }}">{{ __('Properties for rent') }}</a></li>
+                                <li><a href="{{ route('properties.index') }}">{{ __('Properties for rent') }}</a></li>
                             @endif
                             <li><a href="{{ route('map') }}">{{ __('Map') }}</a></li>
                             <li><a href="{{ route('shortlist') }}">{{ __('Shortlist') }}</a></li>
                             <li><a href="{{ route('compare') }}">{{ __('Compare') }}</a></li>
-                        </ul>
-                    </nav>
-
-                    <nav aria-label="{{ __('Company') }}">
-                        <p class="uh-foot-heading">{{ __('Company') }}</p>
-                        <ul class="uh-foot-list">
-                            @foreach($footerLinks as $link)
-                                <li><a href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
-                            @endforeach
                         </ul>
                     </nav>
 

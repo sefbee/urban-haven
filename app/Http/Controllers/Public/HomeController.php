@@ -55,6 +55,7 @@ class HomeController extends Controller
 
         $featuredLimit = (int) ($sections['featured']['limit'] ?? 8);
         $featured = $this->listingsFor('featured', $purposes, fn (Builder $query) => $query->where('is_featured', true), $featuredLimit);
+        $featuredIds = isset($sections['featured']) ? $featured->flatten()->pluck('id')->all() : [];
         $featuredAmenityIds = $featured->flatten()->flatMap(fn (Property $property): array => $property->amenity_ids ?? [])->unique()->values();
         $featuredAmenities = Amenity::query()->active()->whereIn('id', $featuredAmenityIds->all())->get()->keyBy('id');
         $housing = $this->listingsFor('housing', $purposes, fn (Builder $query) => $query->whereHas('propertyType', fn (Builder $typeQuery) => $typeQuery
@@ -64,7 +65,12 @@ class HomeController extends Controller
         $housingListings = $this->interleave($housing->get('sale', collect()), $housing->get('rent', collect()))
             ->take((int) ($sections['housing']['limit'] ?? 8))
             ->values();
-        $latest = $this->listingsFor('latest', $purposes, fn (Builder $query) => $query, (int) ($sections['latest']['limit'] ?? 8));
+        $latest = $this->listingsFor(
+            'latest',
+            $purposes,
+            fn (Builder $query) => $query->when($featuredIds !== [], fn (Builder $query) => $query->whereNotIn('id', $featuredIds)),
+            (int) ($sections['latest']['limit'] ?? 8),
+        );
 
         $listings = $featured->flatten()->concat($latest->flatten());
         $types = $this->withCoverImages($types, 'property_type_id', $listings, $purposes);
@@ -129,7 +135,7 @@ class HomeController extends Controller
     private function listingsFor(string $section, array $purposes, callable $scope, int $limit): Collection
     {
         return collect($purposes)->mapWithKeys(function (string $purpose) use ($section, $scope, $limit): array {
-            $cacheKey = 'home:'.$section.':'.$purpose.':'.$limit.($section === 'latest' ? ':all-live-v2' : '');
+            $cacheKey = 'home:'.$section.':'.$purpose.':'.$limit.($section === 'latest' ? ':unique-v3' : '');
             $ids = TaggedCache::remember(['homepage', 'properties'], $cacheKey, self::CACHE_SECONDS, function () use ($section, $scope, $purpose, $limit): array {
                 $query = $scope($this->liveListings(Property::query(), [$purpose]));
 

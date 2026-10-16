@@ -28,9 +28,10 @@
 
 <section id="home-types" class="uh-section uh-home-types scroll-mt-20" x-data="{ category: @js($firstCategory) }" @if(filled($sectionContent['title'])) aria-labelledby="types-title" @else aria-label="{{ __('Explore by property type') }}" @endif>
     <div class="uh-container">
-        @if(filled($sectionContent['title']))
+        @if(filled($sectionContent['title']) || filled($sectionContent['link_label']))
             <header class="uh-type-section-head" data-reveal>
                 <h2 id="types-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['category' => $firstCategory]) }}" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">{{ $sectionContent['link_label'] ?: __('Explore') }}</a>
             </header>
         @endif
 
@@ -46,7 +47,7 @@
                 </div>
             @endif
             @if(filled($sectionContent['link_label']))
-                <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
+                <x-ui.pill-link class="uh-home-desktop-section-action" variant="light" :href="route('properties.index', ['category' => $firstCategory])" x-bind:href="{{ Js::from(route('properties.index')) }} + '?category=' + category">
                     {{ $sectionContent['link_label'] }}
                 </x-ui.pill-link>
             @endif

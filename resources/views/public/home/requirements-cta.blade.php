@@ -13,7 +13,7 @@
                     <p>{{ $sectionContent['body'] }}</p>
                 @endif
                 @if(filled($sectionContent['cta_label']) && filled($sectionContent['cta_url']))
-                    <x-ui.pill-link variant="light" class="mt-5" :href="$sectionContent['cta_url']">
+                    <x-ui.pill-link variant="light" :mobile-label="true" class="mt-5" :href="$sectionContent['cta_url']">
                         {{ $sectionContent['cta_label'] }}
                     </x-ui.pill-link>
                 @endif

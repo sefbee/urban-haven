@@ -22,6 +22,7 @@ class HomeSectionsTest extends TestCase
 
         $this->assertSame(count(HomeSections::keys()), CmsBlock::query()->whereIn('key', HomeSections::blockKeys())->count());
         $this->assertFalse(CmsBlock::query()->where('key', 'about')->value('is_visible'));
+        $this->assertCount(4, CmsBlock::query()->where('key', 'about')->value('content')['items']);
     }
 
     public function test_existing_hero_content_is_kept_when_sections_are_created(): void
@@ -31,11 +32,58 @@ class HomeSectionsTest extends TestCase
         $this->actingAs($this->staff(Role::OWNER_ADMIN))
             ->get(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'hero']))
             ->assertOk()
-            ->assertSee('Live title')
+            ->assertDontSee('Small label above the headline')
+            ->assertDontSee('Headline')
+            ->assertDontSee('Supporting line')
+            ->assertDontSee('Live title')
+            ->assertSee('Button text')
+            ->assertSee('Button link')
+            ->assertSee('Seconds per background photo')
             ->assertSee('Background photos')
             ->assertDontSee('role="tab"', false);
 
         $this->assertSame('Live title', CmsBlock::query()->where('key', 'hero')->value('content')['title']);
+    }
+
+    public function test_saving_hero_controls_preserves_saved_copy_while_public_hero_omits_it(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        $copy = [
+            'eyebrow' => 'Urban Haven Properties Ltd.',
+            'title' => 'Considered places to live in Dhaka.',
+            'body' => 'Search houses, apartments, and land across Dhaka at prices you can verify with our desk.',
+        ];
+        $block = CmsBlock::query()->create([
+            'key' => 'hero',
+            'label' => 'Hero',
+            'content' => [...$copy, 'cta_label' => 'Explore homes', 'cta_url' => '/properties', 'slide_seconds' => 9],
+            'is_visible' => true,
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'hero']), ['content' => [
+            'eyebrow' => 'Changed label',
+            'title' => 'Changed headline',
+            'body' => 'Changed supporting line',
+            'cta_label' => 'Browse homes',
+            'cta_url' => '/properties',
+            'slide_seconds' => 12,
+        ]])->assertRedirect();
+
+        $this->assertSame($copy, array_intersect_key($block->fresh()->content, $copy));
+        $this->assertSame('Browse homes', $block->fresh()->content['cta_label']);
+        $this->assertSame('/properties', $block->fresh()->content['cta_url']);
+        $this->assertSame(12, $block->fresh()->content['slide_seconds']);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee($copy['eyebrow'])
+            ->assertDontSee($copy['title'])
+            ->assertDontSee('uh-cover-copy', false)
+            ->assertDontSee('uh-cover-description', false)
+            ->assertDontSee('id="hero-title"', false)
+            ->assertSee('id="find"', false)
+            ->assertSee('Browse homes');
     }
 
     public function test_tied_legacy_sort_orders_fall_back_to_the_homepage_order(): void
@@ -67,7 +115,85 @@ class HomeSectionsTest extends TestCase
             ['icon' => 'shield', 'title' => 'Verified listings', 'text' => 'Every listing checked.'],
             ['icon' => 'check-circle', 'title' => 'Personal service', 'text' => 'Direct guidance.'],
         ], $content['items']);
-        $this->assertSame('More about us', HomeSections::resolve('why', $content)['link_label'], 'Empty fields fall back to defaults.');
+        $this->assertNull(HomeSections::resolve('why', $content)['link_label']);
+    }
+
+    public function test_why_editor_and_homepage_use_saved_content_and_reason_order(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        HomeSections::blocks();
+        $block = CmsBlock::query()->where('key', 'about')->firstOrFail();
+        $block->forceFill(['is_visible' => true])->save();
+
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => [
+            'eyebrow' => 'Our Advantage',
+            'title' => 'A saved heading',
+            'body' => 'A saved statement.',
+            'link_label' => 'Meet the team',
+            'link_url' => '/about',
+            'items' => [
+                ['icon' => 'users', 'title' => 'Second reason', 'text' => 'Second description.'],
+                ['icon' => 'home', 'title' => 'First reason', 'text' => 'First description.'],
+                ['icon' => 'document', 'title' => 'Added reason', 'text' => 'Added description.'],
+            ],
+        ]])->assertRedirect(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'why']));
+
+        $this->get(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'why']))
+            ->assertOk()
+            ->assertSeeInOrder(['Second reason', 'First reason', 'Added reason']);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('A saved heading')
+            ->assertSee('A saved statement.')
+            ->assertSee('Meet the team')
+            ->assertSee('href="/about"', false)
+            ->assertSeeInOrder(['Second reason', 'First reason', 'Added reason']);
+
+        $this->assertSame('Added reason', $block->fresh()->content['items'][2]['title']);
+    }
+
+    public function test_why_editor_merges_partial_drafts_over_published_reasons(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        HomeSections::blocks();
+        $block = CmsBlock::query()->where('key', 'about')->firstOrFail();
+        $block->forceFill(['draft_content' => ['title' => 'Draft heading']])->save();
+
+        $this->actingAs($owner)->get(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'why']))
+            ->assertOk()
+            ->assertSeeInOrder(['Draft heading', 'Verified Listings', 'Expert Team', 'Clear Information', 'Personal Support']);
+
+        $this->assertSame('Draft heading', $block->fresh()->draft_content['title']);
+        $this->assertCount(4, $block->fresh()->content['items']);
+    }
+
+    public function test_why_reasons_can_be_removed_without_restoring_defaults(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        HomeSections::blocks();
+        CmsBlock::query()->where('key', 'about')->firstOrFail()->forceFill(['is_visible' => true])->save();
+
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => [
+            'eyebrow' => 'Our Advantage',
+            'title' => 'Why Urban Haven?',
+            'body' => 'A statement.',
+            'link_label' => 'More about us',
+            'link_url' => '/about',
+            'items' => '',
+        ]])->assertRedirect();
+
+        $content = CmsBlock::query()->where('key', 'about')->value('content');
+        $this->assertSame([], $content['items']);
+        $this->assertSame([], HomeSections::resolve('why', $content)['items']);
+
+        $this->get(route('admin.page-sections.edit', ['page' => 'home', 'section' => 'why']))
+            ->assertOk()
+            ->assertSee('No reasons yet. Add one to display it on the page.');
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('Verified Listings');
     }
 
     public function test_section_validation_rejects_bad_values(): void
@@ -81,7 +207,10 @@ class HomeSectionsTest extends TestCase
             ->assertSessionHasErrors('content.cta_url');
 
         $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => ['title' => 'Hi', 'items' => [['icon' => 'not-an-icon', 'title' => 'A']]]])
-            ->assertSessionHasErrors('content.items.0.icon');
+            ->assertSessionHasErrors(['content.items.0.icon', 'content.items.0.text']);
+
+        $this->actingAs($owner)->put(route('admin.page-sections.update', ['page' => 'home', 'section' => 'why']), ['content' => ['items' => array_fill(0, 7, ['icon' => 'home', 'title' => 'Reason', 'text' => 'Description'])]])
+            ->assertSessionHasErrors('content.items');
     }
 
     public function test_editor_changes_are_held_as_drafts_and_cannot_reorder_or_hide(): void

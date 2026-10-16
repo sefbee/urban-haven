@@ -353,13 +353,34 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         window.addEventListener('pageshow', syncFilterCardToScrollPosition);
 
         try {
-            const stored = localStorage.getItem('uh-browse-layout');
-            if (stored === 'grid' || stored === 'list') {
-                this.layout = stored;
+            const viewFromUrl = new URLSearchParams(window.location.search).get('view');
+            if (viewFromUrl === 'grid' || viewFromUrl === 'list') {
+                this.layout = viewFromUrl;
+                localStorage.setItem('uh-browse-layout', viewFromUrl);
+            } else {
+                const stored = localStorage.getItem('uh-browse-layout');
+                if (stored === 'grid' || stored === 'list') {
+                    this.layout = stored;
+                }
             }
+            window.history.replaceState({ ...window.history.state, view: this.layout }, '');
         } catch {
             this.layout = 'grid';
         }
+
+        window.addEventListener('popstate', (event) => {
+            const viewFromUrl = new URLSearchParams(window.location.search).get('view');
+            const viewFromHistory = event.state?.view;
+            const restoredView = ['grid', 'list'].includes(viewFromUrl) ? viewFromUrl : viewFromHistory;
+            if (restoredView === 'grid' || restoredView === 'list') {
+                this.layout = restoredView;
+                try {
+                    localStorage.setItem('uh-browse-layout', restoredView);
+                } catch {
+                    // The URL and active state still restore when storage is unavailable.
+                }
+            }
+        });
     },
     async search(form) {
         if (!form) {
@@ -393,7 +414,7 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
                     Alpine.initTree(replacement);
                 }
             });
-            window.history.pushState({}, '', url);
+            window.history.pushState({ view: this.layout }, '', url);
             const mapLink = form.querySelector('.uh-filter-map');
             if (mapLink) {
                 const mapUrl = new URL(mapLink.href, window.location.origin);
@@ -421,11 +442,21 @@ Alpine.data('uhBrowse', (hasAdvanced = false) => ({
         }
     },
     setLayout(layout) {
+        if (layout !== 'grid' && layout !== 'list') {
+            return;
+        }
+
         this.layout = layout;
         try {
             localStorage.setItem('uh-browse-layout', layout);
         } catch {
             // Private browsing can block storage; the choice still applies this visit.
+        }
+
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('view') !== layout) {
+            url.searchParams.set('view', layout);
+            window.history.pushState({}, '', url);
         }
     },
     handleFilterCardScroll() {
@@ -746,10 +777,61 @@ Alpine.data('uhShowcase', (count = 0) => ({
     count,
     active: 0,
     hovered: null,
+    galleryPhoto: 0,
     dragging: false,
+    draggingGallery: false,
+    suppressGalleryClick: false,
     dragX: 0,
+    mobile: window.matchMedia('(width <= 639px)').matches,
+    init() {
+        const mobileBreakpoint = window.matchMedia('(width <= 639px)');
+        this.mobile = mobileBreakpoint.matches;
+        mobileBreakpoint.addEventListener('change', (event) => {
+            this.mobile = event.matches;
+        });
+    },
+    isMobileViewport() {
+        return this.mobile;
+    },
+    photoCount(index = this.active) {
+        const activeSlide = this.$el.querySelectorAll('.uh-showcase-slide')[index];
+
+        return activeSlide?.querySelectorAll('.uh-showcase-media img').length ?? 0;
+    },
     photoOn(index, photoIndex, total) {
+        if (window.matchMedia('(width <= 639px)').matches) {
+            return index === this.active && photoIndex === this.galleryPhoto;
+        }
+
         return photoIndex === (this.hovered === index && total > 1 ? 1 : 0);
+    },
+    setPhoto(index, photoIndex, total) {
+        if (index !== this.active || total < 1) {
+            return;
+        }
+
+        this.galleryPhoto = (photoIndex + total) % total;
+    },
+    previousPhoto() {
+        const total = this.photoCount();
+        if (total > 1) {
+            this.galleryPhoto = (this.galleryPhoto - 1 + total) % total;
+        }
+    },
+    nextPhoto() {
+        const total = this.photoCount();
+        if (total > 1) {
+            this.galleryPhoto = (this.galleryPhoto + 1) % total;
+        }
+    },
+    preventGalleryClick(event) {
+        if (!this.suppressGalleryClick || !event.target.closest('.uh-showcase-image-link')) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        this.suppressGalleryClick = false;
     },
     hoverCard(index, total) {
         this.hovered = total > 1 ? index : null;
@@ -784,6 +866,7 @@ Alpine.data('uhShowcase', (count = 0) => ({
     go(index) {
         this.active = (index + this.count) % this.count;
         this.hovered = null;
+        this.galleryPhoto = 0;
     },
     next() {
         this.go(this.active + 1);
@@ -796,6 +879,7 @@ Alpine.data('uhShowcase', (count = 0) => ({
             return;
         }
         this.dragging = true;
+        this.draggingGallery = this.isMobileViewport() && event.target.closest('.uh-showcase-media') !== null;
         this.dragX = event.clientX;
     },
     dragEnd(event) {
@@ -804,8 +888,18 @@ Alpine.data('uhShowcase', (count = 0) => ({
         }
         this.dragging = false;
         const distance = event.clientX - this.dragX;
+        const draggingGallery = this.draggingGallery;
+        this.draggingGallery = false;
         if (Math.abs(distance) > 40) {
-            distance < 0 ? this.next() : this.previous();
+            if (draggingGallery) {
+                this.suppressGalleryClick = true;
+                window.setTimeout(() => {
+                    this.suppressGalleryClick = false;
+                }, 400);
+                distance < 0 ? this.nextPhoto() : this.previousPhoto();
+            } else {
+                distance < 0 ? this.next() : this.previous();
+            }
         }
     },
 }));

@@ -1,9 +1,12 @@
 <section id="home-faq" class="uh-section scroll-mt-20" @if(filled($sectionContent['title'])) aria-labelledby="faq-title" @else aria-label="{{ __('Frequently asked questions') }}" @endif>
     <div class="uh-container uh-home-faq">
-        @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['cta_label']))
+        @if(filled($sectionContent['title']) || filled($sectionContent['subtitle']) || filled($sectionContent['cta_label']) || filled($sectionContent['link_label']))
             <header class="uh-home-faq-head" data-reveal>
                 @if(filled($sectionContent['title']))
                     <h2 id="faq-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
+                @endif
+                @if(filled($sectionContent['link_label']))
+                    <a class="uh-home-mobile-section-action" href="{{ route('faq') }}">{{ $sectionContent['link_label'] }}</a>
                 @endif
                 @if(filled($sectionContent['subtitle']) || filled($sectionContent['cta_label']))
                     <div class="uh-home-faq-aside">
@@ -11,7 +14,7 @@
                             <p>{{ $sectionContent['subtitle'] }}</p>
                         @endif
                         @if(filled($sectionContent['cta_label']))
-                            <x-ui.pill-link variant="light" :href="route('cms.show', 'contact')" data-track="home_cta_click" data-track-cta="faq">
+                            <x-ui.pill-link variant="light" :mobile-label="true" :href="route('cms.show', 'contact')" data-track="home_cta_click" data-track-cta="faq">
                                 {{ $sectionContent['cta_label'] }}
                             </x-ui.pill-link>
                         @endif
@@ -35,7 +38,7 @@
         </div>
 
         @if(filled($sectionContent['link_label']))
-            <div class="uh-section-foot">
+            <div class="uh-section-foot uh-home-desktop-section-action">
                 <x-ui.pill-link :href="route('faq')">{{ $sectionContent['link_label'] }}</x-ui.pill-link>
             </div>
         @endif

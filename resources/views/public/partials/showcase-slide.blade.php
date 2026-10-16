@@ -23,11 +23,19 @@
     $contactEmail = \App\Models\Setting::get('email');
     $whatsapp = $property->isUnavailable() ? null : $property->whatsappEnquiryUrl();
     $preview = \App\Support\PropertyPreview::for($property);
-    $photos = $property->relationLoaded('media') ? $property->galleryImages() : collect();
+    $photos = $property->relationLoaded('media')
+        ? $property->galleryImages()
+            ->filter(fn ($photo): bool => $photo->collection === 'gallery'
+                && str_starts_with(strtolower((string) $photo->mime_type), 'image/')
+                && filled($photo->path))
+            ->unique(fn ($photo): string => filled($photo->checksum)
+                ? 'checksum:'.$photo->checksum
+                : $photo->disk.':'.$photo->path)
+            ->values()
+        : collect();
     if ($property->featured_media_id) {
         $photos = $photos->sortBy(fn ($photo) => $photo->id === $property->featured_media_id ? 0 : 1)->values();
     }
-    $photos = $photos->take(5)->values();
     $photoTotal = $photos->count();
     $slot = match (true) {
         $index === 0 => 'active',
@@ -77,7 +85,18 @@
                     <x-icon name="star" class="size-5" />
                 </span>
             @endif
-            @if($photoTotal > 1)
+            @if($featuredContent && $photoTotal > 1)
+                <div class="uh-showcase-dots" role="group" aria-label="{{ __('Property photos') }}">
+                    @for($dot = 0; $dot < $photoTotal; $dot++)
+                        <button type="button" @class(['is-on' => $dot === 0])
+                                :class="{ 'is-on': photoOn({{ $index }}, {{ $dot }}, {{ $photoTotal }}) }"
+                                @click.stop="setPhoto({{ $index }}, {{ $dot }}, {{ $photoTotal }})"
+                                :aria-pressed="(active === {{ $index }} && galleryPhoto === {{ $dot }}).toString()"
+                                aria-label="{{ __('Show photo :number of :total', ['number' => $dot + 1, 'total' => $photoTotal]) }}">
+                        </button>
+                    @endfor
+                </div>
+            @elseif($photoTotal > 1)
                 <span class="uh-showcase-dots" aria-hidden="true">
                     @for($dot = 0; $dot < $photoTotal; $dot++)
                         <span @class(['is-on' => $dot === 0]) @if(! $listingLayout) :class="{ 'is-on': photoOn({{ $index }}, {{ $dot }}, {{ $photoTotal }}) }" @endif></span>
@@ -105,8 +124,8 @@
                         aria-label="{{ __('Add :title to compare', ['title' => $property->title]) }}"
                         @class(['uh-icon-action', 'uh-showcase-compare', 'is-featured-content' => $featuredContent])
                         @if($listingLayout) tabindex="0" @else x-bind:tabindex="slot({{ $index }}) === 'active' ? 0 : -1" @endif>
-                    <i class="fa-light fa-code-compare uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})"></i>
-                    <i class="fa-solid fa-code-compare uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak></i>
+                    <x-icon name="compare" class="size-5 uh-saved-action-icon" x-show="!$store.saved.has('compare', {{ $property->id }})" />
+                    <x-icon name="compare-solid" class="size-5 uh-saved-action-icon" x-show="$store.saved.has('compare', {{ $property->id }})" x-cloak />
                 </button>
             </div>
 

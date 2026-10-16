@@ -21,13 +21,36 @@ class MenusTest extends TestCase
 
         $this->actingAs($owner)->post(route('admin.menus.store'), ['location' => 'header', 'parent_id' => $parent->id, 'label' => 'Apartments', 'url' => '/properties?type=apartment', 'opens_new_tab' => '1'])->assertSessionHasNoErrors();
 
-        $this->assertSame(['Buy'], MenuItem::forLocation('header')->pluck('label')->all(), 'The public header keeps showing top-level links only.');
+        $this->assertSame(['Buy'], MenuItem::forLocation('header')->pluck('label')->all());
 
         $tree = MenuItem::treeFor('header');
         $this->assertSame(['Apartments'], $tree->first()->children->pluck('label')->all());
         $this->assertTrue($tree->first()->children->first()->opens_new_tab);
 
+        $html = $this->get(route('home'))->assertOk()->getContent();
+        $desktopNav = $this->navigationMarkup($html, 'uh-nav');
+        $mobileNav = $this->navigationMarkup($html, 'uh-menu-list');
+
+        foreach ([$desktopNav, $mobileNav] as $navigation) {
+            $this->assertSame(1, substr_count($navigation, 'href="/properties?listing_type=sale"'));
+            $this->assertSame(1, substr_count($navigation, 'href="/properties?type=apartment" target="_blank" rel="noopener"'));
+            $this->assertStringNotContainsString('Articles', $navigation);
+            $this->assertStringNotContainsString('About Us', $navigation);
+            $this->assertStringNotContainsString('Contact', $navigation);
+        }
+
         $this->actingAs($owner)->get(route('admin.menus.index'))->assertOk()->assertSeeInOrder(['Buy', 'Apartments']);
+    }
+
+    public function test_empty_header_menu_does_not_render_static_fallback_links(): void
+    {
+        MenuItem::query()->where('location', 'header')->get()->each(
+            fn (MenuItem $item) => $item->update(['is_visible' => false])
+        );
+
+        $html = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertSame('', trim($this->navigationMarkup($html, 'uh-nav')));
     }
 
     public function test_sub_links_must_sit_under_a_top_level_link_of_the_same_menu(): void
@@ -83,5 +106,15 @@ class MenusTest extends TestCase
         $this->assignRole($owner, Role::OWNER_ADMIN);
 
         return $owner;
+    }
+
+    private function navigationMarkup(string $html, string $class): string
+    {
+        $pattern = sprintf('~<nav class="%s"[^>]*>(.*?)</nav>~s', preg_quote($class, '~'));
+        $matches = [];
+
+        $this->assertSame(1, preg_match($pattern, $html, $matches));
+
+        return $matches[1];
     }
 }

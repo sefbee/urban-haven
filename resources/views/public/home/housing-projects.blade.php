@@ -10,8 +10,9 @@
                 @if(filled($sectionContent['title']))
                     <h2 id="housing-projects-title" class="uh-h2">{{ $sectionContent['title'] }}</h2>
                 @endif
+                <a class="uh-home-mobile-section-action" href="{{ route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL]) }}">{{ $sectionContent['link_label'] ?: __('Explore') }}</a>
                 @if(filled($sectionContent['link_label']))
-                    <x-ui.pill-link variant="light" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
+                    <x-ui.pill-link class="uh-home-desktop-section-action" variant="light" :href="route('properties.index', ['category' => \App\Models\PropertyType::CATEGORY_RESIDENTIAL])">
                         {{ $sectionContent['link_label'] }}
                     </x-ui.pill-link>
                 @endif
@@ -25,7 +26,7 @@
             </button>
             <div class="uh-housing-track" x-ref="scroller" tabindex="0" aria-label="{{ __('Homes and apartments') }}">
             @foreach($housingListings as $property)
-                <div class="uh-housing-item" data-reveal style="--uh-i: {{ $loop->index % 4 }}">
+                <div class="uh-housing-item">
                     @include('public.partials.property-card', [
                         'property' => $property,
                         'revealIndex' => $loop->index % 4,

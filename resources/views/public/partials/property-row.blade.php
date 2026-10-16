@@ -17,12 +17,6 @@
     <div class="uh-listing-frame">
         @include('public.partials.property-carousel', ['sizes' => '(min-width: 1280px) 320px, (min-width: 640px) 272px, 100vw'])
 
-        @if($property->is_featured)
-            <span class="uh-listing-row-star" aria-label="{{ __('Featured property') }}">
-                <x-icon name="star" class="size-5" />
-            </span>
-        @endif
-
         @if($property->availability !== 'available')
             <span class="uh-listing-top">
                 <x-ui.status :status="$property->availability" />

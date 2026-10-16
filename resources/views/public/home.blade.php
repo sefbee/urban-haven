@@ -1,6 +1,19 @@
 @extends('layouts.public')
 
 @section('content')
+    @php
+        $homepageSectionOrder = array_keys($homepageSections);
+
+        if (in_array('why', $homepageSectionOrder, true) && in_array('articles', $homepageSectionOrder, true)) {
+            $articlesContent = $homepageSections['articles'];
+            unset($homepageSections['articles']);
+            $whyIndex = array_search('why', array_keys($homepageSections), true);
+            $homepageSections = array_slice($homepageSections, 0, $whyIndex + 1, true)
+                + ['articles' => $articlesContent]
+                + array_slice($homepageSections, $whyIndex + 1, null, true);
+        }
+    @endphp
+
     @foreach($homepageSections as $section => $sectionContent)
         @switch($section)
             @case('hero')
