@@ -49,7 +49,7 @@
     $overlayHeader = $isHome || trim($__env->yieldContent('overlay_header')) !== '';
 
     $formatMenuLink = fn (\App\Models\MenuItem $item): array => [
-        'label' => $item->label,
+        'label' => __($item->label),
         'url' => $item->url,
         'active' => $item->isInternal() && request()->getRequestUri() === $item->url,
         'opens_new_tab' => $item->opens_new_tab,
@@ -71,7 +71,7 @@
         $privacyUrl ? ['label' => __('Privacy'), 'url' => $privacyUrl] : null,
     ]));
     $footerMenu = \App\Models\MenuItem::forLocation('footer');
-    $customFooterLinks = $footerMenu->map(fn ($item) => ['label' => $item->label, 'url' => $item->url]);
+    $customFooterLinks = $footerMenu->map(fn ($item) => ['label' => __($item->label), 'url' => $item->url]);
     $footerLinks = collect($fixedFooterLinks)->concat($customFooterLinks)->unique('url')->values()->all();
 @endphp
 <!DOCTYPE html>
@@ -142,7 +142,6 @@
         <header @class(['uh-site-bar', 'is-overlay' => $overlayHeader])
                 x-data="uhSiteBar(@js($overlayHeader))"
                 @uh-menu.window="open = $event.detail"
-                @keydown.escape.window="lang = false"
                 :class="{ 'is-overlay': !solid }">
             <div class="uh-container uh-bar-row">
                 <a href="{{ route('home') }}" class="uh-brand" @if($isHome) aria-current="page" @endif>
@@ -194,29 +193,6 @@
                 </nav>
 
                 <div class="uh-bar-actions">
-                    <div class="relative hidden sm:block" @click.outside="lang = false">
-                        <button type="button" class="uh-bar-quiet"
-                                @click="lang = !lang" :aria-expanded="lang.toString()" aria-haspopup="listbox"
-                                aria-controls="locale-menu">
-                            {{ $locale === 'bn' ? 'বাংলা' : 'EN' }}
-                        </button>
-                        <div id="locale-menu" x-cloak x-bind:class="lang ? 'block' : 'hidden'" class="uh-lang-menu"
-                             role="listbox" aria-label="{{ __('Language') }}">
-                            @foreach(['en' => 'English', 'bn' => 'বাংলা'] as $code => $label)
-                                <form method="POST" action="{{ route('locale.switch') }}">
-                                    @csrf
-                                    <input type="hidden" name="locale" value="{{ $code }}">
-                                    <button type="submit" lang="{{ $code }}" role="option" aria-selected="{{ $locale === $code ? 'true' : 'false' }}">
-                                        {{ $label }}
-                                        @if($locale === $code)
-                                            <x-icon name="check" class="size-3.5" />
-                                        @endif
-                                    </button>
-                                </form>
-                            @endforeach
-                        </div>
-                    </div>
-
                     <a href="{{ route('compare') }}" x-data
                        class="uh-bar-quiet uh-bar-compare"
                        :aria-label="'{{ __('Compare') }} (' + $store.saved.compare.length + ')'" aria-label="{{ __('Compare') }}">
@@ -322,16 +298,6 @@
                             <span dir="ltr" class="uh-numeric">{{ $contactPhone }}</span>
                         </a>
                     @endif
-                    <div class="flex items-center gap-1">
-                        @foreach(['en' => 'EN', 'bn' => 'বাংলা'] as $code => $label)
-                            <form method="POST" action="{{ route('locale.switch') }}">
-                                @csrf
-                                <input type="hidden" name="locale" value="{{ $code }}">
-                                <button type="submit" lang="{{ $code }}" @class(['uh-menu-lang', 'is-active' => $locale === $code])
-                                        @if($locale === $code) aria-current="true" @endif>{{ $label }}</button>
-                            </form>
-                        @endforeach
-                    </div>
                 </div>
             </div>
         </div>
@@ -358,10 +324,10 @@
                                 <span class="uh-wordmark">{{ $companyName }}</span>
                             @endif
                         </a>
-                        <p class="uh-foot-line">{{ $footerNote }}</p>
+                        <p class="uh-foot-line">{{ __($footerNote) }}</p>
                     </div>
                     <div class="uh-foot-cta">
-                        <x-ui.pill-link variant="light" :href="route('properties.index')">
+                        <x-ui.pill-link variant="light" :mobile-label="true" :href="route('properties.index')">
                             {{ __('Explore properties') }}
                         </x-ui.pill-link>
                     </div>
@@ -468,9 +434,9 @@
                  x-transition.opacity.duration.250ms
                  class="uh-dialog uh-consent"
                  role="dialog" aria-modal="false" aria-labelledby="consent-title">
-                <h2 id="consent-title" class="uh-h4">{{ $consentTitle }}</h2>
+                <h2 id="consent-title" class="uh-h4">{{ __($consentTitle) }}</h2>
                 <p class="mt-2 text-sm leading-relaxed text-[var(--uh-muted)]">
-                    {{ $consentMessage }}
+                    {{ __($consentMessage) }}
                     @if($privacyUrl)
                         <a class="uh-link" href="{{ $privacyUrl }}">{{ __('Privacy') }}</a>
                     @endif

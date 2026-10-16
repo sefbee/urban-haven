@@ -100,6 +100,13 @@
                                             <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ \Illuminate\Support\Str::headline($optionLabel) }}</option>
                                         @endforeach
                                     </select>
+                                @elseif($field['type'] === 'article')
+                                    <select id="{{ $fieldId }}" class="uh-select" name="content[{{ $name }}]" data-native-select>
+                                        <option value="">No featured article</option>
+                                        @foreach($articles as $article)
+                                            <option value="{{ $article->id }}" @selected((string) $current === (string) $article->id)>{{ $article->title }}</option>
+                                        @endforeach
+                                    </select>
                                 @elseif($field['type'] === 'number')
                                     <input id="{{ $fieldId }}" class="uh-input max-w-40" type="number" name="content[{{ $name }}]" value="{{ $current }}" min="{{ $field['min'] }}" max="{{ $field['max'] }}" step="1">
                                 @else

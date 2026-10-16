@@ -81,6 +81,7 @@ class CmsBlock extends Model
             'about_story',
             'about_choose',
             'contact_office',
+            'articles_masthead',
             'articles_promo',
         ], true);
     }

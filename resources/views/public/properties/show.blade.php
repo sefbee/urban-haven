@@ -86,40 +86,6 @@
                             {{ $publicAddress ?: $place }}
                         </p>
                     @endif
-                    @if($property->bedrooms || $property->bathrooms || $area)
-                        <div class="uh-pd-desktop-details">
-                            <ul class="uh-pd-quick" aria-label="{{ __('Property features') }}">
-                                @if($property->bedrooms)
-                                    <li><x-icon name="bed" class="size-4" /><span>{{ $property->bedrooms }} {{ __('Bedrooms') }}</span></li>
-                                @endif
-                                @if($property->bathrooms)
-                                    <li><x-icon name="bath" class="size-4" /><span>{{ $property->bathrooms }} {{ __('Bathrooms') }}</span></li>
-                                @endif
-                                @if($area)
-                                    <li><x-icon name="area" class="size-4" /><span>{{ $area }}</span></li>
-                                @endif
-                            </ul>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="uh-pd-head-side">
-                    <div class="uh-pd-price-block">
-                        <p class="uh-pd-price uh-numeric">{{ $headlinePrice }}</p>
-                        @if($headlinePrice !== $exactPrice)
-                            <p class="uh-pd-price-exact uh-numeric">{{ $exactPrice }}</p>
-                        @endif
-                    </div>
-                    @if($updatedAt)
-                        <p class="uh-pd-updated">
-                            {{ __('Last updated') }} <time datetime="{{ $updatedAt->toDateString() }}">{{ $updatedAt->format('j M Y') }}</time>
-                        </p>
-                    @endif
-                    <div class="uh-pd-actions uh-pd-actions-desktop">
-                        <x-save-button :property="$property" variant="icon" />
-                        <x-save-button :property="$property" list="compare" variant="icon" />
-                        <x-share-menu :url="$shareUrl" :title="$property->title" />
-                    </div>
                     <div class="uh-pd-head-highlights" role="group" aria-label="{{ __('Property highlights') }}">
                         @if($property->is_featured)
                             <span class="uh-listing-row-badge is-featured">{{ __('Featured') }}</span>
@@ -131,7 +97,26 @@
                         @if($property->availability !== 'available')
                             <span class="uh-listing-row-badge is-purpose">{{ $availabilityLabel }}</span>
                         @endif
+                    </div>
+                </div>
 
+                <div class="uh-pd-head-side">
+                    <div class="uh-pd-price-block">
+                        <p class="uh-pd-price uh-numeric">{{ $headlinePrice }}</p>
+                        <div class="uh-pd-price-actions" role="group" aria-label="{{ __('Property actions') }}">
+                            <x-save-button :property="$property" list="compare" variant="icon" />
+                            <x-save-button :property="$property" variant="icon" />
+                        </div>
+                    </div>
+                    @if($updatedAt)
+                        <p class="uh-pd-updated">
+                            {{ __('Last updated') }} <time datetime="{{ $updatedAt->toDateString() }}">{{ $updatedAt->format('j M Y') }}</time>
+                        </p>
+                    @endif
+                    <div class="uh-pd-actions uh-pd-actions-desktop">
+                        <x-save-button :property="$property" variant="icon" />
+                        <x-save-button :property="$property" list="compare" variant="icon" />
+                        <x-share-menu :url="$shareUrl" :title="$property->title" />
                     </div>
                 </div>
             </header>
@@ -139,20 +124,6 @@
             <div class="uh-pd-layout">
                 <x-media-stage class="uh-pd-stage" :title="$property->title" :photo-count="$media->count()"
                                :video="$videoEmbed" :coordinates="$coordinates">
-                    <x-slot:actions>
-                        <div class="uh-pd-stage-highlights" role="group" aria-label="{{ __('Property highlights') }}">
-                            @if($property->is_featured)
-                                <span class="uh-listing-row-badge is-featured">{{ __('Featured') }}</span>
-                            @endif
-                            @if($property->propertyType?->label)
-                                <span class="uh-listing-row-badge is-type">{{ $property->propertyType->label }}</span>
-                            @endif
-                            <span class="uh-listing-row-badge is-purpose">{{ $isRent ? __('Rent') : __('Sale') }}</span>
-                            @if($property->availability !== 'available')
-                                <span class="uh-listing-row-badge is-purpose">{{ $availabilityLabel }}</span>
-                            @endif
-                        </div>
-                    </x-slot:actions>
                     <div class="uh-pd-gallery-wrap">
                         <section @class(['uh-pd-gallery', 'has-thumbs' => $thumbs->isNotEmpty(), 'has-two' => $thumbs->count() === 2, 'has-three' => $thumbs->count() === 3]) aria-label="{{ __('Photographs') }}">
                             @if($media->isNotEmpty())

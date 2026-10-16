@@ -76,6 +76,29 @@ class OperationsTest extends TestCase
         $this->get(route('home'))->assertOk()->assertDontSee('uhCoverSlides', false);
     }
 
+    public function test_publisher_can_upload_articles_masthead_photographs(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        $block = CmsBlock::query()->create([
+            'key' => 'articles_masthead',
+            'label' => 'Articles page: Masthead / Header',
+            'content' => [],
+            'is_visible' => true,
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($owner)->post(route('admin.media.store'), [
+            'owner_type' => 'cms_block',
+            'owner_id' => $block->id,
+            'collection' => 'gallery',
+            'file' => UploadedFile::fake()->image('articles-masthead.jpg', 1600, 900),
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame(1, $block->media()->count());
+    }
+
     public function test_hero_block_only_accepts_photographs(): void
     {
         Storage::fake('public');

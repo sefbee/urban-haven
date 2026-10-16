@@ -87,4 +87,4 @@
     }
 @endphp
 
-<i {{ $attributes->merge(['class' => $faClass]) }}></i>
+<i {{ $attributes->merge(['class' => $faClass, 'aria-hidden' => 'true']) }}></i>

@@ -225,7 +225,7 @@
                                     <li>
                                         <a href="{{ $typeUrl }}" @if(in_array($type->id, (array) ($filters['property_type_ids'] ?? []), true)) aria-current="true" @endif>
                                             <span class="uh-explore-type-icon"><x-icon :name="$typeIcons[$type->key] ?? 'building'" class="size-5" /></span>
-                                            <span class="uh-explore-type-name">{{ $type->label }}</span>
+                                            <span class="uh-explore-type-name">{{ __($type->label) }}</span>
                                         </a>
                                     </li>
                                 @endforeach

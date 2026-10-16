@@ -156,8 +156,16 @@ class DynamicPageSectionsTest extends TestCase
             'post_category_id' => $category->id,
         ]);
         $post->publicationState()->updateOrCreate([], ['status' => PublicationState::PUBLISHED, 'published_at' => now()]);
+        $newerPost = Post::factory()->create(['title' => 'A newer article that is not featured']);
+        $newerPost->publicationState()->updateOrCreate([], ['status' => PublicationState::PUBLISHED, 'published_at' => now()]);
 
         // Admin updates articles masthead & promo
+        $this->actingAs($admin)
+            ->put(route('admin.page-sections.update', ['page' => 'articles', 'section' => 'featured']), [
+                'content' => ['post_id' => $post->id],
+            ])
+            ->assertRedirect()->assertSessionHasNoErrors();
+
         $this->actingAs($admin)
             ->put(route('admin.page-sections.update', ['page' => 'articles', 'section' => 'masthead']), [
                 'content' => [
@@ -187,6 +195,52 @@ class DynamicPageSectionsTest extends TestCase
             ->assertSee('EXCLUSIVE REPORT')
             ->assertSee('Download 2026 Dhaka Real Estate Outlook')
             ->assertSee('Download Free PDF')
-            ->assertSee('/download/report-2026');
+            ->assertSee('/download/report-2026')
+            ->assertSeeInOrder(['Featured', 'Designing Homes in Gulshan', 'Latest Articles', 'A newer article that is not featured']);
+    }
+
+    public function test_article_search_and_category_filters_combine_and_pagination_keeps_them(): void
+    {
+        $admin = User::factory()->create();
+        $this->assignRole($admin, Role::OWNER_ADMIN);
+        $category = PostCategory::query()->create(['name' => 'Architecture']);
+        $otherCategory = PostCategory::query()->create(['name' => 'Legal']);
+
+        foreach (range(1, 9) as $number) {
+            $post = Post::factory()->create([
+                'title' => 'Findable architecture story '.$number,
+                'post_category_id' => $category->id,
+            ]);
+            $post->publicationState()->updateOrCreate([], ['status' => PublicationState::PUBLISHED, 'published_at' => now()]);
+        }
+
+        $otherPost = Post::factory()->create([
+            'title' => 'Findable legal story',
+            'post_category_id' => $otherCategory->id,
+        ]);
+        $otherPost->publicationState()->updateOrCreate([], ['status' => PublicationState::PUBLISHED, 'published_at' => now()]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.page-sections.update', ['page' => 'articles', 'section' => 'grid']), [
+                'content' => ['limit' => 4],
+            ])
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $query = ['category' => $category->slug, 'q' => 'Findable'];
+
+        $this->get(route('articles.index', $query))
+            ->assertOk()
+            ->assertSee('Findable architecture story 9')
+            ->assertSee('Findable architecture story 6')
+            ->assertDontSee('Findable legal story')
+            ->assertSee('category='.$category->slug)
+            ->assertSee('q=Findable');
+
+        $this->get(route('articles.index', [...$query, 'page' => 2]))
+            ->assertOk()
+            ->assertSee('Findable architecture story 5')
+            ->assertDontSee('Findable legal story')
+            ->assertSee('category='.$category->slug)
+            ->assertSee('q=Findable');
     }
 }

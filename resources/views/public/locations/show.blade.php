@@ -15,9 +15,7 @@
                     @if($purposes)
                         <div class="uh-next-links mt-8">
                             @foreach($purposes as $purpose)
-                                <x-ui.pill-link variant="light" :href="route('properties.index', ['location_area_id' => $area->id, 'listing_type' => $purpose])">
-                                    {{ $purpose === 'rent' ? __('Properties for rent in :area', ['area' => $area->name]) : __('Properties for sale in :area', ['area' => $area->name]) }}
-                                </x-ui.pill-link>
+
                             @endforeach
                         </div>
                     @endif
@@ -32,7 +30,6 @@
                                  data-tiles="{{ config('urbanhaven.maps.tile_url') }}"
                                  data-attribution="{{ config('urbanhaven.maps.attribution') }}"></div>
                         </div>
-                        <p class="uh-map-note">{{ __('The map marks the neighbourhood. Exact addresses are shared by our sales team.') }}</p>
                     </div>
                 @endif
             </div>
@@ -50,9 +47,20 @@
         </header>
 
         @if($listings->isNotEmpty())
-            <div class="uh-grid-cards">
+            <div class="uh-grid-cards uh-trending-section uh-location-properties">
                 @foreach($listings as $property)
-                    @include('public.partials.property-card', ['property' => $property, 'revealIndex' => $loop->index % 3])
+                    @include('public.partials.property-card', [
+                        'property' => $property,
+                        'revealIndex' => $loop->index % 3,
+                        'showShortlist' => false,
+                        'showDetails' => true,
+                        'showContact' => true,
+                        'showFavoriteAction' => true,
+                        'priceInBody' => true,
+                        'detailsLabel' => __('View Details'),
+                        'detailsClass' => 'uh-trending-details',
+                        'detailsIconOnly' => true,
+                    ])
                 @endforeach
             </div>
         @else

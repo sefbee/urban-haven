@@ -6,6 +6,7 @@ use App\Contracts\AuditLogger;
 use App\Http\Controllers\Controller;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
+use App\Models\Post;
 use App\Services\Cms\CmsService;
 use App\Support\AboutPageSections;
 use App\Support\ArticlesPageSections;
@@ -67,6 +68,7 @@ class PageSectionController extends Controller
             'previous' => $keys[$position - 1] ?? null,
             'next' => $keys[$position + 1] ?? null,
             'canPublish' => $request->user()->hasPermission('cms.publish'),
+            'articles' => $page === 'articles' ? Post::query()->published()->orderBy('title')->get(['id', 'title']) : collect(),
         ]);
     }
 
@@ -200,6 +202,8 @@ class PageSectionController extends Controller
                     $rules["content.$key"] = [$presence, 'integer', 'min:'.$field['min'], 'max:'.$field['max']];
                 } elseif ($field['type'] === 'select') {
                     $rules["content.$key"] = [$presence, 'string', Rule::in(array_keys($field['options']))];
+                } elseif ($field['type'] === 'article') {
+                    $rules["content.$key"] = ['nullable', 'integer', 'exists:posts,id'];
                 }
             }
         }
@@ -241,9 +245,9 @@ class PageSectionController extends Controller
                     return true;
                 }));
             } elseif (array_key_exists($key, $input)) {
-                $content[$key] = $input[$key] === null
+                $content[$key] = $input[$key] === null || ($field['type'] === 'article' && blank($input[$key]))
                     ? null
-                    : ($field['type'] === 'number' ? (int) $input[$key] : $input[$key]);
+                    : (in_array($field['type'], ['number', 'article'], true) ? (int) $input[$key] : $input[$key]);
             }
         }
 

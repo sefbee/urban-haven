@@ -24,7 +24,7 @@
     {{-- Hero Section --}}
     @if(isset($contactSections['hero']))
     <div class="uh-contact-hero group flex flex-col lg:flex-row min-h-[550px] 2xl:min-h-[650px] overflow-hidden">
-        <div class="w-full lg:w-1/2 bg-[var(--color-dominant)] flex items-center justify-center p-8 sm:p-12 lg:p-16 xl:p-24 relative z-10">
+        <div class="w-full lg:w-1/2 bg-[var(--color-dominant)] flex items-center justify-center px-[var(--uh-gutter)] py-12 lg:py-16 relative z-10">
             {{-- Subtle background decoration --}}
             <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
                 <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-[var(--color-accent)]/20 to-transparent blur-3xl"></div>
@@ -54,8 +54,8 @@
 
     {{-- How Can We Help Section --}}
     @if(isset($contactSections['channels']) && (filled($phone) || filled($email) || filled($address)))
-    <section class="uh-contact-channels py-24 px-4 sm:px-6 lg:px-8 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
-        <div class="max-w-7xl mx-auto relative z-10">
+    <section class="uh-contact-channels py-24 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
+        <div class="uh-container relative z-10">
             @if(filled($channels['title'] ?? null) || filled($channels['intro'] ?? null))
                 <div class="text-center max-w-2xl mx-auto">
                     <x-icon name="sparkles" class="size-6 text-[var(--color-accent)] mx-auto mb-4 opacity-50" />
@@ -64,7 +64,7 @@
                 </div>
             @endif
             
-            <div class="uh-contact-channel-grid mt-16 grid gap-6 md:grid-cols-3 max-w-[1050px] mx-auto">
+            <div class="uh-contact-channel-grid mt-16 grid gap-6 md:grid-cols-3">
                 {{-- Call Us --}}
                 @if(filled($phone))
                 <div class="uh-contact-channel-card group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
@@ -106,7 +106,7 @@
     @endif
 
     {{-- Form & Sidebar Section --}}
-    <section class="uh-contact-enquiry max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 bg-white" id="page-form-heading">
+    <section class="uh-contact-enquiry uh-container py-20 lg:py-28 bg-white" id="page-form-heading">
         <div class="grid gap-12 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_450px] lg:gap-16 xl:gap-24">
             
             {{-- Form --}}
@@ -210,9 +210,9 @@
         <iframe src="{{ $mapEmbedUrl }}" title="{{ __('Map showing :location', ['location' => $mapLocation]) }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="eager" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000"></iframe>
         
         <div class="absolute inset-0 pointer-events-none transition-colors duration-1000 group-hover:bg-[var(--color-secondary)]/5">
-            <div class="max-w-7xl mx-auto h-full relative px-4 sm:px-6 lg:px-8">
+            <div class="uh-container h-full relative">
                 @if(filled($map['title'] ?? null) || filled($map['button'] ?? null))
-                <div class="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 w-full max-w-[360px] bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto rounded-2xl transition-transform duration-700 ease-out group-hover:-translate-y-[calc(50%+8px)] border border-white/40 backdrop-blur-md">
+                <div class="uh-contact-map-card absolute right-[var(--uh-gutter)] top-1/2 -translate-y-1/2 bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto rounded-2xl transition-transform duration-700 ease-out group-hover:-translate-y-[calc(50%+8px)] border border-white/40 backdrop-blur-md">
                     <div class="w-12 h-12 bg-sand rounded-full flex items-center justify-center mb-5 text-[var(--color-accent)]">
                         <x-icon name="building-office" class="size-6" />
                     </div>
@@ -245,7 +245,7 @@
             </svg>
         </div>
         
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[1fr_auto] gap-12 items-center relative z-10">
+        <div class="uh-container grid lg:grid-cols-[1fr_auto] gap-12 items-center relative z-10">
             <div class="max-w-2xl">
                 @if(filled($cta['title'] ?? null))<h2 class="text-[2.25rem] sm:text-[3.25rem] leading-[1.05] font-display text-white text-balance">{{ $cta['title'] }}</h2>@endif
                 @if(filled($cta['intro'] ?? null))<p class="mt-6 text-[17px] text-white/75 leading-relaxed">{{ $cta['intro'] }}</p>@endif

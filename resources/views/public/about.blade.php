@@ -15,7 +15,7 @@
                 @if($heroCopy || $heroImage)
                 <section @class(['grid min-h-[500px] bg-[var(--color-dominant)] relative', 'lg:grid-cols-2' => $heroCopy && $heroImage]) aria-labelledby="about-title">
                     @if($heroCopy)
-                    <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24">
+                    <div class="flex flex-col justify-center px-[var(--uh-gutter)] py-16">
                         @if(!empty($data['eyebrow']))
                             <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">{{ $data['eyebrow'] }}</p>
                         @endif
@@ -77,7 +77,7 @@
                     <div class="relative h-64 sm:h-96 lg:h-auto overflow-hidden order-last lg:order-first">
                         @if($storyImage)<img src="{{ $storyImage->url(1280) }}" alt="{{ $storyImage->alt(app()->getLocale()) }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy">@endif
                     </div>
-                    <div class="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-24 bg-[var(--color-card-surface)]">
+                    <div class="flex flex-col justify-center px-[var(--uh-gutter)] py-16 bg-[var(--color-card-surface)]">
                         @if(!empty($data['eyebrow']))
                             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">{{ $data['eyebrow'] }}</p>
                         @endif
@@ -232,8 +232,8 @@
             @case('choose')
                 {{-- Why Choose Us / CTA Split --}}
                 @if(collect($data)->contains(fn ($value): bool => filled($value)) || $chooseImage)
-                <section class="grid lg:grid-cols-2 bg-[var(--color-secondary)] text-[var(--color-secondary-text)] overflow-hidden mt-10">
-                    <div class="px-8 py-16 sm:px-16 lg:px-24 xl:pl-32 flex flex-col justify-center relative">
+                <section class="uh-about-choose grid lg:grid-cols-2 bg-[var(--color-secondary)] text-[var(--color-secondary-text)] overflow-hidden mt-10">
+                    <div class="px-[var(--uh-gutter)] py-16 flex flex-col justify-center relative">
                         <div class="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
                             <svg width="300" height="300" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="20" y="20" width="2" height="80" fill="currentColor"/>

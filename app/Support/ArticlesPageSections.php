@@ -15,11 +15,16 @@ final class ArticlesPageSections
             'masthead' => [
                 'block' => 'articles_masthead',
                 'label' => 'Masthead / Header',
-                'summary' => 'Top section of the articles page with title, intro and category links.',
+                'summary' => 'Editorial hero, introduction, calls to action and hero photography.',
+                'images' => true,
                 'fields' => [
-                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'Urban Haven Journal'],
-                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 140, 'default' => 'Explore News, Insights and Videos'],
-                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Ideas, places and perspectives shaping the way Bangladesh lives.'],
+                    'eyebrow' => ['label' => 'Small label above the headline', 'type' => 'text', 'max' => 80, 'default' => 'News & Insights'],
+                    'title' => ['label' => 'Headline', 'type' => 'text', 'max' => 140, 'default' => 'Ideas Today for Better Places Tomorrow'],
+                    'intro' => ['label' => 'Intro line', 'type' => 'textarea', 'max' => 300, 'default' => 'Expert insights, market trends and practical guides to help you make smarter property decisions in Bangladesh.'],
+                    'cta_label' => ['label' => 'Primary button text', 'type' => 'text', 'max' => 40, 'default' => 'Explore Articles'],
+                    'cta_url' => ['label' => 'Primary button link', 'type' => 'path', 'max' => 255, 'default' => '/articles'],
+                    'video_label' => ['label' => 'Optional video link text', 'type' => 'text', 'max' => 40, 'default' => ''],
+                    'video_url' => ['label' => 'Optional video link', 'type' => 'path', 'max' => 255, 'default' => ''],
                 ],
             ],
             'featured' => [
@@ -28,16 +33,27 @@ final class ArticlesPageSections
                 'summary' => 'The top featured articles highlight section.',
                 'source' => ['label' => 'Manage articles', 'route' => 'admin.posts.index'],
                 'fields' => [
-                    'limit' => ['label' => 'Number of featured articles to show', 'type' => 'number', 'min' => 1, 'max' => 5, 'default' => 5],
+                    'post_id' => ['label' => 'Featured article', 'type' => 'article', 'default' => null],
                 ],
             ],
             'categories' => [
                 'block' => 'articles_categories',
                 'label' => 'Showcase categories',
-                'summary' => 'Category-specific article lists.',
+                'summary' => 'Category discovery cards and their displayed limit.',
                 'source' => ['label' => 'Manage article categories', 'route' => 'admin.post-categories.index'],
                 'fields' => [
-                    'limit' => ['label' => 'Number of categories to showcase', 'type' => 'number', 'min' => 1, 'max' => 6, 'default' => 6],
+                    'title' => ['label' => 'Section heading', 'type' => 'text', 'max' => 120, 'default' => 'Explore by category'],
+                    'limit' => ['label' => 'Number of categories to show', 'type' => 'number', 'min' => 1, 'max' => 12, 'default' => 6],
+                ],
+            ],
+            'latest' => [
+                'block' => 'articles_latest',
+                'label' => 'Latest articles',
+                'summary' => 'Latest articles heading and number of stories shown beside the feature.',
+                'source' => ['label' => 'Manage articles', 'route' => 'admin.posts.index'],
+                'fields' => [
+                    'title' => ['label' => 'Section heading', 'type' => 'text', 'max' => 120, 'default' => 'Latest Articles'],
+                    'limit' => ['label' => 'Number of articles', 'type' => 'number', 'min' => 1, 'max' => 8, 'default' => 4],
                 ],
             ],
             'grid' => [

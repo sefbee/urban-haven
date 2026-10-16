@@ -5,6 +5,38 @@
 @import "../fontawesome-pro/css/solid.css";
 @import './public-experience.css';
 
+@font-face {
+    font-family: 'Noto Sans Bengali';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/noto-sans-bengali-400.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans Bengali';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/noto-sans-bengali-500.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans Bengali';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/noto-sans-bengali-600.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans Bengali';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/noto-sans-bengali-700.ttf') format('truetype');
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -14,8 +46,29 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-body: var(--font-sans);
+    --font-heading: var(--font-display);
     --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-    --font-bengali: 'Noto Sans Bengali', 'Hind Siliguri', 'Kalpurush', 'Nirmala UI', 'Instrument Sans', system-ui, sans-serif;
+    --font-bengali: 'Noto Sans Bengali', sans-serif;
+
+    --type-size-xs: 0.75rem;
+    --type-size-sm: 0.875rem;
+    --type-size-base: 1rem;
+    --type-size-lg: 1.125rem;
+    --type-size-xl: 1.25rem;
+    --type-size-2xl: 1.5rem;
+    --type-size-3xl: 1.875rem;
+    --type-size-display: clamp(2.75rem, 6.4vw, 5.75rem);
+    --type-weight-normal: 400;
+    --type-weight-medium: 500;
+    --type-weight-semibold: 600;
+    --type-weight-bold: 700;
+    --type-leading-tight: 1.1;
+    --type-leading-normal: 1.5;
+    --type-leading-relaxed: 1.7;
+    --type-tracking-tight: -0.02em;
+    --type-tracking-normal: 0;
+    --type-tracking-wide: 0.08em;
 
     /* Public identity — architectural night, limestone, one brass accent */
     --color-night: #0d1110;
@@ -85,6 +138,9 @@
     body {
         background: var(--color-cream);
         color: var(--color-ink);
+        font-family: var(--font-body);
+        font-size: var(--type-size-base);
+        line-height: var(--type-leading-normal);
         font-feature-settings: 'cv11', 'ss01';
         text-rendering: optimizeLegibility;
     }
@@ -103,7 +159,7 @@
 
 /* Bengali needs a taller line box and its own family: Instrument Sans has no
    Bengali glyphs, so without this the browser falls back inconsistently. */
-:lang(bn) {
+html[lang="bn"] body {
     font-family: var(--font-bengali);
     line-height: 1.85;
 }

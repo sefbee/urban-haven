@@ -229,7 +229,7 @@
                                 <input type="checkbox" form="property-filters" name="amenities[]" value="{{ $amenity->id }}" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-[var(--color-divider)] bg-[var(--color-card-surface)] transition-all checked:border-[var(--color-accent-1)] checked:bg-[var(--color-accent-1)] hover:border-[var(--color-accent-1)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-1)]/20" @checked(in_array((string) $amenity->id, array_map('strval', (array) ($filters['amenities'] ?? [])), true))>
                                 <svg class="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
-                            <span class="text-xs font-medium text-[var(--color-body-text)] group-hover:text-[var(--color-body-text)]">{{ $amenity->label }}</span>
+                            <span class="text-xs font-medium text-[var(--color-body-text)] group-hover:text-[var(--color-body-text)]">{{ __($amenity->label) }}</span>
                         </label>
                     @endforeach
                 </div>

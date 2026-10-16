@@ -52,6 +52,15 @@ class PublicSiteTest extends TestCase
             ->assertSee('value="general_contact"', false);
     }
 
+    public function test_footer_explore_action_renders_its_mobile_label_and_existing_destination(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Explore properties')
+            ->assertSee('uh-pill-cta-label-mobile', false)
+            ->assertSee('href="'.route('properties.index').'"', false);
+    }
+
     public function test_shortlist_and_compare_pages_render_without_an_account(): void
     {
         $this->get(route('shortlist'))->assertOk()->assertSee('Your shortlist')->assertSee('noindex', false);

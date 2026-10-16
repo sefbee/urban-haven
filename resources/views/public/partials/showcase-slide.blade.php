@@ -164,10 +164,10 @@
                             <span><x-icon name="area" class="size-4" />{{ $story->size() }}</span>
                         @endif
                         @if(! $isPlot && $property->bedrooms)
-                            <span><x-icon name="bed" class="size-4" />{{ $property->bedrooms }} {{ trans_choice(':count bedroom|:count bedrooms', (int) $property->bedrooms, ['count' => $property->bedrooms]) }}</span>
+                            <span><x-icon name="bed" class="size-4" />{{ trans_choice(':count bedroom|:count bedrooms', (int) $property->bedrooms, ['count' => $property->bedrooms]) }}</span>
                         @endif
                         @if(! $isPlot && $property->bathrooms)
-                            <span><x-icon name="bath" class="size-4" />{{ $property->bathrooms }} {{ trans_choice(':count bathroom|:count bathrooms', (int) $property->bathrooms, ['count' => $property->bathrooms]) }}</span>
+                            <span><x-icon name="bath" class="size-4" />{{ trans_choice(':count bathroom|:count bathrooms', (int) $property->bathrooms, ['count' => $property->bathrooms]) }}</span>
                         @endif
                     </div>
                     @if($featuredContent)

@@ -402,6 +402,56 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('Post Property');
     }
 
+    public function test_featured_and_listing_cards_render_room_counts_once_with_correct_pluralization(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $this->publishProperty('Three bedroom home', [
+            'bedrooms' => 3,
+            'bathrooms' => 3,
+            'area_value' => 1850,
+            'price' => 28_500_000,
+            'is_featured' => true,
+        ]);
+        $this->publishProperty('Four bedroom home', [
+            'bedrooms' => 4,
+            'bathrooms' => 2,
+            'is_featured' => true,
+        ]);
+        $this->publishProperty('One bedroom home', [
+            'bedrooms' => 1,
+            'bathrooms' => 1,
+            'is_featured' => true,
+        ]);
+        $this->publishProperty('Unspecified rooms', [
+            'bedrooms' => 0,
+            'bathrooms' => null,
+        ]);
+
+        $homeResponse = $this->get('/');
+        $listingResponse = $this->get(route('properties.index'));
+
+        foreach ([$homeResponse, $listingResponse] as $response) {
+            $content = $response->getContent();
+
+            $this->assertSame(1, substr_count($content, '3 bedrooms'));
+            $this->assertSame(1, substr_count($content, '3 bathrooms'));
+            $this->assertSame(1, substr_count($content, '4 bedrooms'));
+            $this->assertSame(1, substr_count($content, '2 bathrooms'));
+            $this->assertSame(1, substr_count($content, '1 bedroom'));
+            $this->assertSame(1, substr_count($content, '1 bathroom'));
+            $this->assertStringNotContainsString('0 bedroom', $content);
+            $this->assertStringNotContainsString('0 bathroom', $content);
+            $this->assertStringNotContainsString('3 3 bedrooms', $content);
+            $this->assertStringNotContainsString('3 3 bathrooms', $content);
+        }
+
+        $homeResponse
+            ->assertSee('Apartment')
+            ->assertSee('Gulshan, Dhaka')
+            ->assertSee('1,850 sq ft')
+            ->assertSee('BDT 2.85');
+    }
+
     public function test_home_trending_ranks_listings_by_recent_views(): void
     {
         $quiet = $this->publishProperty('Quiet listing');
