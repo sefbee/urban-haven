@@ -12712,10 +12712,8 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
     }
 
     .uh-pd-property .uh-pd-head {
-        grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
-        grid-template-areas:
-            'title price'
-            'address highlights';
+        display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 0.5rem 0.625rem;
         padding-block: 0.625rem 0.75rem;
@@ -12727,7 +12725,8 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
     }
 
     .uh-pd-property .uh-pd-title {
-        grid-area: title;
+        order: 1;
+        flex: 1 1 50%;
         min-width: 0;
         max-width: 22ch;
         font-size: clamp(1.35rem, 5.8vw, 1.75rem);
@@ -12736,7 +12735,8 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
     }
 
     .uh-pd-property .uh-pd-price-block {
-        grid-area: price;
+        order: 2;
+        flex: 0 0 auto;
         max-width: 100%;
         align-self: stretch;
         display: grid;
@@ -12761,13 +12761,16 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
     }
 
     .uh-pd-property .uh-pd-address {
-        grid-area: address;
+        order: 3;
+        flex: 0 0 auto;
+        width: auto;
         min-width: 0;
         gap: 0.3rem;
         margin-top: 0;
-        padding: 0.25rem 0.625rem 0.25rem 0;
+        padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
         line-height: 1.25;
+        white-space: nowrap;
     }
 
     .uh-pd-quick {
@@ -12796,16 +12799,28 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
     }
 
     .uh-pd-property .uh-pd-head-highlights {
-        grid-area: highlights;
+        order: 4;
+        flex: 1 1 0;
+        min-width: 0;
         flex-wrap: nowrap;
-        justify-content: flex-end;
-        gap: 0.2rem;
-        margin-top: 0.2rem;
+        justify-content: flex-start;
+        gap: 0.3rem;
+        margin-top: 0;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+        touch-action: pan-x;
+    }
+
+    .uh-pd-property .uh-pd-head-highlights::-webkit-scrollbar {
+        display: none;
     }
 
     .uh-pd-property .uh-pd-head-highlights .uh-listing-row-badge {
         min-width: 0;
-        padding-inline: 0.35rem;
+        flex: 0 0 auto;
+        max-width: 100%;
+        padding-inline: 0.45rem;
         font-size: 0.5625rem;
         white-space: nowrap;
     }

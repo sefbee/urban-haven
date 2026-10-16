@@ -85,7 +85,7 @@
 
                 <p class="uh-listing-place">
                     <span>{{ $place ?: __('Dhaka') }}</span>
-                    @if($property->propertyType?->label)
+                    @if(! $highlight && $property->propertyType?->label)
                         <span class="uh-listing-kind">{{ $property->propertyType->label }}</span>
                     @endif
                 </p>
