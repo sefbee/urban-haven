@@ -4,19 +4,18 @@
         ->filter(fn ($profile): bool => is_array($profile) && ($profile['active'] ?? true) && filled($profile['url'] ?? null))
         ->take(4);
     $configuredMapUrl = \App\Models\Setting::get('map_url');
-    $mapUrl = filled($configuredMapUrl)
-        ? $configuredMapUrl
-        : (filled($address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($address) : null);
     $mapLocation = filled($address) ? $address : 'Dhaka, Bangladesh';
     $mapEmbedUrl = filled($address)
         ? 'https://www.google.com/maps?q='.urlencode($address).'&output=embed'
         : (filled($configuredMapUrl) ? $configuredMapUrl : 'https://www.google.com/maps?q='.urlencode($mapLocation).'&output=embed');
     $contactImage = $page->galleryImages()->first();
     $channels = $contactSections['channels'] ?? [];
+    $hasOfficeChannel = filled($address)
+        || filled($channels['office_title'] ?? null)
+        || filled($channels['office_intro'] ?? null);
     $enquiry = $contactSections['enquiry'] ?? [];
     $office = $contactSections['office'] ?? [];
     $direct = $contactSections['direct'] ?? [];
-    $map = $contactSections['map'] ?? [];
     $cta = $contactSections['cta'] ?? [];
 @endphp
 
@@ -53,7 +52,7 @@
     @endif
 
     {{-- How Can We Help Section --}}
-    @if(isset($contactSections['channels']) && (filled($phone) || filled($email) || filled($address)))
+    @if(isset($contactSections['channels']) && (filled($phone) || filled($email) || $hasOfficeChannel))
     <section class="uh-contact-channels py-24 bg-[var(--color-card-surface)] border-b border-[var(--color-divider)] relative overflow-hidden">
         <div class="uh-container relative z-10">
             @if(filled($channels['title'] ?? null) || filled($channels['intro'] ?? null))
@@ -90,7 +89,7 @@
                 @endif
                 
                 {{-- Visit Our Office --}}
-                @if(filled($address))
+                @if($hasOfficeChannel)
                 <div class="uh-contact-channel-card group rounded-2xl border border-[var(--color-divider)] bg-[var(--color-card-surface)] p-8 xl:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-xl hover:-translate-y-1 text-center flex flex-col items-center">
                     <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--color-dominant)] text-[var(--color-accent)] border border-[var(--color-divider)] transition-all duration-500 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] shadow-sm">
                         <x-icon name="pin" class="size-5 transition-transform duration-500 group-hover:scale-110" />
@@ -205,28 +204,9 @@
     </section>
 
     {{-- Map Section --}}
-    @if(isset($contactSections['map']) && (filled($address) || filled($configuredMapUrl) || filled($map['title'] ?? null)))
+    @if(isset($contactSections['map']) && (filled($address) || filled($configuredMapUrl)))
     <section class="uh-contact-map group relative h-[500px] w-full bg-[var(--color-dominant)] overflow-hidden">
         <iframe src="{{ $mapEmbedUrl }}" title="{{ __('Map showing :location', ['location' => $mapLocation]) }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="eager" referrerpolicy="no-referrer-when-downgrade" class="absolute inset-0 size-full object-cover transition-all duration-1000"></iframe>
-        
-        <div class="absolute inset-0 pointer-events-none transition-colors duration-1000 group-hover:bg-[var(--color-secondary)]/5">
-            <div class="uh-container h-full relative">
-                @if(filled($map['title'] ?? null) || filled($map['button'] ?? null))
-                <div class="uh-contact-map-card absolute right-[var(--uh-gutter)] top-1/2 -translate-y-1/2 bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto rounded-2xl transition-transform duration-700 ease-out group-hover:-translate-y-[calc(50%+8px)] border border-white/40 backdrop-blur-md">
-                    <div class="w-12 h-12 bg-sand rounded-full flex items-center justify-center mb-5 text-[var(--color-accent)]">
-                        <x-icon name="building-office" class="size-6" />
-                    </div>
-                    @if(filled($map['title'] ?? null))<h3 class="font-display text-[22px] text-[var(--color-body-text)]">{{ $map['title'] }}</h3>@endif
-                    @if(filled($address))<p class="mt-3 text-[15px] text-[var(--color-muted-text)] leading-relaxed">{{ $address }}</p>@endif
-                    @if($mapUrl && filled($map['button'] ?? null))
-                        <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="group/btn mt-8 flex w-full items-center justify-center rounded-xl bg-[var(--color-accent)] px-6 py-4 text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[var(--color-accent)] hover:shadow-[0_8px_20px_rgba(166,132,86,0.25)]">
-                            {{ $map['button'] }} <x-icon name="arrow-right" class="size-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                        </a>
-                    @endif
-                </div>
-            </div>
-                @endif
-        </div>
     </section>
     @endif
 
