@@ -17,21 +17,23 @@ class WhatsAppPropertySeeder extends Seeder
 {
     public function run(): void
     {
+        // First, let's clear existing properties and their media
         Property::query()->delete();
         Media::where('mediable_type', Property::class)->delete();
 
+        // Ensure required taxonomy exists
         $apartmentType = PropertyType::firstOrCreate(
-            ['slug' => 'apartment'],
-            ['name' => 'Apartment', 'field_profile' => 'apartment', 'main_type' => 'residential']
+            ['key' => 'apartment'],
+            ['label' => 'Apartment', 'field_profile' => 'apartment', 'category' => 'residential', 'is_active' => true]
         );
 
-        $gulshan1 = LocationArea::firstOrCreate(['slug' => 'gulshan-1'], ['name' => 'Gulshan 1']);
-        $gulshan2 = LocationArea::firstOrCreate(['slug' => 'gulshan-2'], ['name' => 'Gulshan 2']);
+        $gulshan1 = LocationArea::firstOrCreate(['slug' => 'gulshan-1'], ['name' => 'Gulshan 1', 'city' => 'Dhaka', 'country' => 'Bangladesh', 'is_active' => true]);
+        $gulshan2 = LocationArea::firstOrCreate(['slug' => 'gulshan-2'], ['name' => 'Gulshan 2', 'city' => 'Dhaka', 'country' => 'Bangladesh', 'is_active' => true]);
 
-        $gym = Amenity::firstOrCreate(['name' => 'Fully Equipped Gym', 'icon_class' => 'ph-barbell']);
-        $clubhouse = Amenity::firstOrCreate(['name' => 'Exclusive Clubhouse', 'icon_class' => 'ph-club']);
-        $swimmingPool = Amenity::firstOrCreate(['name' => 'Swimming Pool', 'icon_class' => 'ph-swimming-pool']);
-        $furnished = Amenity::firstOrCreate(['name' => 'Fully Furnished', 'icon_class' => 'ph-armchair']);
+        $gym = Amenity::firstOrCreate(['key' => 'gym'], ['label' => 'Fully Equipped Gym', 'icon_class' => 'ph-barbell', 'is_active' => true]);
+        $clubhouse = Amenity::firstOrCreate(['key' => 'clubhouse'], ['label' => 'Exclusive Clubhouse', 'icon_class' => 'ph-club', 'is_active' => true]);
+        $swimmingPool = Amenity::firstOrCreate(['key' => 'swimming_pool'], ['label' => 'Swimming Pool', 'icon_class' => 'ph-swimming-pool', 'is_active' => true]);
+        $furnished = Amenity::firstOrCreate(['key' => 'furnished'], ['label' => 'Fully Furnished', 'icon_class' => 'ph-armchair', 'is_active' => true]);
 
         $properties = [
             [
@@ -80,12 +82,14 @@ class WhatsAppPropertySeeder extends Seeder
             ]
         ];
 
+        // Using relative paths inside the repository so it works on live server
+        $imageDir = database_path('seeders/images');
         $uploadedImages = [
-            '/home/yamin/.gemini/antigravity/brain/43e45d90-6ec6-4f8c-85dc-1c87c9b1a71d/.user_uploaded/media_1792225795486_daa82e0c.jpg',
-            '/home/yamin/.gemini/antigravity/brain/43e45d90-6ec6-4f8c-85dc-1c87c9b1a71d/.user_uploaded/media_1792225795496_c50008a9.jpg',
-            '/home/yamin/.gemini/antigravity/brain/43e45d90-6ec6-4f8c-85dc-1c87c9b1a71d/.user_uploaded/media_1792225795503_3b01e429.jpg',
-            '/home/yamin/.gemini/antigravity/brain/43e45d90-6ec6-4f8c-85dc-1c87c9b1a71d/.user_uploaded/media_1792225795525_aac967f8.jpg',
-            '/home/yamin/.gemini/antigravity/brain/43e45d90-6ec6-4f8c-85dc-1c87c9b1a71d/.user_uploaded/media_1792225795544_b97516a8.jpg',
+            $imageDir . '/media_1792225795486_daa82e0c.jpg',
+            $imageDir . '/media_1792225795496_c50008a9.jpg',
+            $imageDir . '/media_1792225795503_3b01e429.jpg',
+            $imageDir . '/media_1792225795525_aac967f8.jpg',
+            $imageDir . '/media_1792225795544_b97516a8.jpg',
         ];
 
         $mediaData = [];
@@ -106,6 +110,8 @@ class WhatsAppPropertySeeder extends Seeder
                     'size_bytes' => File::size($sourcePath),
                     'sort_order' => $index,
                 ];
+            } else {
+                echo "Warning: Image not found at {$sourcePath}\n";
             }
         }
 
@@ -114,11 +120,13 @@ class WhatsAppPropertySeeder extends Seeder
             $data['reference'] = 'REF-' . strtoupper(Str::random(6));
             $property = Property::create($data);
             
-            $property->publicationState()->create([
+            // Setting the publication status to PUBLISHED immediately
+            $property->publicationState()->update([
                 'status' => PublicationState::PUBLISHED,
                 'published_at' => now(),
             ]);
             
+            // Attach all 5 images to each property's gallery
             foreach ($mediaData as $m) {
                 $property->media()->create($m);
             }
