@@ -64,7 +64,7 @@
 @endphp
 
 @section('content')
-    <article class="uh-pd uh-pd-property pb-24 lg:pb-0" x-data="uhGallery({{ $media->count() }})" x-init="$store.saved.viewed({{ $property->id }})">
+    <article class="uh-pd uh-pd-property" x-data="uhGallery({{ $media->count() }})" x-init="$store.saved.viewed({{ $property->id }})">
         <div class="uh-container">
             @if($isUnavailable)
                 <x-ui.alert tone="warn" class="mt-6">
@@ -530,17 +530,6 @@
                 @include('public.partials.property-preview')
             </section>
         @endif
-
-        <div class="uh-dock uh-pd-dock lg:hidden" role="group" aria-label="{{ __('Property actions') }}">
-            <x-save-button :property="$property" variant="icon" />
-            <x-save-button :property="$property" list="compare" variant="icon" />
-            <x-share-menu :url="$shareUrl" :title="$property->title" />
-            @if(filled($whatsapp))
-                <a class="uh-pd-dock-whatsapp" href="{{ $whatsapp }}" rel="noopener" target="_blank" data-track="whatsapp_click" data-track-property-id="{{ $property->id }}" data-track-location="mobile_bar" aria-label="{{ __('WhatsApp') }}" title="{{ __('WhatsApp') }}">
-                    <x-icon name="whatsapp" class="size-4" />
-                </a>
-            @endif
-        </div>
 
         @if($media->isNotEmpty())
             <div x-show="lightbox" x-cloak x-transition.opacity.duration.400ms class="uh-lightbox"

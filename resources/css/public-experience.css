@@ -13059,57 +13059,6 @@ body.uh-home .uh-trending-section .uh-card-next .uh-icon-action {
         box-shadow: 0 0 0 1px var(--uh-accent);
     }
 
-    .uh-pd-dock {
-        justify-content: center;
-        gap: 0.25rem;
-        padding: 0.5rem max(1rem, env(safe-area-inset-left)) calc(0.5rem + env(safe-area-inset-bottom));
-    }
-
-    .uh-pd-dock .uh-icon-action,
-    .uh-pd-dock .uh-share-control > button,
-    .uh-pd-dock-whatsapp {
-        display: inline-flex;
-        width: 2.5rem;
-        min-width: 2.5rem;
-        height: 2.5rem;
-        min-height: 2.5rem;
-        flex: 0 0 2.5rem;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 1px solid var(--uh-line);
-        border-radius: var(--uh-pill);
-        background: var(--uh-white);
-        color: var(--uh-ink);
-    }
-
-    .uh-pd-dock .uh-share-control {
-        width: 2.5rem;
-        flex: 0 0 2.5rem;
-        padding: 0;
-    }
-
-    .uh-pd-dock-whatsapp {
-        color: #168a55;
-    }
-
-    .uh-pd-dock .uh-share-popover {
-        bottom: calc(100% + 0.5rem);
-    }
-
-    @media (width <= 359px) {
-        .uh-pd-dock .uh-icon-action,
-        .uh-pd-dock .uh-share-control,
-        .uh-pd-dock .uh-share-control > button,
-        .uh-pd-dock-whatsapp {
-            width: 2rem;
-            min-width: 2rem;
-            height: 2rem;
-            min-height: 2rem;
-            flex-basis: 2rem;
-        }
-    }
-
     .uh-lightbox {
         padding-bottom: env(safe-area-inset-bottom);
     }
@@ -15535,5 +15484,12 @@ body.uh-home .uh-home-section-title {
     .uh-site-foot-premium .uh-foot-premium-grid {
         grid-template-columns: minmax(17rem, 1.2fr) minmax(0, 2.8fr);
         gap: clamp(2.5rem, 5vw, 6rem);
+    }
+}
+
+/* Keep property image pagination out of the way on mobile across all listing layouts. */
+@media (width <= 767px) {
+    .uh-showcase-dots {
+        display: none !important;
     }
 }
