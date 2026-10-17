@@ -68,7 +68,7 @@
         @if(filled($view))
             <input type="hidden" name="view" value="{{ $view }}">
         @endif
-        <x-ui.input name="q" label="Name, phone or email" :value="$filters['q'] ?? ''" type="search" />
+        <x-ui.input name="q" label="Name, phone, email, location or service" :value="$filters['q'] ?? ''" type="search" />
         <x-ui.select name="status" label="Stage">
             <option value="">Any stage</option>
             @foreach(\App\Models\Lead::STATUS_LABELS as $value => $label)

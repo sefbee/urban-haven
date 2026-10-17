@@ -18,7 +18,7 @@ class AdminSearchTest extends TestCase
         $owner = User::factory()->create();
         $this->assignRole($owner, Role::OWNER_ADMIN);
         $property = $this->makePublishableProperty(['title' => 'Gulshan Lakeview Residence']);
-        $this->lead(['name' => 'Gulshan Buyer']);
+        $this->lead(['name' => 'Amina Buyer', 'property_location' => 'Gulshan 2']);
         Faq::query()->create(['question' => 'Is Gulshan safe?', 'answer' => 'Yes.', 'group' => 'Areas', 'is_visible' => true]);
 
         $this->actingAs($owner)
@@ -26,7 +26,7 @@ class AdminSearchTest extends TestCase
             ->assertOk()
             ->assertSee('Gulshan Lakeview Residence')
             ->assertSee(route('admin.properties.edit', $property), false)
-            ->assertSee('Gulshan Buyer')
+            ->assertSee('Amina Buyer')
             ->assertSee('Is Gulshan safe?');
     }
 

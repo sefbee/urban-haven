@@ -217,7 +217,11 @@ class LeadController extends Controller
             ->when(($filters['view'] ?? null) === 'unread', fn (Builder $q) => $q->where('is_unread', true))
             ->when(($filters['view'] ?? null) === 'open', fn (Builder $q) => $q->whereNotIn('status', Lead::CLOSED_STATUSES))
             ->when($filters['q'] ?? null, function (Builder $q, string $term): void {
-                $q->where(fn (Builder $s) => $s->where('name', 'like', '%'.$term.'%')->orWhere('phone', 'like', '%'.preg_replace('/\D+/', '', $term).'%')->orWhere('email', 'like', '%'.$term.'%'));
+                $q->where(fn (Builder $s) => $s->where('name', 'like', '%'.$term.'%')
+                    ->orWhere('phone', 'like', '%'.preg_replace('/\D+/', '', $term).'%')
+                    ->orWhere('email', 'like', '%'.$term.'%')
+                    ->orWhere('property_location', 'like', '%'.$term.'%')
+                    ->orWhere('service_type', 'like', '%'.$term.'%'));
             });
 
         if ($user->canSeeAllLeads() && filled($filters['assigned_to'] ?? null)) {

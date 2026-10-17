@@ -15,6 +15,8 @@ class LeadExporter
     public const HEADERS = [
         'Lead ID', 'Date', 'Type', 'Name', 'Phone', 'Email', 'Property reference', 'Project', 'Stage',
         'Priority', 'Assignee', 'Source', 'Medium', 'Campaign', 'Next action', 'Loss reason',
+        'Property type', 'Property location', 'Number of units', 'Current status', 'Requested service',
+        'Preferred contact method', 'Preferred contact time', 'Details', 'Contact consent',
     ];
 
     public function __construct(private readonly AuditLogger $auditLogger) {}
@@ -105,6 +107,15 @@ class LeadExporter
             $lead->utm_campaign,
             $lead->next_action,
             $lead->loss_reason ? (Lead::LOSS_REASONS[$lead->loss_reason] ?? $lead->loss_reason) : null,
+            $lead->property_type,
+            $lead->property_location,
+            $lead->number_of_units,
+            $lead->current_status,
+            $lead->service_type,
+            $lead->preferred_contact,
+            $lead->preferred_contact_time,
+            $lead->message,
+            $lead->consent_given ? 'Yes' : 'No',
         ];
     }
 }

@@ -13,6 +13,8 @@ use Illuminate\Validation\Validator;
 
 class LeadCaptureRequest extends FormRequest
 {
+    private bool $propertyManagementSubmission = false;
+
     public function authorize(): bool
     {
         return true;
@@ -20,11 +22,19 @@ class LeadCaptureRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $this->propertyManagementSubmission = array_key_exists('full_name', $this->getInputSource()->all());
+
+        $normalized = [
             'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
             'email' => is_string($this->input('email')) ? trim($this->input('email')) : $this->input('email'),
             'phone' => is_string($this->input('phone')) ? trim($this->input('phone')) : $this->input('phone'),
-        ]);
+        ];
+
+        if ($this->propertyManagementSubmission) {
+            $normalized['full_name'] = is_string($this->input('full_name')) ? trim($this->input('full_name')) : $this->input('full_name');
+        }
+
+        $this->merge($normalized);
     }
 
     /**
@@ -34,10 +44,19 @@ class LeadCaptureRequest extends FormRequest
     {
         return [
             'type' => ['nullable', Rule::in(array_diff(Lead::TYPES, ['visit_request']))],
-            'name' => ['required', 'string', 'min:2', 'max:120'],
+            'full_name' => ['nullable', 'string', 'min:2', 'max:120'],
+            'name' => ['nullable', 'string', 'min:2', 'max:120'],
             'phone' => ['required', 'string', 'max:24', new PhoneNumberRule],
             'email' => ['nullable', 'email:rfc', 'max:190'],
             'preferred_contact' => ['nullable', Rule::in(['phone', 'whatsapp', 'email'])],
+            'preferred_contact_method' => ['nullable', Rule::in(['phone', 'whatsapp', 'email'])],
+            'preferred_contact_time' => ['nullable', Rule::in(['morning', 'afternoon', 'evening'])],
+            'property_type' => ['nullable', Rule::in(['residential', 'apartment_multi_family', 'commercial', 'land_plot'])],
+            'property_location' => ['nullable', 'string', 'max:255'],
+            'number_of_units' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'current_status' => ['nullable', Rule::in(['occupied', 'vacant', 'under_construction'])],
+            'service_type' => ['nullable', Rule::in(['full_service_management', 'tenant_finding_leasing', 'rent_collection_maintenance'])],
+            'details' => ['nullable', 'string', 'max:2000'],
             'message' => ['nullable', 'string', 'max:2000'],
             'property_id' => ['nullable', 'integer', $this->publishedRule(Property::class)],
             'project_id' => ['nullable', 'integer', $this->publishedRule(Project::class)],
@@ -47,7 +66,8 @@ class LeadCaptureRequest extends FormRequest
             'landing_url' => ['nullable', 'string', 'max:500'],
             'referrer' => ['nullable', 'string', 'max:500'],
             'source' => ['nullable', 'string', 'max:50'],
-            'consent_given' => ['accepted'],
+            'contact_consent' => ['nullable'],
+            'consent_given' => ['nullable'],
             'submission_token' => ['required', 'uuid'],
             'website' => ['prohibited'],
         ];
@@ -59,7 +79,6 @@ class LeadCaptureRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'consent_given.accepted' => 'Please agree to be contacted so we can reply.',
             'submission_token.*' => 'This form has expired. Refresh the page and try again.',
             'website.prohibited' => 'We could not accept this submission.',
         ];
@@ -69,8 +88,25 @@ class LeadCaptureRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if (($this->input('preferred_contact') === 'email') && blank($this->input('email'))) {
-                    $validator->errors()->add('email', 'Add an email address if you would like us to reply by email.');
+                $data = $validator->getData();
+                $required = $this->propertyManagementSubmission
+                    ? ['full_name', 'email', 'property_type', 'property_location', 'service_type', 'contact_consent']
+                    : ['name', 'consent_given'];
+
+                foreach ($required as $field) {
+                    $consent = in_array($data[$field] ?? null, ['yes', 'on', 1, '1', true, 'true'], true);
+
+                    if (($field === 'contact_consent' || $field === 'consent_given') ? ! $consent : blank($data[$field] ?? null)) {
+                        $validator->errors()->add($field, $field === 'contact_consent' || $field === 'consent_given'
+                            ? 'Please agree to be contacted so we can reply.'
+                            : 'This field is required.');
+                    }
+                }
+
+                if (($data['preferred_contact'] ?? null) === 'email' || ($data['preferred_contact_method'] ?? null) === 'email') {
+                    if (blank($data['email'] ?? null)) {
+                        $validator->errors()->add('email', 'Add an email address if you would like us to reply by email.');
+                    }
                 }
             },
         ];
@@ -85,7 +121,10 @@ class LeadCaptureRequest extends FormRequest
 
         if ($key === null && is_array($data)) {
             unset($data['website']);
-            $data['consent_given'] = true;
+            $data['name'] = $data['full_name'] ?? $data['name'];
+            $data['preferred_contact'] = $data['preferred_contact_method'] ?? $data['preferred_contact'] ?? null;
+            $data['message'] = $data['details'] ?? $data['message'] ?? null;
+            $data['consent_given'] = isset($data['contact_consent']) ? (bool) $data['contact_consent'] : (bool) ($data['consent_given'] ?? false);
             $data['type'] ??= null;
         }
 

@@ -161,6 +161,112 @@ class LeadCaptureTest extends TestCase
         $this->getJson('/properties/does-not-exist')->assertNotFound()->assertJsonMissingPath('exception');
     }
 
+    public function test_property_management_inquiry_persists_every_specified_field(): void
+    {
+        Queue::fake();
+        $payload = [
+            'full_name' => 'Amina Rahman',
+            'email' => 'amina@example.com',
+            'phone' => '01711111111',
+            'property_type' => 'apartment_multi_family',
+            'property_location' => 'Banani Block F',
+            'number_of_units' => '4',
+            'current_status' => 'occupied',
+            'service_type' => 'tenant_finding_leasing',
+            'details' => 'Four flats, looking for tenants.',
+            'preferred_contact_method' => 'whatsapp',
+            'preferred_contact_time' => 'afternoon',
+            'contact_consent' => '1',
+            'submission_token' => (string) Str::uuid(),
+        ];
+
+        $this->postJson(route('inquiries.store'), $payload)->assertCreated();
+
+        $this->assertDatabaseHas('leads', [
+            'name' => 'Amina Rahman',
+            'email' => 'amina@example.com',
+            'property_type' => 'apartment_multi_family',
+            'property_location' => 'Banani Block F',
+            'number_of_units' => 4,
+            'current_status' => 'occupied',
+            'service_type' => 'tenant_finding_leasing',
+            'message' => 'Four flats, looking for tenants.',
+            'preferred_contact' => 'whatsapp',
+            'preferred_contact_time' => 'afternoon',
+            'consent_given' => true,
+        ]);
+    }
+
+    public function test_property_management_fields_are_validated_and_consent_is_never_implied(): void
+    {
+        $base = [
+            'full_name' => 'Amina Rahman',
+            'email' => 'amina@example.com',
+            'phone' => '01711111111',
+            'property_type' => 'residential',
+            'property_location' => 'Gulshan 2',
+            'service_type' => 'full_service_management',
+            'submission_token' => (string) Str::uuid(),
+        ];
+
+        $this->postJson(route('inquiries.store'), $base)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('contact_consent');
+        $this->assertDatabaseCount('leads', 0);
+
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '0']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('contact_consent');
+
+        $missingService = array_merge($base, ['contact_consent' => '1']);
+        unset($missingService['service_type']);
+        $this->postJson(route('inquiries.store'), $missingService)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('service_type');
+
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '1', 'property_type' => 'invalid']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('property_type');
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '1', 'service_type' => 'invalid']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('service_type');
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '1', 'current_status' => 'invalid']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('current_status');
+
+        $this->travel(61)->seconds();
+
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '1', 'number_of_units' => '0']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('number_of_units');
+        $this->postJson(route('inquiries.store'), array_merge($base, ['contact_consent' => '1', 'email' => 'not-an-email']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+    }
+
+    public function test_optional_property_management_fields_may_be_omitted(): void
+    {
+        Queue::fake();
+        $this->postJson(route('inquiries.store'), [
+            'full_name' => 'Amina Rahman',
+            'email' => 'amina@example.com',
+            'phone' => '01711111111',
+            'property_type' => 'residential',
+            'property_location' => 'Gulshan 2',
+            'service_type' => 'full_service_management',
+            'contact_consent' => '1',
+            'submission_token' => (string) Str::uuid(),
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('leads', [
+            'name' => 'Amina Rahman',
+            'number_of_units' => null,
+            'current_status' => null,
+            'preferred_contact_time' => null,
+            'message' => null,
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>

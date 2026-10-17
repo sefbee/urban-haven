@@ -109,14 +109,18 @@
         <div class="grid gap-12 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_450px] lg:gap-16 xl:gap-24">
             
             {{-- Form --}}
-            <div class="pt-2">
+            <div class="uh-contact-form-panel">
+                <div class="uh-contact-form-intro">
                 @if(filled($enquiry['eyebrow'] ?? null))<div class="inline-flex items-center gap-3 mb-4"><span class="w-6 h-px bg-[var(--color-accent)]"></span><p class="text-[11px] font-bold tracking-[0.2em] text-[var(--color-accent)] uppercase">{{ $enquiry['eyebrow'] }}</p></div>@endif
-                @if(filled($enquiry['title'] ?? null))<h2 class="text-[2rem] sm:text-[2.75rem] leading-[1.1] font-display text-[var(--color-body-text)]">{{ $enquiry['title'] }}</h2>@endif
-                @if(filled($enquiry['intro'] ?? null))<p class="mt-5 text-[16px] text-[var(--color-muted-text)] leading-relaxed max-w-[500px]">{{ $enquiry['intro'] }}</p>@endif
-                
-                <div class="mt-8">
+                <h2 class="text-[2rem] sm:text-[2.75rem] leading-[1.1] font-display text-[var(--color-body-text)]">{{ __('Let\'s Talk About Your Property') }}</h2>
+                <p class="mt-4 text-[16px] text-[var(--color-muted-text)] leading-relaxed max-w-[500px]">{{ __('Tell us a little about your property and our team will get in touch.') }}</p>
+                <p class="uh-form-duration"><x-icon name="clock" class="size-4" />{{ __('Takes about 2 minutes. Fields marked * are required.') }}</p>
+                </div>
+
+                <div class="uh-contact-form-content">
                     @include('public.partials.lead-form', [
                         'leadType' => 'general_contact',
+                        'formClass' => 'uh-property-submission-form',
                         'showSuggestedVisitTimes' => false,
                         'showVisitNotes' => false,
                         'showNextSteps' => false,

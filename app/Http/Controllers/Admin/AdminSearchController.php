@@ -106,6 +106,8 @@ class AdminSearchController extends Controller
                         $query->where('name', 'like', $like)
                             ->orWhere('email', 'like', $like)
                             ->orWhere('message', 'like', $like)
+                            ->orWhere('property_location', 'like', $like)
+                            ->orWhere('service_type', 'like', $like)
                             ->orWhere('next_action', 'like', $like)
                             ->orWhereHas('property', fn ($q) => $q->where('title', 'like', $like))
                             ->orWhereHas('project', fn ($q) => $q->where('name', 'like', $like));

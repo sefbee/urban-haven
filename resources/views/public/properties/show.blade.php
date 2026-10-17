@@ -357,20 +357,57 @@
                                         <input type="hidden" name="property_id" value="{{ $property->id }}">
                                         <input type="hidden" name="type" value="property_inquiry">
                                         <input type="hidden" name="source" value="property_detail">
-                                        <x-ui.input name="name" id="property-contact-name" :label="__('Your name')" autocomplete="name" required maxlength="120" :value="$customer?->name" />
-                                        <p x-cloak x-show="fieldError('name')" class="uh-error" x-text="fieldError('name')"></p>
-                                <x-ui.input name="phone" id="property-contact-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24" required :value="$customer?->phone" />
+                                        <h3 class="uh-h4">{{ __('Your Details') }}</h3>
+                                        <x-ui.input name="full_name" id="property-contact-name" :label="__('Full Name *')" autocomplete="name" required maxlength="120" :value="$customer?->name" />
+                                        <p x-cloak x-show="fieldError('full_name')" class="uh-error" x-text="fieldError('full_name')"></p>
+                                        <x-ui.input name="phone" id="property-contact-phone" :label="__('Phone Number *')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24" required :value="$customer?->phone" />
+                                        <p class="uh-hint">{{ __('Please use a number we can reach, ideally one with WhatsApp.') }}</p>
                                         <p x-cloak x-show="fieldError('phone')" class="uh-error" x-text="fieldError('phone')"></p>
-                                        <x-ui.input name="email" id="property-contact-email" :label="__('Email')" type="email" dir="ltr" autocomplete="email" maxlength="190" optional :value="$customer?->email" />
+                                        <x-ui.input name="email" id="property-contact-email" :label="__('Email Address *')" type="email" dir="ltr" autocomplete="email" maxlength="190" required :value="$customer?->email" placeholder="you@example.com" />
+                                        <p class="uh-hint">{{ __('We will send a confirmation of your inquiry here.') }}</p>
                                         <p x-cloak x-show="fieldError('email')" class="uh-error" x-text="fieldError('email')"></p>
-                                        <x-ui.textarea name="message" id="property-contact-message" :label="__('Message')" :value="$propertyEnquiryMessage" rows="4" maxlength="2000" />
-                                        <p x-cloak x-show="fieldError('message')" class="uh-error" x-text="fieldError('message')"></p>
+                                        <h3 class="uh-h4">{{ __('Your Property') }}</h3>
+                                        <fieldset><legend class="uh-label">{{ __('Property Type *') }}</legend><div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                            @foreach(['residential' => 'Residential', 'apartment_multi_family' => 'Apartment / Multi-family', 'commercial' => 'Commercial', 'land_plot' => 'Land / Plot'] as $value => $label)
+                                                <label class="uh-check"><input type="radio" name="property_type" value="{{ $value }}" required @checked(old('property_type') === $value)><span>{{ __($label) }}</span></label>
+                                            @endforeach
+                                        </div><p x-cloak x-show="fieldError('property_type')" class="uh-error" x-text="fieldError('property_type')"></p></fieldset>
+                                        <x-ui.input name="property_location" id="property-contact-location" :label="__('Location *')" required maxlength="255" :value="$place" placeholder="Gulshan 2, Banani Block F, Dhanmondi 8/A" />
+                                        <p class="uh-hint">{{ __('Area or address.') }}</p>
+                                        <p x-cloak x-show="fieldError('property_location')" class="uh-error" x-text="fieldError('property_location')"></p>
+                                        <x-ui.input name="number_of_units" id="property-contact-units" type="number" min="1" step="1" :label="__('Number of Units')" :value="old('number_of_units', 1)" />
+                                        <p x-cloak x-show="fieldError('number_of_units')" class="uh-error" x-text="fieldError('number_of_units')"></p>
+                                        <fieldset><legend class="uh-label">{{ __('Current Status') }}</legend><div class="mt-2 flex flex-wrap gap-3">
+                                            @foreach(['occupied' => 'Occupied', 'vacant' => 'Vacant', 'under_construction' => 'Under construction'] as $value => $label)
+                                                <label class="uh-check"><input type="radio" name="current_status" value="{{ $value }}" @checked(old('current_status') === $value)><span>{{ __($label) }}</span></label>
+                                            @endforeach
+                                        </div><p x-cloak x-show="fieldError('current_status')" class="uh-error" x-text="fieldError('current_status')"></p></fieldset>
+                                        <h3 class="uh-h4">{{ __('How Can We Help?') }}</h3>
+                                        <fieldset><legend class="uh-label">{{ __('Service *') }}</legend><div class="mt-2 grid gap-2">
+                                            @foreach(['full_service_management' => ['Full-Service Property Management', 'Complete care of your property, handled by our team.'], 'tenant_finding_leasing' => ['Tenant Finding & Leasing', 'Find and screen suitable tenants.'], 'rent_collection_maintenance' => ['Rent Collection & Maintenance', 'Regular upkeep and rent handling.']] as $value => $service)
+                                                <label class="uh-check items-start"><input type="radio" name="service_type" value="{{ $value }}" required @checked(old('service_type') === $value)><span><strong>{{ __($service[0]) }}</strong><span class="mt-1 block text-xs text-[var(--uh-muted)]">{{ __($service[1]) }}</span></span></label>
+                                            @endforeach
+                                        </div><p x-cloak x-show="fieldError('service_type')" class="uh-error" x-text="fieldError('service_type')"></p></fieldset>
+                                        <x-ui.textarea name="details" id="property-contact-message" :label="__('Details')" :value="$propertyEnquiryMessage" rows="4" maxlength="2000" optional placeholder="Tell us more about your property and what you need." />
+                                        <p x-cloak x-show="fieldError('details')" class="uh-error" x-text="fieldError('details')"></p>
+                                        <h3 class="uh-h4">{{ __('How Should We Reach You?') }}</h3>
+                                        <fieldset><legend class="uh-label">{{ __('Preferred Contact Method') }}</legend><div class="mt-2 flex flex-wrap gap-3">
+                                            @foreach(['phone' => 'Phone Call', 'whatsapp' => 'WhatsApp', 'email' => 'Email'] as $value => $label)
+                                                <label class="uh-check"><input type="radio" name="preferred_contact_method" value="{{ $value }}" @checked(old('preferred_contact_method') === $value)><span>{{ __($label) }}</span></label>
+                                            @endforeach
+                                        </div><p x-cloak x-show="fieldError('preferred_contact_method')" class="uh-error" x-text="fieldError('preferred_contact_method')"></p></fieldset>
+                                        <fieldset><legend class="uh-label">{{ __('Best Time to Contact') }}</legend><div class="mt-2 flex flex-wrap gap-3">
+                                            @foreach(['morning' => 'Morning (9–12)', 'afternoon' => 'Afternoon (12–5)', 'evening' => 'Evening (5–9)'] as $value => $label)
+                                                <label class="uh-check"><input type="radio" name="preferred_contact_time" value="{{ $value }}" @checked(old('preferred_contact_time') === $value)><span>{{ __($label) }}</span></label>
+                                            @endforeach
+                                        </div><p x-cloak x-show="fieldError('preferred_contact_time')" class="uh-error" x-text="fieldError('preferred_contact_time')"></p></fieldset>
 
                                         <label class="uh-check uh-pd-consent items-start">
-                                            <input type="checkbox" name="consent_given" value="1" required>
-                                            <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ __('I agree to the') }} <a class="uh-link-quiet" href="{{ route('legal') }}">{{ __('Terms of Use and Privacy Policy') }}</a>.</span>
+                                            <input type="checkbox" name="contact_consent" value="1" required @checked(old('contact_consent'))>
+                                            <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ __('I agree to be contacted by Urban Haven about my inquiry.') }} <a class="uh-link-quiet" href="{{ route('legal') }}">{{ __('Privacy policy') }}</a>.</span>
                                         </label>
-                                        <p x-cloak x-show="fieldError('consent_given')" class="uh-error" x-text="fieldError('consent_given')"></p>
+                                        <p x-cloak x-show="fieldError('contact_consent')" class="uh-error" x-text="fieldError('contact_consent')"></p>
+                                        <p class="text-xs text-[var(--uh-muted)]">{{ __('Your information is used only to respond to your inquiry and is not shared with third parties.') }}</p>
 
                                         @guest
                                             <label class="uh-check uh-pd-account-check items-start">

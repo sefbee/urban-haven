@@ -7,6 +7,7 @@
     $submitLabel = $submitLabel ?? ($isVisit ? __('Request a visit') : __('Send enquiry'));
     $showMessage = $showMessage ?? true;
     $compact = $compact ?? false;
+    $formClass = $formClass ?? '';
     $messageLabel = $messageLabel ?? __('Anything we should know?');
     $messagePlaceholder = $messagePlaceholder ?? __('Preferred floor, timeline, budget…');
     $consentText = \App\Models\Setting::get('consent_text') ?: \App\Support\SettingsSchema::defaultConsentText();
@@ -46,7 +47,7 @@
             }
         }
     }
-    $fieldError = fn (string $field) => "<p class=\"uh-error\" x-cloak x-show=\"fieldError('{$field}')\"><span x-text=\"fieldError('{$field}')\"></span></p>";
+    $fieldError = fn (string $field) => "<p id=\"{$prefix}-{$field}-error\" class=\"uh-error\" x-cloak x-show=\"fieldError('{$field}')\" role=\"alert\"><span class=\"uh-error-mark\" aria-hidden=\"true\">!</span><span x-text=\"fieldError('{$field}')\"></span></p>";
 @endphp
 
 <div x-data="uhLeadForm(@js($isVisit ? 'visit_request' : ($leadType ?? 'inquiry')))">
@@ -58,7 +59,7 @@
         @endif
     </div>
 
-    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" @class(['uh-lead-form', 'gap-3' => $compact]) novalidate
+    <form method="POST" action="{{ $isVisit ? route('visits.store') : route('inquiries.store') }}" @class(['uh-lead-form', $formClass, 'gap-3' => $compact]) novalidate
           x-show="!done" @submit="submit($event)" @focusin.once="start()">
         @csrf
         <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
@@ -87,43 +88,19 @@
             <x-ui.alert tone="danger">{{ $message }}</x-ui.alert>
         @enderror
 
-        @if($compact && ! $isVisit)
-            <div class="grid gap-3 sm:grid-cols-2">
-        @endif
-        <div>
-            <x-ui.input name="name" id="{{ $prefix }}-name" :label="__('Your name')" autocomplete="name" required maxlength="120" />
-            {!! $fieldError('name') !!}
-        </div>
-        <div>
-            <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Mobile number')" type="tel" dir="ltr"
-                        inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24"
-                        pattern="^(?:(?:\+?880|0)?1[3-9]\d{8}|\+[1-9]\d{7,14})$"
-                        :hint="$compact ? __('01XXXXXXXXX or +country code') : __('Bangladeshi mobile (01XXXXXXXXX) or an international number starting with +')" required />
-            {!! $fieldError('phone') !!}
-        </div>
-        @if($compact && ! $isVisit)
-            </div>
-            <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                    <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr"
-                                autocomplete="email" maxlength="190" optional />
-                    {!! $fieldError('email') !!}
-                </div>
-                <x-ui.select name="preferred_contact" id="{{ $prefix }}-contact" :label="__('Best way to reach you')">
-                    <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
-                    <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
-                    <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
-                </x-ui.select>
-            </div>
-        @else
+        @if($isVisit)
             <div>
-                <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr"
-                            autocomplete="email" maxlength="190" optional />
+                <x-ui.input name="name" id="{{ $prefix }}-name" :label="__('Your name')" autocomplete="name" required maxlength="120" />
+                {!! $fieldError('name') !!}
+            </div>
+            <div>
+                <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Mobile number')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" :placeholder="__('01XXXXXXXXX')" maxlength="24" required />
+                {!! $fieldError('phone') !!}
+            </div>
+            <div>
+                <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email')" type="email" dir="ltr" autocomplete="email" maxlength="190" optional />
                 {!! $fieldError('email') !!}
             </div>
-        @endif
-
-        @if($isVisit)
             <div @input="if ($event.target.name === 'preferred_at') slot = $event.target.value">
                 @if($showSuggestedVisitTimes && $visitSlots)
                     <div class="uh-intents" role="group" aria-label="{{ __('Suggested times') }}">
@@ -146,37 +123,105 @@
                 </div>
             @endif
         @else
-            @unless($compact)
-                <x-ui.select name="preferred_contact" id="{{ $prefix }}-contact" :label="__('Best way to reach you')">
-                    <option value="phone" @selected(old('preferred_contact') === 'phone')>{{ __('Phone call') }}</option>
-                    <option value="whatsapp" @selected(old('preferred_contact') === 'whatsapp')>{{ __('WhatsApp') }}</option>
-                    <option value="email" @selected(old('preferred_contact') === 'email')>{{ __('Email') }}</option>
-                </x-ui.select>
-            @endunless
-            @if($showMessage)
+            <section class="space-y-4 border-b border-[var(--uh-line)] pb-5" aria-labelledby="{{ $prefix }}-details-heading">
+                <h3 id="{{ $prefix }}-details-heading" class="uh-h4">{{ __('Your Details') }}</h3>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <x-ui.input name="full_name" id="{{ $prefix }}-name" :label="__('Full Name *')" autocomplete="name" required maxlength="120" x-bind:aria-invalid="fieldError('full_name') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-full_name-error')" />
+                        {!! $fieldError('full_name') !!}
+                    </div>
+                    <div>
+                        <x-ui.input name="email" id="{{ $prefix }}-email" :label="__('Email Address *')" type="email" dir="ltr" autocomplete="email" maxlength="190" required placeholder="you@example.com" showHint :hint="__('We will send a confirmation of your inquiry here.')" x-bind:aria-invalid="fieldError('email') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-email-error')" />
+                        {!! $fieldError('email') !!}
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-ui.input name="phone" id="{{ $prefix }}-phone" :label="__('Phone Number *')" type="tel" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="24" required showHint :hint="__('Please use a number we can reach, ideally one with WhatsApp.')" x-bind:aria-invalid="fieldError('phone') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-phone-error')" />
+                        {!! $fieldError('phone') !!}
+                    </div>
+                </div>
+            </section>
+
+            <section class="space-y-4 border-b border-[var(--uh-line)] pb-5" aria-labelledby="{{ $prefix }}-property-heading">
+                <h3 id="{{ $prefix }}-property-heading" class="uh-h4">{{ __('Your Property') }}</h3>
+                <fieldset x-bind:aria-invalid="fieldError('property_type') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-property_type-error')">
+                    <legend class="uh-label">{{ __('Property Type *') }}</legend>
+                    <div class="uh-property-type-options mt-2 grid gap-2 sm:grid-cols-2">
+                        @foreach(['residential' => 'Residential', 'apartment_multi_family' => 'Apartment / Multi-family', 'commercial' => 'Commercial', 'land_plot' => 'Land / Plot'] as $value => $label)
+                            <label class="uh-check"><input type="radio" name="property_type" value="{{ $value }}" required @checked(old('property_type') === $value)><span>{{ __($label) }}</span></label>
+                        @endforeach
+                    </div>
+                    {!! $fieldError('property_type') !!}
+                </fieldset>
                 <div>
-                    @if($intents)
-                        <div class="uh-intents" role="group" aria-label="{{ __('What would you like to know?') }}">
-                            <p class="uh-intents-label">{{ __('What would you like to know?') }}</p>
-                            @foreach($intents as $label => $text)
-                                <button type="button" class="uh-intent" :aria-pressed="(intent === @js($text)).toString()" aria-pressed="false"
-                                        @click="useIntent(@js($text))">{{ $label }}</button>
+                    <x-ui.input name="property_location" id="{{ $prefix }}-location" :label="__('Location *')" required maxlength="255" placeholder="Gulshan 2, Banani Block F, Dhanmondi 8/A" showHint :hint="__('Area or address.')" x-bind:aria-invalid="fieldError('property_location') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-property_location-error')" />
+                    {!! $fieldError('property_location') !!}
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <x-ui.input name="number_of_units" id="{{ $prefix }}-units" type="number" min="1" step="1" :label="__('Number of Units')" :value="old('number_of_units', 1)" showHint :hint="__('How many flats, floors or shops need to be managed?')" x-bind:aria-invalid="fieldError('number_of_units') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-number_of_units-error')" />
+                        {!! $fieldError('number_of_units') !!}
+                    </div>
+                    <fieldset x-bind:aria-invalid="fieldError('current_status') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-current_status-error')">
+                        <legend class="uh-label">{{ __('Current Status') }}</legend>
+                        <div class="mt-2 flex flex-wrap gap-3">
+                            @foreach(['occupied' => 'Occupied', 'vacant' => 'Vacant', 'under_construction' => 'Under construction'] as $value => $label)
+                                <label class="uh-check"><input type="radio" name="current_status" value="{{ $value }}" @checked(old('current_status') === $value)><span>{{ __($label) }}</span></label>
                             @endforeach
                         </div>
-                    @endif
-                    <x-ui.textarea name="message" id="{{ $prefix }}-message" :label="$messageLabel" :rows="$compact ? 2 : 3" maxlength="2000" optional
-                                   :placeholder="$messagePlaceholder" />
-                    {!! $fieldError('message') !!}
+                        {!! $fieldError('current_status') !!}
+                    </fieldset>
                 </div>
-            @endif
+            </section>
+
+            <section class="space-y-4 border-b border-[var(--uh-line)] pb-5" aria-labelledby="{{ $prefix }}-help-heading">
+                <h3 id="{{ $prefix }}-help-heading" class="uh-h4">{{ __('How Can We Help?') }}</h3>
+                <fieldset x-bind:aria-invalid="fieldError('service_type') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-service_type-error')">
+                    <legend class="uh-label">{{ __('Service *') }}</legend>
+                    <div class="uh-service-options mt-2 grid gap-3">
+                        @foreach(['full_service_management' => ['Full-Service Property Management', 'Complete care of your property, handled by our team.', 'building'], 'tenant_finding_leasing' => ['Tenant Finding & Leasing', 'Find and screen suitable tenants.', 'key'], 'rent_collection_maintenance' => ['Rent Collection & Maintenance', 'Regular upkeep and rent handling.', 'settings']] as $value => $service)
+                            <label class="uh-check uh-service-option"><input type="radio" name="service_type" value="{{ $value }}" required @checked(old('service_type') === $value)><span class="uh-service-option-icon" aria-hidden="true"><x-icon :name="$service[2]" class="size-5" /></span><span class="uh-service-option-copy"><strong>{{ __($service[0]) }}</strong><span>{{ __($service[1]) }}</span></span><span class="uh-service-option-indicator" aria-hidden="true"></span></label>
+                        @endforeach
+                    </div>
+                    {!! $fieldError('service_type') !!}
+                </fieldset>
+                <div>
+                    <x-ui.textarea name="details" id="{{ $prefix }}-details" :label="__('Details')" rows="4" maxlength="2000" optional placeholder="Tell us more about your property and what you need." showHint :hint="__('Anything we should know? Building age, current rent, specific issues or your goals.')" x-bind:aria-invalid="fieldError('details') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-details-error')" />
+                    {!! $fieldError('details') !!}
+                </div>
+            </section>
+
+            <section class="space-y-4" aria-labelledby="{{ $prefix }}-reach-heading">
+                <h3 id="{{ $prefix }}-reach-heading" class="uh-h4">{{ __('How Should We Reach You?') }}</h3>
+                <div class="uh-contact-preference-grid">
+                    <fieldset class="uh-contact-preference-group" x-bind:aria-invalid="fieldError('preferred_contact_method') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-preferred_contact_method-error')">
+                        <legend class="uh-label">{{ __('Preferred Contact Method') }}</legend>
+                        <div class="uh-preference-options">
+                            @foreach(['phone' => 'Phone Call', 'whatsapp' => 'WhatsApp', 'email' => 'Email'] as $value => $label)
+                                <label class="uh-check uh-preference-option"><input type="radio" name="preferred_contact_method" value="{{ $value }}" @checked(old('preferred_contact_method') === $value)><span>{{ __($label) }}</span></label>
+                            @endforeach
+                        </div>
+                        {!! $fieldError('preferred_contact_method') !!}
+                    </fieldset>
+                    <fieldset class="uh-contact-preference-group" x-bind:aria-invalid="fieldError('preferred_contact_time') ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-preferred_contact_time-error')">
+                        <legend class="uh-label">{{ __('Best Time to Contact') }}</legend>
+                        <div class="uh-preference-options">
+                            @foreach(['morning' => 'Morning (9–12)', 'afternoon' => 'Afternoon (12–5)', 'evening' => 'Evening (5–9)'] as $value => $label)
+                                <label class="uh-check uh-preference-option"><input type="radio" name="preferred_contact_time" value="{{ $value }}" @checked(old('preferred_contact_time') === $value)><span>{{ __($label) }}</span></label>
+                            @endforeach
+                        </div>
+                        {!! $fieldError('preferred_contact_time') !!}
+                    </fieldset>
+                </div>
+            </section>
         @endif
 
-        <div>
-            <label class="uh-check items-start">
-                <input type="checkbox" name="consent_given" value="1" required @checked(old('consent_given'))>
-                <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ $consentText }}</span>
+        <div class="uh-consent-card">
+            <label class="uh-check uh-consent-check">
+                <input type="checkbox" name="{{ $isVisit ? 'consent_given' : 'contact_consent' }}" value="1" required @checked(old($isVisit ? 'consent_given' : 'contact_consent')) x-bind:aria-invalid="fieldError(@js($isVisit ? 'consent_given' : 'contact_consent')) ? 'true' : 'false'" x-bind:aria-errormessage="@js($prefix.'-'.($isVisit ? 'consent_given' : 'contact_consent').'-error')">
+                <span class="text-xs leading-relaxed text-[var(--uh-muted)]">{{ $isVisit ? $consentText : __('I agree to be contacted by Urban Haven about my inquiry.') }}</span>
             </label>
-            {!! $fieldError('consent_given') !!}
+            {!! $fieldError($isVisit ? 'consent_given' : 'contact_consent') !!}
+            @unless($isVisit)<p class="uh-consent-note">{{ __('Your information is used only to respond to your inquiry and is not shared with third parties.') }}</p>@endunless
             {!! $fieldError('submission_token') !!}
         </div>
 

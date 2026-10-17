@@ -96,6 +96,12 @@
                         <dt class="uh-spec-label">Preferred contact</dt>
                         <dd class="mt-1 text-sm">{{ $lead->preferred_contact ? ucfirst($lead->preferred_contact) : 'Not stated' }}</dd>
                     </div>
+                    <div><dt class="uh-spec-label">Property type</dt><dd class="mt-1 text-sm">{{ $lead->property_type ? ucfirst(str_replace('_', ' ', $lead->property_type)) : 'Not stated' }}</dd></div>
+                    <div><dt class="uh-spec-label">Property location</dt><dd class="mt-1 text-sm">{{ $lead->property_location ?: 'Not stated' }}</dd></div>
+                    <div><dt class="uh-spec-label">Number of units</dt><dd class="mt-1 text-sm">{{ $lead->number_of_units ?? 'Not stated' }}</dd></div>
+                    <div><dt class="uh-spec-label">Current status</dt><dd class="mt-1 text-sm">{{ $lead->current_status ? ucfirst(str_replace('_', ' ', $lead->current_status)) : 'Not stated' }}</dd></div>
+                    <div><dt class="uh-spec-label">Requested service</dt><dd class="mt-1 text-sm">{{ $lead->service_type ? ucfirst(str_replace('_', ' ', $lead->service_type)) : 'Not stated' }}</dd></div>
+                    <div><dt class="uh-spec-label">Best time to contact</dt><dd class="mt-1 text-sm">{{ $lead->preferred_contact_time ? ucfirst($lead->preferred_contact_time) : 'Not stated' }}</dd></div>
                     <div>
                         <dt class="uh-spec-label">Received</dt>
                         <dd class="mt-1 text-sm">{{ \App\Support\DisplayTimezone::format($lead->created_at) }}</dd>

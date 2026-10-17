@@ -21,6 +21,7 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -84,8 +85,14 @@ class LeadService implements LeadServiceContract
                     'email' => $email,
                     'property_id' => $validated['property_id'] ?? null,
                     'project_id' => $validated['project_id'] ?? null,
+                    'property_type' => $validated['property_type'] ?? null,
+                    'property_location' => filled($validated['property_location'] ?? null) ? trim($validated['property_location']) : null,
+                    'number_of_units' => $validated['number_of_units'] ?? null,
+                    'current_status' => $validated['current_status'] ?? null,
+                    'service_type' => $validated['service_type'] ?? null,
                     'source' => $attribution['utm_source'] ? 'campaign' : ($validated['source'] ?? 'website'),
                     'preferred_contact' => $validated['preferred_contact'] ?? null,
+                    'preferred_contact_time' => $validated['preferred_contact_time'] ?? null,
                     'utm_source' => $attribution['utm_source'],
                     'utm_medium' => $attribution['utm_medium'],
                     'utm_campaign' => $attribution['utm_campaign'],
@@ -126,15 +133,27 @@ class LeadService implements LeadServiceContract
                     : User::query()->where('is_active', true)->whereHas('roles', fn ($q) => $q->where('key', Role::OWNER_ADMIN))->get();
 
                 foreach ($recipients as $recipient) {
-                    $recipient->notifyNow(new NewLeadNotification($lead, databaseOnly: true));
+                    try {
+                        $recipient->notifyNow(new NewLeadNotification($lead, databaseOnly: true));
+                    } catch (\Throwable $exception) {
+                        Log::error('Staff lead notification failed', ['lead_id' => $lead->id, 'recipient_id' => $recipient->id, 'error' => class_basename($exception)]);
+                    }
                 }
 
-                NotifyNewLeadJob::dispatch($lead->id);
+                try {
+                    NotifyNewLeadJob::dispatch($lead->id);
+                } catch (\Throwable $exception) {
+                    Log::error('Lead email notification could not be queued', ['lead_id' => $lead->id, 'error' => class_basename($exception)]);
+                }
             }
             AttributeLeadSourceJob::dispatch($lead->id);
 
             if ($lead->email) {
-                Notification::route('mail', $lead->email)->notify(new LeadAcknowledgementNotification($lead->id));
+                try {
+                    Notification::route('mail', $lead->email)->notify(new LeadAcknowledgementNotification($lead->id));
+                } catch (\Throwable $exception) {
+                    Log::error('Lead acknowledgement could not be queued', ['lead_id' => $lead->id, 'error' => class_basename($exception)]);
+                }
             }
         });
 

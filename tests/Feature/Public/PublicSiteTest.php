@@ -48,7 +48,10 @@ class PublicSiteTest extends TestCase
             ->assertSee('Chat on WhatsApp')
             ->assertSee('href="https://wa.me/', false)
             ->assertSee('href="tel:', false)
-            ->assertSee('name="consent_given"', false)
+            ->assertSee('name="contact_consent"', false)
+            ->assertSee('name="full_name"', false)
+            ->assertSee('name="property_type"', false)
+            ->assertSee('name="service_type"', false)
             ->assertSee('value="general_contact"', false);
     }
 

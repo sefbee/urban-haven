@@ -125,9 +125,22 @@ class LeadManagementTest extends TestCase
     public function test_lead_detail_shows_stage_form_with_loss_reasons_and_contact_links(): void
     {
         $owner = $this->staff(Role::OWNER_ADMIN);
-        $lead = $this->lead(['name' => 'Detail Person']);
+        $lead = $this->lead([
+            'name' => 'Detail Person',
+            'property_type' => 'apartment_multi_family',
+            'property_location' => 'Banani Block F',
+            'number_of_units' => 4,
+            'current_status' => 'occupied',
+            'service_type' => 'full_service_management',
+            'preferred_contact_time' => 'afternoon',
+        ]);
 
-        $response = $this->actingAs($owner)->get(route('admin.leads.show', $lead))->assertOk()->assertSee('Detail Person');
+        $response = $this->actingAs($owner)->get(route('admin.leads.show', $lead))->assertOk()
+            ->assertSee('Detail Person')
+            ->assertSee('Banani Block F')
+            ->assertSee('4')
+            ->assertSee('Full service management')
+            ->assertSee('Afternoon');
 
         foreach (Lead::STATUS_LABELS as $label) {
             $response->assertSee($label);
