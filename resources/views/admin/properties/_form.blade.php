@@ -39,7 +39,7 @@
 
 <div @class(['uh-admin-compose', 'is-split' => $exists])>
     <form method="POST" action="{{ $exists ? route('admin.properties.update', $property) : route('admin.properties.store') }}"
-          id="property-main-form" class="uh-admin-compose-main" enctype="multipart/form-data" data-unsaved-guard data-upload-pending-media
+          id="property-main-form" @class(['uh-admin-compose-main', 'uh-admin-property-create' => ! $exists]) enctype="multipart/form-data" data-unsaved-guard data-upload-pending-media
           x-data="uhPropertyForm({ profiles: @js($profiles), typeId: @js((string) old('property_type_id', $property->property_type_id ?? '')), priceMode: @js(old('price_mode', $property->price_mode ?? 'fixed')) })"
           @submit="submit">
         @csrf

@@ -2219,6 +2219,14 @@ body.uh-admin .select2-container--default .select2-results__option--selected {
     margin-top: 1.25rem;
 }
 
+.uh-property-delete-dialog-copy {
+    overflow-wrap: anywhere;
+}
+
+body.uh-admin dialog.uh-property-delete-dialog {
+    overflow-y: hidden;
+}
+
 .uh-admin-media-heading {
     display: flex;
     align-items: center;
@@ -7619,41 +7627,30 @@ body.uh-admin .dd-urls-page .uh-table tbody td:last-child {
 
 /* Mobile-only admin system: shared page spacing, actions and readable data cards. */
 @media (max-width: 767px) {
-    body.uh-admin .dd-content:has(.uh-admin-dock, .dd-form-footer) {
-        padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
-    }
-
     body.uh-admin .dd-content .uh-admin-dock,
     body.uh-admin .dd-content .dd-form-footer {
-        position: fixed;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 75;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 0.4rem;
-        margin: 0;
-        padding: 0.65rem max(0.75rem, env(safe-area-inset-right)) calc(0.65rem + env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
-        border: 1px solid var(--dd-line);
-        border-bottom: 0;
-        border-radius: 1rem 1rem 0 0;
-        background: rgb(255 255 255 / 0.97);
-        box-shadow: 0 -6px 24px rgb(15 23 42 / 0.12);
-        backdrop-filter: blur(16px);
+        position: static;
+        inset: auto;
+        z-index: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-top: 1rem;
+        padding: 0.8rem 0 0;
+        border: 0;
+        border-top: 1px solid var(--dd-line);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        pointer-events: auto;
     }
 
     body.uh-admin .dd-content .uh-admin-dock > :is(button, a),
     body.uh-admin .dd-content .dd-form-footer > :is(button, a) {
-        width: 100%;
-        max-width: none;
         min-height: 2.75rem;
+        flex: 1 1 8rem;
         justify-content: center;
-    }
-
-    body.uh-admin .dd-content .uh-admin-dock > a.uh-btn-ghost,
-    body.uh-admin .dd-content .dd-form-footer > a.uh-btn-ghost {
-        display: none;
     }
 
     body.uh-admin .dd-header {

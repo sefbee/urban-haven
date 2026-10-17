@@ -13,21 +13,21 @@
         <dialog id="{{ $dialogId }}" x-ref="dialog" aria-labelledby="{{ $dialogId }}-title" aria-describedby="{{ $dialogId }}-description"
                 @cancel.prevent="cancel()"
                 @click.self="cancel()"
-                class="fixed inset-0 m-0 h-dvh w-full max-h-none max-w-none overflow-y-auto border-0 bg-transparent p-0 backdrop:bg-slate-950/55">
-            <div class="grid min-h-full w-full place-items-center p-4">
-                <div class="my-auto max-h-[calc(100dvh-2rem)] w-[min(28rem,100%)] overflow-y-auto rounded-2xl border border-line bg-white p-5 text-ink shadow-2xl sm:p-6">
-                    <div class="flex items-start gap-3">
+                class="fixed inset-0 m-0 h-dvh w-full max-h-none max-w-none overflow-y-auto border-0 bg-transparent p-0 backdrop:bg-slate-950/55 uh-property-delete-dialog">
+            <div class="grid min-h-full w-full min-w-0 place-items-center p-4">
+                <div class="my-auto max-h-[calc(100dvh-2rem)] w-[min(28rem,100%)] overflow-y-auto min-w-0 max-w-full rounded-2xl border border-line bg-white p-5 text-ink shadow-2xl sm:p-6">
+                    <div class="flex min-w-0 items-start gap-3">
                         <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-danger-bg)] text-[var(--color-danger)]">
                             <x-icon name="trash" class="size-5" />
                         </span>
-                        <div class="min-w-0">
+                        <div class="uh-property-delete-dialog-copy min-w-0 max-w-full">
                             <h2 id="{{ $dialogId }}-title" class="uh-h4">Delete property?</h2>
-                            <p id="{{ $dialogId }}-description" class="mt-2 break-words text-sm leading-relaxed text-[var(--color-muted)]">
+                            <p id="{{ $dialogId }}-description" class="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
                                 Delete <strong class="font-semibold text-ink" x-text="title"></strong> and its images and units? Inquiry and visit records will be kept without the property link. This action cannot be undone.
                             </p>
                         </div>
                     </div>
-                    <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <div class="mt-6 flex min-w-0 flex-col-reverse flex-wrap gap-2 sm:flex-row sm:justify-end">
                         <button type="button" class="uh-btn-outline uh-btn-sm" @click="cancel()" autofocus>Cancel</button>
                         <button type="button" class="uh-btn-danger uh-btn-sm" @click="confirm()" :disabled="submitting">
                             <span x-show="! submitting">Delete property</span>
