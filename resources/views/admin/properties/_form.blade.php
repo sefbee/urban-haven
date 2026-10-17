@@ -2,10 +2,8 @@
     $exists = $property->exists;
     $canEdit ??= true;
     $saveLabel ??= $exists ? 'Save changes' : 'Save property';
-    $checklist ??= [];
     $selectedAmenities = array_map('intval', (array) old('amenity_ids', $property->amenity_ids ?? []));
     $profiles = $types->mapWithKeys(fn ($type) => [$type->id => $type->field_profile])->all();
-    $status = $exists ? $property->editorialStatus() : \App\Models\PublicationState::DRAFT;
     $user = auth()->user();
     $steps = ['what' => 'What', 'where' => 'Where', 'describe' => 'Describe', 'price' => 'Price', 'size' => 'Size', 'features' => 'Features', 'media' => 'Media', 'visibility' => 'Visibility', 'seo' => 'SEO'];
 @endphp
@@ -28,7 +26,7 @@
 
 @if($exists && ! $canEdit)
     <x-ui.alert tone="info" class="mt-6">
-        This listing is live. Only a publisher can change its content; you can still update availability below.
+        This listing is live. Only staff with property edit access can change its content; availability remains separate.
     </x-ui.alert>
 @endif
 
@@ -107,7 +105,7 @@
                 <h2 class="uh-h4">Describe it</h2>
                 <p class="dd-step-hint">Lead with what a buyer searches for: bedrooms, type and area.</p>
                 <div class="mt-4 space-y-4">
-                    <x-ui.input name="title" label="Title" :value="$property->title" required maxlength="255"
+                    <x-ui.input name="title" label="Title" :value="$property->title" required :maxlength="\App\Models\Property::TITLE_MAX_LENGTH"
                                 placeholder="e.g. 3-bed apartment with lake view in Gulshan 2"
                                 hint="What a buyer sees first. The web address is generated from it." />
                     <x-ui.rich-text name="description" label="Description" :value="$property->description" min-height="14rem"
@@ -262,6 +260,7 @@
             </div>
             @unless($exists)
                 <div class="uh-admin-dock">
+                    <p class="basis-full text-xs text-[var(--color-muted)]">Saving this property publishes it immediately.</p>
                     <button type="submit" class="uh-btn-primary" :disabled="submitting" @disabled(! $canEdit)>
                         <span class="uh-spinner" x-show="submitting" x-cloak></span>
                         <span>{{ $saveLabel }}</span>
@@ -274,7 +273,26 @@
 
     @if($exists)
         <div class="uh-admin-compose-side">
-            @include('admin.partials.publication-panel', ['model' => $property, 'routePrefix' => 'admin.properties', 'noun' => 'listing', 'status' => $status, 'checklist' => $checklist])
+            <section class="uh-panel" aria-labelledby="publication-heading">
+                <h2 id="publication-heading" class="uh-h4">Publication</h2>
+                <p class="mt-2 flex items-center gap-2 text-sm"><x-ui.status :status="$property->publicationDisplayStatus()" /></p>
+                @if($canEdit)
+                    <p class="mt-2 text-xs text-[var(--color-muted)]">Saving changes publishes the latest property details immediately.</p>
+                @else
+                    <p class="mt-2 text-xs text-[var(--color-muted)]">You do not have permission to change this listing.</p>
+                @endif
+                @can('publish', $property)
+                    @if($property->isPublished())
+                        <form method="POST" action="{{ route('admin.properties.unpublish', $property) }}"
+                              class="mt-4 space-y-2 border-t border-line pt-4"
+                              x-data="uhConfirm('Archive this listing? It will disappear from the public site immediately.')">
+                            @csrf
+                            <x-ui.input name="unpublish_reason" label="Reason for archiving" required maxlength="255" hint="Recorded in the audit log." />
+                            <button type="submit" class="uh-btn-danger uh-btn-sm uh-btn-block" @click="confirm($event)">Archive listing</button>
+                        </form>
+                    @endif
+                @endcan
+            </section>
 
             @can('updateAvailability', $property)
                 <section class="uh-panel" aria-labelledby="availability-heading" x-data="{ value: @js($property->availability) }">
@@ -367,6 +385,14 @@
                     <p class="mt-3 text-xs text-[var(--color-muted)]">No status changes recorded yet.</p>
                 @endif
             </section>
+
+            @can('delete', $property)
+                <section class="uh-panel border-[color-mix(in_srgb,var(--color-danger)_25%,transparent)]" aria-labelledby="delete-property-heading">
+                    <h2 id="delete-property-heading" class="uh-h4">Delete property</h2>
+                    <p class="mt-2 text-sm text-[var(--color-muted)]">Permanently remove this listing and its images and units. Inquiry and visit records are retained.</p>
+                    @include('admin.properties._delete-form', ['property' => $property, 'context' => 'editor', 'class' => 'mt-4'])
+                </section>
+            @endcan
         </div>
     @endif
 </div>

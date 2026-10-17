@@ -1486,8 +1486,6 @@ body.uh-home {
 
     .uh-site-foot {
         position: relative;
-        
-        overflow: hidden;
         border-top: 1px solid rgb(255 255 255 / 0.08);
         padding-block: clamp(3.75rem, 6vw, 5rem) 2.25rem;
         background: #0f1412;
@@ -14797,11 +14795,25 @@ body.uh-home .uh-contact-enquiry :is(.uh-input, .uh-select, .uh-textarea) {
     }
 
     body.uh-home .uh-home-articles-head > div {
-        display: contents;
+        display: grid;
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        gap: 0.25rem;
     }
 
     body.uh-home .uh-home-articles-head p:not(.text-xs) {
-        grid-row: 3;
+        grid-row: 2;
+    }
+
+    body.uh-home .uh-home-articles-head h2,
+    body.uh-home .uh-home-articles-head > div > p.text-xs {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    body.uh-home .uh-home-articles-head .uh-home-mobile-section-action {
+        grid-row: 1;
     }
 }
 
@@ -15273,13 +15285,20 @@ body.uh-home .uh-home-section-title {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 2.75rem;
+    min-width: 0;
 }
 
 .uh-site-foot-premium .uh-foot-brand-column {
     display: grid;
     align-content: start;
     gap: 1rem;
+    min-width: 0;
     max-width: 34rem;
+}
+
+.uh-site-foot-premium .uh-foot-brand-column > *,
+.uh-site-foot-premium .uh-foot-premium-columns > * {
+    min-width: 0;
 }
 
 .uh-site-foot-premium .uh-foot-brand-column .uh-brand-logo-img {
@@ -15289,22 +15308,30 @@ body.uh-home .uh-home-section-title {
 }
 
 .uh-site-foot-premium .uh-foot-brand-column .uh-wordmark {
+    min-width: 0;
+    max-width: 100%;
     color: white;
     font-size: 1.8rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .uh-site-foot-premium .uh-foot-line {
+    min-width: 0;
     max-width: 34rem;
     margin: 0;
     font-size: 1rem;
     line-height: 1.65;
+    overflow-wrap: anywhere;
 }
 
 .uh-site-foot-premium .uh-foot-tagline {
+    min-width: 0;
     padding-left: 1rem;
     border-left: 1px solid rgb(255 255 255 / 0.2);
     color: rgb(255 255 255 / 0.65);
     font-size: 0.875rem;
+    overflow-wrap: anywhere;
 }
 
 .uh-site-foot-premium .uh-foot-cta-link {
@@ -15313,13 +15340,19 @@ body.uh-home .uh-home-section-title {
     justify-content: space-between;
     gap: 1rem;
     width: fit-content;
-    min-width: 13rem;
+    min-width: 0;
+    max-width: 100%;
     margin-top: 0.35rem;
     padding: 0.55rem 0.65rem 0.55rem 1.15rem;
     border-radius: 9999px;
     background: var(--uh-footer-accent, #f3c88c);
     color: #111820;
     font-weight: 600;
+}
+
+.uh-site-foot-premium .uh-foot-cta-link > span:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .uh-site-foot-premium .uh-foot-cta-link span:last-child {
@@ -15337,6 +15370,17 @@ body.uh-home .uh-home-section-title {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
     gap: 2.5rem 2rem;
     margin-top: 0;
+}
+
+.uh-site-foot-premium .uh-foot-premium-columns nav,
+.uh-site-foot-premium .uh-foot-list,
+.uh-site-foot-premium .uh-foot-list li {
+    min-width: 0;
+}
+
+.uh-site-foot-premium .uh-foot-heading,
+.uh-site-foot-premium .uh-foot-list a {
+    overflow-wrap: anywhere;
 }
 
 .uh-site-foot-premium .uh-foot-heading::after {
@@ -15405,6 +15449,58 @@ body.uh-home .uh-home-section-title {
     margin-top: clamp(2.5rem, 5vw, 3.75rem);
     padding-top: 1.5rem;
     border-top-color: rgb(255 255 255 / 0.14);
+}
+
+.uh-site-foot-premium .uh-foot-legal > p {
+    min-width: 0;
+    flex: 1 1 30rem;
+    overflow-wrap: anywhere;
+}
+
+.uh-site-foot-premium .uh-foot-legal > div {
+    min-width: 0;
+}
+
+.uh-site-foot-premium .uh-foot-legal a,
+.uh-site-foot-premium .uh-foot-legal button {
+    overflow-wrap: anywhere;
+}
+
+@media (width <= 767px) {
+    body.uh-home .uh-chat-float {
+        right: max(1.25rem, env(safe-area-inset-right));
+    }
+
+    body.uh-home .uh-chat-float.is-left {
+        right: auto;
+        left: max(1.25rem, env(safe-area-inset-left));
+    }
+
+    .uh-site-foot-premium > .uh-container {
+        padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+    }
+
+    .uh-site-foot-premium .uh-foot-premium-grid {
+        gap: 2rem;
+    }
+
+    .uh-site-foot-premium .uh-foot-premium-columns {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+        gap: 2rem 1.25rem;
+    }
+
+    .uh-site-foot-premium .uh-foot-legal {
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .uh-site-foot-premium .uh-foot-legal > p {
+        flex-basis: 100%;
+    }
+
+    .uh-site-foot-premium.has-floating-chat {
+        padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+    }
 }
 
 @media (width >= 1024px) {

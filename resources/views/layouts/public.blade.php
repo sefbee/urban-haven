@@ -312,7 +312,7 @@
             @yield('content')
         </main>
 
-        <footer class="uh-site-foot uh-site-foot-premium" style="--uh-footer-bg: {{ $footerBackground }}; --uh-footer-accent: {{ $footerAccent }}">
+        <footer @class(['uh-site-foot', 'uh-site-foot-premium', 'has-floating-chat' => $showChat]) style="--uh-footer-bg: {{ $footerBackground }}; --uh-footer-accent: {{ $footerAccent }}">
             <div class="uh-foot-glow" aria-hidden="true"></div>
             <div class="uh-container relative z-10">
                 <div class="uh-foot-premium-grid">

@@ -57,7 +57,7 @@ class StorePropertyRequest extends FormRequest
 
         return [
             'version' => [$property instanceof Property ? 'required' : 'nullable', 'integer', 'min:1'],
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:'.Property::TITLE_MAX_LENGTH],
             'reference' => $canEditReference
                 ? ['nullable', 'string', 'max:30', 'regex:/^[A-Z0-9-]+$/', Rule::unique('properties', 'reference')->ignore($property instanceof Property ? $property->id : null)]
                 : ['prohibited'],
@@ -99,7 +99,19 @@ class StorePropertyRequest extends FormRequest
             'photograph' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
             'photographs' => ['nullable', 'array', 'max:100'],
             'photographs.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:'.(int) config('urbanhaven.media.max_image_kb')],
+            'photographs_alt' => ['nullable', 'array', 'max:100'],
+            'photographs_alt.*' => ['nullable', 'string', 'max:200'],
             'photograph_alt' => ['nullable', 'string', 'max:200'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'title.max' => 'The property title may not exceed '.Property::TITLE_MAX_LENGTH.' characters.',
         ];
     }
 

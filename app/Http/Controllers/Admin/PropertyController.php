@@ -12,13 +12,15 @@ use App\Models\LocationArea;
 use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyType;
-use App\Models\PublicationState;
 use App\Models\User;
 use App\Support\SeoFields;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class PropertyController extends Controller
 {
@@ -28,7 +30,6 @@ class PropertyController extends Controller
 
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', Rule::in(array_keys(PublicationState::LABELS))],
             'availability' => ['nullable', Rule::in(Property::AVAILABILITIES)],
             'listing_type' => ['nullable', 'in:sale,rent'],
             'location_area_id' => ['nullable', 'integer'],
@@ -41,9 +42,6 @@ class PropertyController extends Controller
                 $term = '%'.addcslashes($q, '%_\\').'%';
                 $query->where(fn ($builder) => $builder->where('title', 'like', $term)->orWhere('reference', 'like', $term)->orWhere('slug', 'like', $term));
             })
-            ->when($filters['status'] ?? null, fn ($query, string $status) => $status === PublicationState::DRAFT
-                ? $query->where(fn ($builder) => $builder->whereDoesntHave('publicationState')->orWhereHas('publicationState', fn ($state) => $state->where('status', $status)))
-                : $query->whereHas('publicationState', fn ($state) => $state->where('status', $status)))
             ->when($filters['availability'] ?? null, fn ($query, string $availability) => $query->where('availability', $availability))
             ->when($filters['listing_type'] ?? null, fn ($query, string $type) => $query->where('listing_type', $type))
             ->when($filters['location_area_id'] ?? null, fn ($query, int|string $area) => $query->where('location_area_id', $area))
@@ -75,21 +73,39 @@ class PropertyController extends Controller
 
     public function store(StorePropertyRequest $request, InventoryService $inventory, MediaService $media): RedirectResponse
     {
-        $property = $inventory->createProperty($this->attributes($request), $request->user());
-        SeoFields::sync($property, $request->validated());
+        $storedMedia = [];
 
-        if ($request->hasFile('photographs')) {
-            foreach ($request->file('photographs') as $file) {
-                $media->store($property, $file, 'gallery', $request->validated('photograph_alt'));
+        try {
+            $property = DB::transaction(function () use ($request, $inventory, $media, &$storedMedia): Property {
+                $property = $inventory->createProperty($this->attributes($request), $request->user());
+                SeoFields::sync($property, $request->validated());
+
+                if ($request->hasFile('photograph')) {
+                    $cover = $media->store($property, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
+                    $storedMedia[] = $cover;
+                    $property->forceFill(['featured_media_id' => $cover->id])->save();
+                }
+
+                foreach ($request->file('photographs', []) as $index => $file) {
+                    $storedMedia[] = $media->store($property, $file, 'gallery', $request->validated("photographs_alt.{$index}"));
+                }
+
+                $media->completePropertyAltText($property);
+
+                return $property;
+            });
+        } catch (Throwable $exception) {
+            foreach ($storedMedia as $storedImage) {
+                $media->cleanupDeletedFiles($storedImage);
             }
-        } elseif ($request->hasFile('photograph')) {
-            $media->store($property, $request->file('photograph'), 'gallery', $request->validated('photograph_alt'));
+
+            throw $exception;
         }
 
-        return redirect()->route('admin.properties.edit', $property)->with('status', 'Property saved as a draft with reference '.$property->reference.'.');
+        return redirect()->route('admin.properties.edit', $property)->with('status', 'Property published with reference '.$property->reference.'.');
     }
 
-    public function edit(Property $property, InventoryService $inventory): View
+    public function edit(Property $property): View
     {
         $this->authorize('view', $property);
         $property->load(['publicationState', 'seoOverride', 'media', 'units', 'statusHistory.actor:id,name', 'propertyType']);
@@ -98,17 +114,17 @@ class PropertyController extends Controller
 
         return view('admin.properties.edit', [
             ...$this->formData($property),
-            'checklist' => $inventory->publishChecklist($property),
             'canEdit' => $user->can('update', $property),
         ]);
     }
 
-    public function update(UpdatePropertyRequest $request, Property $property, InventoryService $inventory): RedirectResponse
+    public function update(UpdatePropertyRequest $request, Property $property, InventoryService $inventory, MediaService $media): RedirectResponse
     {
         $inventory->updateProperty($property, $this->attributes($request), $request->user());
+        $media->completePropertyAltText($property);
         SeoFields::sync($property, $request->validated());
 
-        return redirect()->route('admin.properties.edit', $property->fresh())->with('status', 'Property updated.');
+        return redirect()->route('admin.properties.edit', $property->fresh())->with('status', 'Property published and updated.');
     }
 
     public function updateAvailability(Request $request, Property $property, InventoryService $inventory): RedirectResponse
@@ -134,7 +150,14 @@ class PropertyController extends Controller
     public function destroy(Property $property, InventoryService $inventory): RedirectResponse
     {
         $this->authorize('delete', $property);
-        $inventory->deleteProperty($property, request()->user());
+
+        try {
+            $inventory->deleteProperty($property, request()->user());
+        } catch (QueryException $exception) {
+            report($exception);
+
+            return back()->withErrors(['delete' => 'The property could not be deleted. No changes were made. Please try again or contact an administrator.']);
+        }
 
         return redirect()->route('admin.properties.index')->with('status', 'Property deleted.');
     }
@@ -164,7 +187,7 @@ class PropertyController extends Controller
      */
     private function attributes(StorePropertyRequest $request): array
     {
-        $attributes = $request->safe()->except([...SeoFields::inputNames(), 'photograph', 'photograph_alt']);
+        $attributes = $request->safe()->except([...SeoFields::inputNames(), 'photograph', 'photograph_alt', 'photographs', 'photographs_alt']);
 
         if (blank($attributes['slug'] ?? null)) {
             unset($attributes['slug']);

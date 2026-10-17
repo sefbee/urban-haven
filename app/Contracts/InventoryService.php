@@ -32,7 +32,7 @@ interface InventoryService
      */
     public function publishChecklist(Property|Project $model): array;
 
-    public function publishProperty(Property $property, User $actor): void;
+    public function publishProperty(Property $property, ?User $actor): void;
 
     public function unpublishProperty(Property $property, string $reason, User $actor): void;
 
@@ -52,11 +52,11 @@ interface InventoryService
 
     public function unpublishProject(Project $project, string $reason, User $actor): void;
 
-    public function submitForReview(Property|Project $model, User $actor): void;
+    public function submitForReview(Project $project, User $actor): void;
 
-    public function approve(Property|Project $model, User $actor): void;
+    public function approve(Project $project, User $actor): void;
 
-    public function returnToDraft(Property|Project $model, string $note, User $actor): void;
+    public function returnToDraft(Project $project, string $note, User $actor): void;
 
     /**
      * @param  array<string, mixed>  $validated

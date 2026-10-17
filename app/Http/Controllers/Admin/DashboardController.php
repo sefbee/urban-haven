@@ -10,7 +10,6 @@ use App\Models\LeadFollowUp;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\Property;
-use App\Models\PublicationState;
 use App\Models\SiteVisitRequest;
 use App\Support\HomeSections;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,7 +22,7 @@ class DashboardController extends Controller
         $user = request()->user();
         $seesLeads = $user->hasPermission('lead.view');
         $seesInventory = $user->hasPermission('property.view');
-        $canReview = $user->hasPermission('property.publish') || $user->hasPermission('project.publish');
+        $canReview = $user->hasPermission('project.publish');
         $since = now()->subDays(30);
 
         $leads = fn (): Builder => Lead::query()->visibleTo($user);
@@ -90,12 +89,8 @@ class DashboardController extends Controller
             'expiringReservations' => $seesInventory
                 ? Property::query()->where('availability', 'reserved')->whereBetween('reservation_expires_at', [now(), now()->addDays(3)])->orderBy('reservation_expires_at')->limit(5)->get(['id', 'title', 'reference', 'reservation_expires_at'])
                 : collect(),
-            'drafts' => $seesInventory
-                ? Property::query()->where(fn (Builder $query) => $query->whereDoesntHave('publicationState')->orWhereHas('publicationState', fn (Builder $state) => $state->where('status', PublicationState::DRAFT)))->count()
-                : 0,
             'pendingReview' => $canReview
-                ? Property::query()->whereHas('publicationState', fn (Builder $state) => $state->whereIn('status', [PublicationState::PENDING_REVIEW, PublicationState::APPROVED]))->count()
-                    + Project::query()->whereHas('publicationState', fn (Builder $state) => $state->whereIn('status', [PublicationState::PENDING_REVIEW, PublicationState::APPROVED]))->count()
+                ? Project::query()->whereHas('publicationState', fn (Builder $state) => $state->whereIn('status', ['pending_review', 'approved']))->count()
                 : 0,
             'unread' => $user->unreadNotifications()->count(),
         ]);

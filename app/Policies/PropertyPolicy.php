@@ -24,7 +24,7 @@ class PropertyPolicy
     }
 
     /**
-     * Editors work on drafts only; live listings change through the owner.
+     * Live listings can only be changed by staff who can publish properties.
      */
     public function update(User $user, Property $property): bool
     {
@@ -41,12 +41,6 @@ class PropertyPolicy
     public function updateAvailability(User $user, Property $property): bool
     {
         return $user->hasPermission('property.update');
-    }
-
-    public function submit(User $user, Property $property): bool
-    {
-        return $user->hasPermission('property.update')
-            && in_array($property->editorialStatus(), [PublicationState::DRAFT, PublicationState::UNPUBLISHED], true);
     }
 
     public function delete(User $user, Property $property): bool

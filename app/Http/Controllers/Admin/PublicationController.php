@@ -2,52 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\CanPublishProperty;
 use App\Contracts\InventoryService;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Property;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PublicationController extends Controller
 {
-    public function submitProperty(Property $property, InventoryService $inventory): RedirectResponse
-    {
-        $this->authorize('submit', $property);
-        $inventory->submitForReview($property, request()->user());
-
-        return back()->with('status', 'Submitted for review. An administrator will publish it or return it with notes.');
-    }
-
-    public function approveProperty(Property $property, InventoryService $inventory): RedirectResponse
-    {
-        $this->authorize('publish', $property);
-        $inventory->approve($property, request()->user());
-
-        return back()->with('status', 'Approved.');
-    }
-
-    public function publishProperty(Property $property, InventoryService $inventory, CanPublishProperty $canPublish): JsonResponse|RedirectResponse
-    {
-        $this->authorize('publish', $property);
-
-        $result = $canPublish($property);
-
-        if (! $result['canPublish']) {
-            if (request()->expectsJson()) {
-                return response()->json(['failures' => $result['failures']], 422);
-            }
-
-            return back()->withErrors(['publish' => $result['failures']])->withInput();
-        }
-
-        $inventory->publishProperty($property, request()->user());
-
-        return back()->with('status', 'Published.');
-    }
-
     public function unpublishProperty(Request $request, Property $property, InventoryService $inventory): RedirectResponse
     {
         $this->authorize('publish', $property);
@@ -55,15 +18,6 @@ class PublicationController extends Controller
         $inventory->unpublishProperty($property, $validated['unpublish_reason'], $request->user());
 
         return back()->with('status', 'Archived. The listing has left search, listings and the sitemap.');
-    }
-
-    public function returnProperty(Request $request, Property $property, InventoryService $inventory): RedirectResponse
-    {
-        $this->authorize('publish', $property);
-        $validated = $request->validate(['review_note' => ['required', 'string', 'min:3', 'max:2000']]);
-        $inventory->returnToDraft($property, $validated['review_note'], $request->user());
-
-        return back()->with('status', 'Returned to the editor with your note.');
     }
 
     public function submitProject(Project $project, InventoryService $inventory): RedirectResponse

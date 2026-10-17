@@ -1638,8 +1638,18 @@ Alpine.data('uhPropertyForm', ({ profiles = {}, typeId = '', priceMode = 'fixed'
     get isPlot() {
         return this.profiles[this.typeId] === 'plot';
     },
-    submit() {
+    submit(event) {
+        if (this.$el.dataset.uploadPendingBypass === 'true') {
+            return;
+        }
+
+        if (this.submitting) {
+            event.preventDefault();
+            return;
+        }
+
         this.submitting = true;
+        this.$el.dataset.saveInProgress = 'true';
     },
 }));
 
@@ -2210,6 +2220,10 @@ Alpine.data('uhMediaUpload', (config = {}) => ({
             });
         }
         window.addEventListener('beforeunload', (e) => {
+            if (this.$el.closest('form')?.dataset.saveInProgress === 'true') {
+                return;
+            }
+
             if (this.hasUnsavedChanges || (this.pendingFiles.some((file) => ! file.uploaded) && ! this.submitting)) {
                 e.preventDefault();
                 e.returnValue = '';
@@ -2732,6 +2746,45 @@ Alpine.data('uhConfirm', (message = 'Are you sure?') => ({
     },
 }));
 
+Alpine.data('uhDeleteConfirmation', (title = '') => ({
+    title,
+    form: null,
+    submitting: false,
+    approved: false,
+    guard(event) {
+        if (this.approved) {
+            this.approved = false;
+            return;
+        }
+
+        event.preventDefault();
+
+        if (this.submitting || this.$refs.dialog.open) {
+            return;
+        }
+
+        this.form = event.currentTarget;
+        this.$refs.dialog.showModal();
+    },
+    cancel() {
+        if (this.$refs.dialog.open) {
+            this.$refs.dialog.close();
+        }
+
+        this.form = null;
+    },
+    confirm() {
+        if (! this.form || this.submitting) {
+            return;
+        }
+
+        this.submitting = true;
+        this.approved = true;
+        this.$refs.dialog.close();
+        this.form.requestSubmit();
+    },
+}));
+
 /**
  * Below-the-fold blocks marked data-reveal rise in once as they enter the viewport.
  * Content above the fold, hidden content and reduced-motion visitors are never hidden.
@@ -3026,6 +3079,7 @@ const bootPendingMediaUploads = () => {
                     mediaState.flashNotice(message, 'danger');
                 }
                 delete form.dataset.uploadingPendingMedia;
+                delete form.dataset.saveInProgress;
                 const formState = window.Alpine?.$data(form);
                 if (formState && 'submitting' in formState) {
                     formState.submitting = false;

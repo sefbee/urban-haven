@@ -83,7 +83,12 @@
                 @if($isDocument)
                     The maximum brochure size is {{ $maxBrochureMb }} MB. Format: PDF.
                 @else
-                    The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP. Add alt text before uploading so public photos can appear on the site.
+                    The maximum photograph size is {{ $maxImageMb }} MB. Formats: JPEG, PNG, WebP.
+                    @if($owner instanceof \App\Models\Property)
+                        Alt text is generated from listing details when you leave it blank.
+                    @else
+                        Add alt text before publishing these images.
+                    @endif
                     @if($collection === 'gallery' && $supportsCover)
                         Use the cover button to designate the primary showcase image.
                     @endif

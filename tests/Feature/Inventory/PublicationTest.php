@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -19,14 +20,12 @@ class PublicationTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_property_moves_draft_to_published_then_is_public(): void
+    public function test_property_save_publishes_it_without_a_review_transition(): void
     {
         $property = $this->makePublishableProperty(['title' => 'River view duplex']);
         $actor = $this->staff(Role::OWNER_ADMIN);
         $inventory = app(InventoryService::class);
 
-        $inventory->submitForReview($property, $actor);
-        $inventory->approve($property, $actor);
         $inventory->publishProperty($property, $actor);
 
         $this->assertSame(PublicationState::PUBLISHED, $property->fresh()->editorialStatus());
@@ -46,21 +45,6 @@ class PublicationTest extends TestCase
 
         $this->assertNotSame(PublicationState::PUBLISHED, $property->fresh()->editorialStatus());
         $this->get(route('properties.show', $property->slug))->assertNotFound();
-    }
-
-    public function test_editor_can_submit_but_cannot_publish_or_approve(): void
-    {
-        $property = $this->makePublishableProperty();
-        $editor = $this->staff(Role::CONTENT_EDITOR);
-
-        $this->actingAs($editor)->post(route('admin.properties.submit', $property))->assertRedirect();
-        $this->assertSame(PublicationState::PENDING_REVIEW, $property->fresh()->editorialStatus());
-
-        $this->actingAs($editor)->post(route('admin.properties.approve', $property))->assertForbidden();
-        $this->actingAs($editor)->post(route('admin.properties.publish', $property))->assertForbidden();
-        $this->actingAs($editor)->postJson(route('admin.properties.publish', $property))->assertForbidden();
-
-        $this->assertSame(PublicationState::PENDING_REVIEW, $property->fresh()->editorialStatus());
     }
 
     public function test_editor_cannot_edit_a_live_listing(): void
@@ -128,13 +112,86 @@ class PublicationTest extends TestCase
 
         $this->actingAs($owner)->get(route('admin.properties.create'))
             ->assertOk()
-            ->assertSee('Save draft')
+            ->assertSee('Save property')
+            ->assertSee('Saving this property publishes it immediately.')
+            ->assertDontSee('Submit for review')
+            ->assertDontSee('>Publish</button>', false)
             ->assertSee('Cover photograph');
         $this->actingAs($owner)->get(route('admin.properties.edit', $property))
             ->assertOk()
             ->assertSee('Editable home')
             ->assertSee('Update availability')
-            ->assertSee('All publishing requirements are met.');
+            ->assertSee('Publication')
+            ->assertSee('Saving changes publishes the latest property details immediately.')
+            ->assertDontSee('Submit for review')
+            ->assertDontSee('>Publish</button>', false);
+    }
+
+    public function test_saving_a_legacy_draft_publishes_and_generates_missing_alt_text(): void
+    {
+        $property = $this->makePublishableProperty(['title' => 'Luxury apartment in Gulshan']);
+        $cover = $property->media->first();
+        $cover->forceFill(['alt_texts' => []])->save();
+        $owner = $this->staff(Role::OWNER_ADMIN);
+
+        $this->actingAs($owner)->put(route('admin.properties.update', $property), $this->formPayload($property))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(PublicationState::PUBLISHED, $property->fresh()->editorialStatus());
+        $this->assertStringContainsString('Luxury apartment in Gulshan', $cover->fresh()->alt());
+        $this->get(route('properties.show', $property->slug))->assertOk()->assertSee('Luxury apartment in Gulshan');
+    }
+
+    public function test_saving_an_archived_property_does_not_unarchive_it(): void
+    {
+        $property = $this->makePublishableProperty();
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        app(InventoryService::class)->publishProperty($property, $owner);
+        app(InventoryService::class)->unpublishProperty($property, 'Archived intentionally', $owner);
+
+        $this->actingAs($owner)->put(route('admin.properties.update', $property), $this->formPayload($property))
+            ->assertRedirect();
+
+        $this->assertSame(PublicationState::UNPUBLISHED, $property->fresh()->editorialStatus());
+    }
+
+    public function test_legacy_publication_command_is_dry_run_by_default_and_skips_archived_or_incomplete_properties(): void
+    {
+        $eligible = $this->makePublishableProperty(['title' => 'Eligible legacy property']);
+        $eligible->media->first()->forceFill(['alt_texts' => []])->save();
+        $incomplete = $this->makeProperty(['title' => 'Incomplete legacy property']);
+        $archived = $this->makePublishableProperty(['title' => 'Archived legacy property']);
+        $owner = $this->staff(Role::OWNER_ADMIN);
+        app(InventoryService::class)->publishProperty($archived, $owner);
+        app(InventoryService::class)->unpublishProperty($archived, 'Archived intentionally', $owner);
+
+        $this->artisan('properties:publish-eligible')
+            ->expectsOutputToContain('Eligible legacy property')
+            ->expectsOutputToContain('skipped: 1')
+            ->assertSuccessful();
+
+        $this->assertSame(PublicationState::DRAFT, $eligible->fresh()->editorialStatus());
+
+        $this->artisan('properties:publish-eligible --apply')->assertSuccessful();
+
+        $this->assertSame(PublicationState::PUBLISHED, $eligible->fresh()->editorialStatus());
+        $this->assertNotSame('', $eligible->media->first()->fresh()->alt());
+        $this->assertSame(PublicationState::DRAFT, $incomplete->fresh()->editorialStatus());
+        $this->assertSame(PublicationState::UNPUBLISHED, $archived->fresh()->editorialStatus());
+    }
+
+    public function test_archived_status_is_not_available_as_a_property_draft_workflow(): void
+    {
+        $owner = $this->staff(Role::OWNER_ADMIN);
+
+        $this->actingAs($owner)->get(route('admin.properties.create'))
+            ->assertOk()
+            ->assertDontSee('Save draft')
+            ->assertDontSee('Submit for review');
+
+        $this->assertFalse(Route::has('admin.properties.submit'));
+        $this->assertFalse(Route::has('admin.properties.publish'));
     }
 
     private function staff(string $role): User
@@ -177,7 +234,7 @@ class PublicationTest extends TestCase
         ])->assertRedirect();
 
         $media = Media::query()->firstOrFail();
-        $this->assertFalse($media->is_public);
+        $this->assertTrue($media->is_public);
 
         $this->patch(route('admin.media.update', $media), [
             'alt_text' => 'Front elevation of Lakeshore Residences',
@@ -235,6 +292,7 @@ class PublicationTest extends TestCase
     private function formPayload(Property $property): array
     {
         return [
+            'version' => $property->version,
             'title' => $property->title,
             'property_type_id' => $property->property_type_id,
             'location_area_id' => $property->location_area_id,

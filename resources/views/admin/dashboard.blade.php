@@ -27,7 +27,6 @@
         $stats[] = ['label' => 'Upcoming visits', 'value' => $leadStats['visits'], 'icon' => 'map', 'url' => route('admin.visits.index', ['view' => 'upcoming']), 'sub' => 'requested or confirmed'];
     } elseif ($seesInventory) {
         $stats[] = ['label' => 'Live listings', 'value' => $liveListings, 'icon' => 'home', 'url' => route('admin.properties.index'), 'sub' => 'published on the website', 'accent' => true];
-        $stats[] = ['label' => 'Draft listings', 'value' => $drafts, 'icon' => 'document', 'url' => route('admin.properties.index', ['status' => 'draft']), 'sub' => 'not yet published'];
         $stats[] = ['label' => 'Expiring reservations', 'value' => $expiringReservations->count(), 'icon' => 'clock', 'url' => route('admin.properties.index', ['availability' => 'reserved']), 'sub' => 'within 3 days'];
     }
 

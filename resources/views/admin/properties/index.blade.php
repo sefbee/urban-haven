@@ -41,10 +41,13 @@
                     </div>
                     <dl class="uh-admin-property-card-meta">
                         <div><dt>Reference</dt><dd class="uh-numeric">{{ $property->reference ?? '—' }}</dd></div>
-                        <div><dt>Editorial</dt><dd><x-ui.status :status="$property->editorialStatus()" /></dd></div>
+                        <div><dt>Publication</dt><dd><x-ui.status :status="$property->publicationDisplayStatus()" /></dd></div>
                         <div><dt>Availability</dt><dd><x-ui.status :status="$property->availability" /></dd></div>
                     </dl>
-                    <a class="uh-btn-outline uh-btn-sm uh-btn-block" href="{{ route('admin.properties.edit', $property) }}">Edit property</a>
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <a class="uh-btn-outline uh-btn-sm uh-btn-block" href="{{ route('admin.properties.edit', $property) }}">Edit property</a>
+                        @include('admin.properties._delete-form', ['property' => $property, 'context' => 'card'])
+                    </div>
                 </article>
             @endforeach
         </div>
@@ -57,7 +60,7 @@
                         <tr>
                             <th scope="col">Title</th>
                             <th scope="col">Reference</th>
-                            <th scope="col">Editorial</th>
+                            <th scope="col">Publication</th>
                             <th scope="col">Availability</th>
                             <th scope="col">Price</th>
                             <th scope="col"><span class="sr-only">Actions</span></th>
@@ -73,11 +76,12 @@
                                     </span>
                                 </td>
                                 <td class="uh-numeric whitespace-nowrap text-xs">{{ $property->reference ?? '—' }}</td>
-                                <td><x-ui.status :status="$property->editorialStatus()" /></td>
+                                <td><x-ui.status :status="$property->publicationDisplayStatus()" /></td>
                                 <td><x-ui.status :status="$property->availability" /></td>
                                 <td class="uh-numeric whitespace-nowrap">{{ \App\Support\MoneyFormatter::formatBdt($property->price, $property->price_basis) ?? '—' }}</td>
                                 <td class="uh-admin-row-actions">
                                     <a class="uh-btn-ghost uh-btn-sm" href="{{ route('admin.properties.edit', $property) }}">Edit</a>
+                                    @include('admin.properties._delete-form', ['property' => $property, 'context' => 'row'])
                                 </td>
                             </tr>
                         @endforeach
@@ -92,7 +96,7 @@
     @else
         <x-ui.empty icon="home"
                     :title="filled($q ?? null) ? 'No listings match that search' : 'No properties yet'"
-                    :description="filled($q ?? null) ? 'Try a different title or reference, or clear the search.' : 'Create your first listing, add photographs, then submit it for review before publishing.'">
+                    :description="filled($q ?? null) ? 'Try a different title or reference, or clear the search.' : 'Create your first listing and save it to publish it on the website.'">
             @if(filled($q ?? null))
                 <a class="uh-btn-outline uh-btn-sm" href="{{ route('admin.properties.index') }}">Clear search</a>
             @endif

@@ -167,11 +167,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('properties', AdminPropertyController::class)->except(['show']);
         Route::put('properties/{property}/availability', [AdminPropertyController::class, 'updateAvailability'])->name('properties.availability');
-        Route::post('properties/{property}/submit', [PublicationController::class, 'submitProperty'])->name('properties.submit');
-        Route::post('properties/{property}/approve', [PublicationController::class, 'approveProperty'])->name('properties.approve');
-        Route::post('properties/{property}/publish', [PublicationController::class, 'publishProperty'])->name('properties.publish');
         Route::post('properties/{property}/unpublish', [PublicationController::class, 'unpublishProperty'])->name('properties.unpublish');
-        Route::post('properties/{property}/return', [PublicationController::class, 'returnProperty'])->name('properties.return');
         Route::get('properties/{property}/units/create', [UnitController::class, 'create'])->name('units.create');
         Route::post('properties/{property}/units', [UnitController::class, 'store'])->name('units.store');
         Route::put('units/{unit}', [UnitController::class, 'update'])->name('units.update');

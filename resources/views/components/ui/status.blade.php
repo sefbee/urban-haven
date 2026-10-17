@@ -10,6 +10,7 @@
         'approved' => ['tone' => 'info', 'label' => 'Approved'],
         'published' => ['tone' => 'success', 'label' => 'Published'],
         'unpublished' => ['tone' => 'danger', 'label' => 'Unpublished'],
+        'not_published' => ['tone' => 'neutral', 'label' => 'Not live'],
         // Inventory availability
         'available' => ['tone' => 'success', 'label' => 'Available'],
         'reserved' => ['tone' => 'warn', 'label' => 'Reserved'],

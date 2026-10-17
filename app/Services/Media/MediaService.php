@@ -5,7 +5,9 @@ namespace App\Services\Media;
 use App\Contracts\AuditLogger;
 use App\Contracts\MediaService as MediaServiceContract;
 use App\Models\Media;
+use App\Models\Property;
 use App\Models\User;
+use App\Support\PropertyMediaAltTextGenerator;
 use App\Support\TaggedCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -15,6 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Throwable;
 
 /**
  * Untouched uploads live on the private disk. Visitors only ever receive re-encoded
@@ -28,7 +31,10 @@ class MediaService implements MediaServiceContract
 
     private const PRIVATE_DISK = 'local';
 
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly PropertyMediaAltTextGenerator $propertyAltText,
+    ) {}
 
     public function store(Model $owner, UploadedFile $file, string $collection, ?string $altText = null): Media
     {
@@ -45,19 +51,47 @@ class MediaService implements MediaServiceContract
 
     public function updateDetails(Media $media, ?string $altText, bool $isPublic, User $actor): Media
     {
-        $altText = $altText !== null ? trim($altText) : null;
+        $altTexts = $media->alt_texts ?? [];
+        $requestedAltText = filled($altText) ? trim($altText) : ($altTexts['en'] ?? null);
+
+        if (blank($requestedAltText) && $media->mediable instanceof Property && in_array($media->collection, Media::IMAGE_COLLECTIONS, true)) {
+            $requestedAltText = $this->propertyAltText->forMedia($media->mediable, $media);
+        }
 
         $old = ['alt' => $media->alt(), 'is_public' => $media->is_public];
 
         $media->forceFill([
-            'alt_texts' => array_filter([...($media->alt_texts ?? []), 'en' => $altText]),
+            'alt_texts' => $requestedAltText !== null ? [...$altTexts, 'en' => $requestedAltText] : $altTexts,
             'is_public' => $isPublic,
         ])->save();
 
-        $this->auditLogger->record($actor->id, 'media.updated', Media::class, $media->id, $old, ['alt' => $altText, 'is_public' => $isPublic], request()->ip());
+        $this->auditLogger->record($actor->id, 'media.updated', Media::class, $media->id, $old, ['alt' => $requestedAltText, 'is_public' => $isPublic], request()->ip());
         $this->flushOwner($media);
 
         return $media;
+    }
+
+    public function completePropertyAltText(Property $property): int
+    {
+        $property->loadMissing(['propertyType', 'locationArea', 'media']);
+        $completed = 0;
+
+        foreach ($property->media as $media) {
+            if (! in_array($media->collection, Media::IMAGE_COLLECTIONS, true) || $media->hasAltText()) {
+                continue;
+            }
+
+            $media->forceFill([
+                'alt_texts' => [...($media->alt_texts ?? []), 'en' => $this->propertyAltText->forMedia($property, $media)],
+            ])->save();
+            $completed++;
+        }
+
+        if ($completed > 0) {
+            TaggedCache::flush(['properties', 'property:'.$property->id, 'homepage', 'sitemap', 'search']);
+        }
+
+        return $completed;
     }
 
     /**
@@ -80,22 +114,39 @@ class MediaService implements MediaServiceContract
     public function delete(Media $media, User $actor): void
     {
         DB::transaction(function () use ($media, $actor): void {
-            $publicPaths = [$media->path];
-            foreach (config('urbanhaven.media.derivative_widths', []) as $width) {
-                $publicPaths[] = $media->derivativePath((int) $width);
-            }
-
             $media->delete();
-            Storage::disk($media->disk)->delete($publicPaths);
-
-            if ($media->original_path && $media->original_path !== $media->path) {
-                Storage::disk($media->original_disk)->delete($media->original_path);
-            }
-
             $this->auditLogger->record($actor->id, 'media.deleted', Media::class, $media->id, ['path' => $media->path, 'collection' => $media->collection], null, request()->ip());
         });
 
+        $this->cleanupDeletedFiles($media);
         $this->flushOwner($media);
+    }
+
+    public function cleanupDeletedFiles(Media $media): void
+    {
+        try {
+            if (! $this->isPathReferenced($media->disk, $media->path)) {
+                $paths = [$media->path];
+
+                if (! $media->isDocument()) {
+                    foreach (config('urbanhaven.media.derivative_widths', [480, 768, 1280, 1920]) as $width) {
+                        $derivative = $media->derivativePath((int) $width);
+
+                        if (! $this->isPathReferenced($media->disk, $derivative)) {
+                            $paths[] = $derivative;
+                        }
+                    }
+                }
+
+                Storage::disk($media->disk)->delete($paths);
+            }
+
+            if (filled($media->original_path) && ! $this->isPathReferenced($media->original_disk, $media->original_path)) {
+                Storage::disk($media->original_disk)->delete($media->original_path);
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     private function storeImage(Model $owner, UploadedFile $file, string $collection, string $mime, ?string $altText): Media
@@ -139,7 +190,7 @@ class MediaService implements MediaServiceContract
                 Storage::disk(self::PUBLIC_DISK)->put($path, (string) $manager->read($file->getRealPath())->scaleDown(width: (int) $derivativeWidth)->toWebp(quality: 82));
                 $written[] = [self::PUBLIC_DISK, $path];
             }
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->cleanup($written);
 
             if ($exception instanceof ValidationException) {
@@ -152,25 +203,31 @@ class MediaService implements MediaServiceContract
         $altText = filled($altText) ? trim($altText) : null;
 
         try {
-            $media = DB::transaction(fn () => Media::query()->create([
-                'mediable_type' => $owner::class,
-                'mediable_id' => $owner->getKey(),
-                'collection' => $collection,
-                'disk' => self::PUBLIC_DISK,
-                'path' => $displayPath,
-                'original_disk' => self::PRIVATE_DISK,
-                'original_path' => $originalPath,
-                'original_filename' => mb_strimwidth($file->getClientOriginalName(), 0, 250),
-                'mime_type' => $mime,
-                'size_bytes' => $file->getSize(),
-                'checksum' => hash_file('sha256', $file->getRealPath()) ?: null,
-                'width' => $width,
-                'height' => $height,
-                'sort_order' => (int) $owner->media()->where('collection', $collection)->max('sort_order') + 1,
-                'is_public' => true,
-                'alt_texts' => $altText !== null ? ['en' => $altText] : [],
-            ]));
-        } catch (\Throwable $exception) {
+            $media = DB::transaction(function () use ($owner, $file, $collection, $mime, $altText, $originalPath, $displayPath, $width, $height): Media {
+                $sortOrder = (int) $owner->media()->where('collection', $collection)->max('sort_order') + 1;
+
+                return Media::query()->create([
+                    'mediable_type' => $owner::class,
+                    'mediable_id' => $owner->getKey(),
+                    'collection' => $collection,
+                    'disk' => self::PUBLIC_DISK,
+                    'path' => $displayPath,
+                    'original_disk' => self::PRIVATE_DISK,
+                    'original_path' => $originalPath,
+                    'original_filename' => mb_strimwidth($file->getClientOriginalName(), 0, 250),
+                    'mime_type' => $mime,
+                    'size_bytes' => $file->getSize(),
+                    'checksum' => hash_file('sha256', $file->getRealPath()) ?: null,
+                    'width' => $width,
+                    'height' => $height,
+                    'sort_order' => $sortOrder,
+                    'is_public' => true,
+                    'alt_texts' => filled($altText) ? ['en' => trim($altText)] : ($owner instanceof Property
+                        ? ['en' => $this->propertyAltText->forUpload($owner, $collection, $sortOrder)]
+                        : []),
+                ]);
+            });
+        } catch (Throwable $exception) {
             $this->cleanup($written);
 
             throw $exception;
@@ -213,7 +270,7 @@ class MediaService implements MediaServiceContract
                 'is_public' => true,
                 'alt_texts' => ['en' => filled($title) ? trim($title) : 'Brochure'],
             ]);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             Storage::disk(self::PRIVATE_DISK)->delete($path);
 
             throw $exception;
@@ -238,5 +295,15 @@ class MediaService implements MediaServiceContract
     {
         $type = strtolower(class_basename((string) $media->mediable_type));
         TaggedCache::flush([$type.'s', $type.':'.$media->mediable_id, 'homepage', 'sitemap']);
+    }
+
+    private function isPathReferenced(string $disk, string $path): bool
+    {
+        $referencedByMedia = Media::query()->where(fn ($query) => $query
+            ->where(fn ($display) => $display->where('disk', $disk)->where('path', $path))
+            ->orWhere(fn ($original) => $original->where('original_disk', $disk)->where('original_path', $path))
+        )->exists();
+
+        return $referencedByMedia || DB::table('seo_overrides')->where('og_image_path', $path)->exists();
     }
 }

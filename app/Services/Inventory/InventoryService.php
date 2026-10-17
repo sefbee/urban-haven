@@ -4,6 +4,7 @@ namespace App\Services\Inventory;
 
 use App\Contracts\AuditLogger;
 use App\Contracts\InventoryService as InventoryServiceContract;
+use App\Contracts\MediaService as MediaServiceContract;
 use App\Exceptions\StaleRecordException;
 use App\Models\Media;
 use App\Models\Project;
@@ -22,6 +23,7 @@ class InventoryService implements InventoryServiceContract
 {
     public function __construct(
         private readonly AuditLogger $auditLogger,
+        private readonly MediaServiceContract $mediaService,
         private readonly RedirectResolver $redirects,
     ) {}
 
@@ -40,6 +42,7 @@ class InventoryService implements InventoryServiceContract
             $property = Property::query()->create($validated);
             $this->audit($actor, 'property.created', Property::class, $property->id, null, $property->only(['title', 'slug', 'reference']));
             $this->history($property, 'availability', null, $property->availability, $actor, 'Created');
+            $this->publish($property, $actor);
 
             return $property;
         });
@@ -76,6 +79,10 @@ class InventoryService implements InventoryServiceContract
             }
 
             $this->audit($actor, 'property.updated', Property::class, $locked->id, $old, $locked->only($tracked));
+
+            if (in_array($locked->editorialStatus(), [PublicationState::DRAFT, PublicationState::PENDING_REVIEW, PublicationState::APPROVED], true)) {
+                $this->publish($locked, $actor);
+            }
 
             return $locked;
         });
@@ -157,10 +164,36 @@ class InventoryService implements InventoryServiceContract
 
     public function deleteProperty(Property $property, User $actor): void
     {
-        DB::transaction(function () use ($property, $actor): void {
-            $this->audit($actor, 'property.deleted', Property::class, $property->id, ['title' => $property->title, 'reference' => $property->reference], null);
-            $property->delete();
+        $deletedMedia = DB::transaction(function () use ($property, $actor) {
+            $locked = Property::query()->lockForUpdate()->findOrFail($property->id);
+            $media = $locked->media()->lockForUpdate()->get();
+            $mediaToDelete = collect();
+
+            $this->audit($actor, 'property.deleted', Property::class, $locked->id, ['title' => $locked->title, 'reference' => $locked->reference], null);
+
+            foreach ($media as $item) {
+                $isFeaturedElsewhere = Property::query()->where('featured_media_id', $item->id)->whereKeyNot($locked->id)->exists()
+                    || Project::query()->where('featured_media_id', $item->id)->exists();
+
+                if ($isFeaturedElsewhere) {
+                    continue;
+                }
+
+                $this->audit($actor, 'media.deleted', Media::class, $item->id, ['path' => $item->path, 'collection' => $item->collection], null);
+                $item->delete();
+                $mediaToDelete->push($item);
+            }
+
+            $locked->seoOverride()->delete();
+            $locked->publicationState()->delete();
+            $locked->delete();
+
+            return $mediaToDelete;
         });
+
+        foreach ($deletedMedia as $item) {
+            $this->mediaService->cleanupDeletedFiles($item);
+        }
 
         $this->flushProperty($property);
     }
@@ -205,10 +238,12 @@ class InventoryService implements InventoryServiceContract
             }
         }
 
-        if ($cover === null) {
-            $missing[] = 'Cover image';
-        } elseif (! $cover->hasAltText()) {
-            $missing[] = 'Alt text on the cover image';
+        if ($model instanceof Project) {
+            if ($cover === null) {
+                $missing[] = 'Cover image';
+            } elseif (! $cover->hasAltText()) {
+                $missing[] = 'Alt text on the cover image';
+            }
         }
 
         return $missing;
@@ -308,32 +343,32 @@ class InventoryService implements InventoryServiceContract
         $this->flushUnit($unit);
     }
 
-    public function submitForReview(Property|Project $model, User $actor): void
+    public function submitForReview(Project $project, User $actor): void
     {
-        $this->transition($model, PublicationState::PENDING_REVIEW, $actor, [PublicationState::DRAFT, PublicationState::UNPUBLISHED], 'submitted_for_review', function (PublicationState $state) use ($actor): void {
+        $this->transition($project, PublicationState::PENDING_REVIEW, $actor, [PublicationState::DRAFT, PublicationState::UNPUBLISHED], 'submitted_for_review', function (PublicationState $state) use ($actor): void {
             $state->submitted_by = $actor->id;
             $state->submitted_at = now();
             $state->review_note = null;
         });
     }
 
-    public function approve(Property|Project $model, User $actor): void
+    public function approve(Project $project, User $actor): void
     {
-        $this->transition($model, PublicationState::APPROVED, $actor, [PublicationState::PENDING_REVIEW], 'approved');
+        $this->transition($project, PublicationState::APPROVED, $actor, [PublicationState::PENDING_REVIEW], 'approved');
     }
 
-    public function returnToDraft(Property|Project $model, string $note, User $actor): void
+    public function returnToDraft(Project $project, string $note, User $actor): void
     {
         if (trim($note) === '') {
             throw ValidationException::withMessages(['review_note' => 'Explain what needs to change.']);
         }
 
-        $this->transition($model, PublicationState::DRAFT, $actor, [PublicationState::PENDING_REVIEW, PublicationState::APPROVED, PublicationState::UNPUBLISHED], 'returned_to_draft', function (PublicationState $state) use ($note): void {
+        $this->transition($project, PublicationState::DRAFT, $actor, [PublicationState::PENDING_REVIEW, PublicationState::APPROVED, PublicationState::UNPUBLISHED], 'returned_to_draft', function (PublicationState $state) use ($note): void {
             $state->review_note = $note;
         });
     }
 
-    public function publishProperty(Property $property, User $actor): void
+    public function publishProperty(Property $property, ?User $actor): void
     {
         $this->publish($property, $actor);
     }
@@ -353,7 +388,7 @@ class InventoryService implements InventoryServiceContract
         $this->unpublish($project, $reason, $actor);
     }
 
-    private function publish(Property|Project $model, User $actor): void
+    private function publish(Property|Project $model, ?User $actor): void
     {
         $missing = $this->publishChecklist($model);
 
@@ -366,7 +401,7 @@ class InventoryService implements InventoryServiceContract
         $from = [PublicationState::DRAFT, PublicationState::PENDING_REVIEW, PublicationState::APPROVED, PublicationState::UNPUBLISHED];
 
         $this->transition($model, PublicationState::PUBLISHED, $actor, $from, 'published', function (PublicationState $state) use ($actor): void {
-            $state->published_by = $actor->id;
+            $state->published_by = $actor?->id;
             $state->published_at = now();
             $state->unpublished_at = null;
             $state->unpublish_reason = null;
@@ -390,7 +425,7 @@ class InventoryService implements InventoryServiceContract
      * @param  list<string>  $from
      * @param  callable(PublicationState):void|null  $mutator
      */
-    private function transition(Property|Project $model, string $to, User $actor, array $from, string $action, ?callable $mutator = null): void
+    private function transition(Property|Project $model, string $to, ?User $actor, array $from, string $action, ?callable $mutator = null): void
     {
         DB::transaction(function () use ($model, $to, $actor, $from, $action, $mutator): void {
             $model->publicationState()->firstOrCreate([], ['status' => PublicationState::DRAFT]);
@@ -496,8 +531,8 @@ class InventoryService implements InventoryServiceContract
      * @param  array<string, mixed>|null  $old
      * @param  array<string, mixed>|null  $new
      */
-    private function audit(User $actor, string $action, string $type, int $id, ?array $old, ?array $new): void
+    private function audit(?User $actor, string $action, string $type, int $id, ?array $old, ?array $new): void
     {
-        $this->auditLogger->record($actor->id, $action, $type, $id, $old, $new, request()->ip());
+        $this->auditLogger->record($actor?->id, $action, $type, $id, $old, $new, request()->ip());
     }
 }

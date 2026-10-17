@@ -17,6 +17,8 @@ class Property extends Model
 {
     use HasMedia, HasSlug, Publishable;
 
+    public const TITLE_MAX_LENGTH = 191;
+
     public const AVAILABILITIES = ['available', 'reserved', 'sold', 'rented', 'off-market'];
 
     public const AVAILABILITY_LABELS = [
@@ -168,6 +170,15 @@ class Property extends Model
     public function isUnavailable(): bool
     {
         return in_array($this->availability, self::UNAVAILABLE, true);
+    }
+
+    public function publicationDisplayStatus(): string
+    {
+        return match ($this->editorialStatus()) {
+            PublicationState::PUBLISHED => PublicationState::PUBLISHED,
+            PublicationState::UNPUBLISHED => PublicationState::UNPUBLISHED,
+            default => 'not_published',
+        };
     }
 
     public function isPriceOnRequest(): bool
