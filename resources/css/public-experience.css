@@ -11909,6 +11909,20 @@ body.uh-home .uh-latest-section .uh-section-head {
 body.uh-home .uh-latest-grid {
     column-gap: 1rem;
     row-gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.uh-home .uh-latest-grid.uh-latest-grid-count-1 {
+    grid-template-columns: minmax(0, min(100%, 34rem));
+    justify-content: center;
+}
+
+body.uh-home .uh-latest-grid.uh-latest-grid-count-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.uh-home .uh-latest-grid.uh-latest-grid-count-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (width >= 640px) {
@@ -11920,6 +11934,16 @@ body.uh-home .uh-latest-grid {
 @media (width >= 900px) {
     body.uh-home .uh-trending-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    body.uh-home .uh-latest-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (width >= 640px) and (width < 900px) {
+    body.uh-home .uh-latest-grid.uh-latest-grid-count-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

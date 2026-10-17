@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyMetricDaily;
 use App\Models\PropertyType;
+use App\Models\PublicationState;
 use App\Models\Setting;
 use App\Support\HomeSections;
 use App\Support\SeoMeta;
@@ -135,12 +136,16 @@ class HomeController extends Controller
     private function listingsFor(string $section, array $purposes, callable $scope, int $limit): Collection
     {
         return collect($purposes)->mapWithKeys(function (string $purpose) use ($section, $scope, $limit): array {
-            $cacheKey = 'home:'.$section.':'.$purpose.':'.$limit.($section === 'latest' ? ':unique-v3' : '');
+            $cacheKey = 'home:'.$section.':'.$purpose.':'.$limit.($section === 'latest' ? ':published-at-v4' : '');
             $ids = TaggedCache::remember(['homepage', 'properties'], $cacheKey, self::CACHE_SECONDS, function () use ($section, $scope, $purpose, $limit): array {
                 $query = $scope($this->liveListings(Property::query(), [$purpose]));
 
                 if ($section === 'latest') {
-                    $query->orderByDesc('id');
+                    $query->orderByDesc(PublicationState::query()
+                        ->select('published_at')
+                        ->whereColumn('publishable_id', 'properties.id')
+                        ->where('publishable_type', (new Property)->getMorphClass()))
+                        ->orderByDesc('properties.id');
                 } else {
                     $query->orderByRaw('display_priority is null, display_priority asc')->orderByDesc('id');
                 }

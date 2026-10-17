@@ -32,7 +32,7 @@
                             @click="prev()" aria-label="{{ __('Previous latest properties') }}">
                         <x-icon name="chevron-left" class="size-4" />
                     </button>
-                    <div class="uh-trending-grid uh-latest-grid uh-home-mobile-track" x-ref="scroller" tabindex="0"
+                    <div class="uh-trending-grid uh-latest-grid uh-latest-grid-count-{{ min($listings->count(), 4) }} uh-home-mobile-track" x-ref="scroller" tabindex="0"
                          role="list" aria-label="{{ __('Latest properties') }}">
                         @foreach($listings as $property)
                             <div class="uh-home-mobile-item" role="listitem">

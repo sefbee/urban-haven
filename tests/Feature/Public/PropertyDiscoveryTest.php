@@ -559,6 +559,51 @@ class PropertyDiscoveryTest extends TestCase
             ->assertDontSee('Latest Property Listings in Bangladesh');
     }
 
+    public function test_home_latest_section_renders_a_single_eligible_published_property(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $property = $this->publishProperty('Only eligible latest property');
+
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('uh-latest-grid-count-1', false)
+            ->assertSee('Only eligible latest property');
+        $this->assertSame(['Only eligible latest property'], $response->viewData('latestSale')->pluck('title')->all());
+    }
+
+    public function test_home_omits_latest_section_when_no_properties_are_eligible(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertDontSee('id="latest-title"', false);
+    }
+
+    public function test_home_latest_properties_are_ordered_by_publication_date_and_exclude_ineligible_listings(): void
+    {
+        $this->seed(RolesPermissionsSeeder::class);
+        $newest = $this->publishProperty('Newest by publication date');
+        $older = $this->publishProperty('Older by publication date');
+        $this->publishProperty('Unpublished property')->publicationState->update(['status' => PublicationState::UNPUBLISHED]);
+        $this->publishProperty('Unavailable property', ['availability' => 'sold']);
+        $this->publishProperty('Draft property', ['availability' => 'available'])->publicationState->update(['status' => PublicationState::DRAFT]);
+        $newest->publicationState->update(['published_at' => now()->subDay()]);
+        $older->publicationState->update(['published_at' => now()->subDays(3)]);
+
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertDontSee('Unpublished property')
+            ->assertDontSee('Unavailable property')
+            ->assertDontSee('Draft property');
+        $this->assertSame(
+            ['Newest by publication date', 'Older by publication date'],
+            $response->viewData('latestSale')->pluck('title')->all(),
+        );
+    }
+
     public function test_projects_are_not_part_of_the_public_site(): void
     {
         $this->seed(RolesPermissionsSeeder::class);
