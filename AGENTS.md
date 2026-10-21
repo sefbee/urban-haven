@@ -156,4 +156,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Rerun a test after each change to it.
 - Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
+## Cursor Cloud specific instructions
+
+- PHP 8.4, Composer, Node 22, and MySQL 8 are installed in the Cloud Agent environment. Boot starts MySQL, migrates and seeds `urban_haven`, and runs `php artisan dev` at `http://127.0.0.1:8000` (`SERVER_HOST=0.0.0.0`).
+- `.env.example` selects SQLite. Keep the environment `.env` on MySQL: `DB_USERNAME=ubuntu`, empty `DB_PASSWORD`, and `DB_SOCKET=/var/run/mysqld/mysqld.sock`. PHPUnit forces `DB_DATABASE=urban_haven_testing` and otherwise uses those `.env` values. Replacing `.env` with `.env.example` makes the suite fail to connect.
+- After MySQL starts, `/var/run/mysqld` is mode 700, so the `ubuntu` user cannot open the socket until that directory is mode 755. The boot script does this. The database user is `ubuntu`@`localhost` with `auth_socket`.
+- Local demo staff accounts are `owner@urbanhaven.test`, `editor@urbanhaven.test`, and `sales@urbanhaven.test`, password `password`.
+- `php artisan uh:health` is the readiness check. With `MAIL_MAILER=log`, the mail row fails because nothing is delivered; database, cache, storage, and queue should pass.
+- Run `php artisan test --compact`. A missing `urban_haven_testing` database or a socket permission error is an environment problem. Assertion failures and undefined routes in the current suite are application failures.
+
 </laravel-boost-guidelines>
